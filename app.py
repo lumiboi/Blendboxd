@@ -15,15 +15,14 @@ def index():
         common_movies = set(user1_movies) & set(user2_movies)
         
         # Uyum yüzdesini hesapla
-        total_movies = len(user1_movies) + len(user2_movies)
         common_count = len(common_movies)
-
         if common_count >= 20:
             compatibility_percentage = 70
         elif common_count >= 10:
             compatibility_percentage = 50
         else:
-            compatibility_percentage = (common_count / (total_movies / 2)) * 100 if total_movies > 0 else 0
+            total_movies = len(user1_movies) + len(user2_movies)
+            compatibility_percentage = (common_count / total_movies) * 100 if total_movies > 0 else 0
         
         return render_template("result.html", username1=username1, username2=username2, 
                                common_movies=common_movies, compatibility_percentage=compatibility_percentage)
