@@ -15,16 +15,15 @@ def index():
         common_movies = set(user1_movies) & set(user2_movies)
         
         # Uyum yüzdesini hesapla
+        total_movies = len(user1_movies) + len(user2_movies)
         common_count = len(common_movies)
 
         if common_count >= 20:
-            compatibility_percentage = 70.0
+            compatibility_percentage = 70
         elif common_count >= 10:
-            compatibility_percentage = 50.0
-        elif common_count > 0:
-            compatibility_percentage = (common_count / 10) * 50  # 1-9 arası için
+            compatibility_percentage = 50
         else:
-            compatibility_percentage = 0
+            compatibility_percentage = (common_count / (total_movies / 2)) * 100 if total_movies > 0 else 0
         
         return render_template("result.html", username1=username1, username2=username2, 
                                common_movies=common_movies, compatibility_percentage=compatibility_percentage)
@@ -36,6 +35,7 @@ def get_watched_movies(username):
     def get_movies(source):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
+            movie_link = movie.find("div")["data-target-link"]
             movie_title = movie.find("img")["alt"]  # Film ismini al
             watched_movies.append(movie_title)  # Sadece film ismini ekle
 
