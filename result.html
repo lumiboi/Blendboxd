@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonuçlar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0a0a0a;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .container {
+            background-color: #14181c;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+            width: 350px;
+            text-align: center;
+            color: white;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #00b7a4;
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #ff8000;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        li {
+            background: #1e272e;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 6px;
+            color: #fff;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #00b7a4;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ username1 }} ve {{ username2 }} için Ortak İzleme Listesi</h1>
+        <h2>Ortak Filmler:</h2>
+        <ul>
+            {% if shared_movies %}
+                {% for movie in shared_movies %}
+                    <li>{{ movie }}</li>
+                {% endfor %}
+            {% else %}
+                <li>Hiç ortak film bulunamadı.</li>
+            {% endif %}
+        </ul>
+        <a href="/">Yeni kullanıcı adları gir</a>
+    </div>
+    <footer>
+        <p>© 2024 Mert Ergün</p>
+    </footer>
+</body>
+</html>
