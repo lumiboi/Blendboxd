@@ -17,11 +17,7 @@ def index():
         common_movies = [movie for movie in user1_movies if movie in user2_movies]
         
         # Uyum yüzdesini hesapla
-        common_count = len(common_movies)
-        if common_count > 0:
-            compatibility_percentage = calculate_compatibility(common_count)
-        else:
-            compatibility_percentage = 0
+        compatibility_percentage = calculate_compatibility(len(common_movies))
 
         return render_template("result.html", username1=username1, username2=username2, 
                                common_movies=common_movies, compatibility_percentage=compatibility_percentage)
@@ -33,10 +29,10 @@ def get_watched_movies(username):
     def get_movies(source):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
-            movie_link = movie.find("div")["data-target-link"]
             movie_title = movie.find("img")["alt"]  # Film ismini al
-            movie_cover = movie.find("img")["src"]  # Kapak fotoğrafını al
-            watched_movies.append({"title": movie_title, "cover": movie_cover})  # Film ismini ve kapak fotoğrafını ekle
+            movie_cover = movie.find("img")["data-src"]  # Kapak fotoğrafını al (orijinalde data-src'den gelebilir)
+            full_movie_cover = "https://letterboxd.com" + movie_cover if movie_cover.startswith("/") else movie_cover
+            watched_movies.append({"title": movie_title, "cover": full_movie_cover})  # Film ismini ve kapak fotoğrafını ekle
 
     def connect_page():
         page_num = 1
@@ -54,14 +50,20 @@ def get_watched_movies(username):
     connect_page()
     return watched_movies
 
-def calculate_compatibility(common_count):
-    # Uyum oranını hesaplama mantığı
-    if common_count < 10:
-        return (common_count / 10) * 100
-    elif common_count < 20:
-        return 70 + ((common_count - 10) / 10) * 30  # 10 ile 20 arasında %70 ile %100 arası
+def calculate_compatibility(common_movie_count):
+    # Ortak film sayısına göre uyum oranı hesapla
+    if common_movie_count == 0:
+        return 0
+    elif common_movie_count <= 5:
+        return 0
     else:
-        return 100  # 20 veya daha fazla ortak film varsa %100 uyum
+        # %50'den başlayarak %50'nin üzerine ekle
+        base_percentage = 50
+        additional_percentage = (common_movie_count - 5) * 5  # Ortak film başına %5 ekleyelim
+        final_percentage = base_percentage + additional_percentage
+
+        # Uyum oranını %100 ile sınırla
+        return min(final_percentage, 100)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
