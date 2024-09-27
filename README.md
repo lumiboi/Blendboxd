@@ -1,1 +1,1 @@
-# blendboxd
+# letterboxd-follower-check

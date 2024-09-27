@@ -5,7 +5,6 @@ import os
 
 app = Flask(__name__)
 
-# Kullanıcıdan iki username alacağız.
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -14,7 +13,21 @@ def index():
         user1_movies = get_watched_movies(username1)
         user2_movies = get_watched_movies(username2)
         common_movies = set(user1_movies) & set(user2_movies)
-        return render_template("result.html", username1=username1, username2=username2, common_movies=common_movies)
+        
+        # Uyum yüzdesini hesapla
+        common_count = len(common_movies)
+
+        if common_count >= 20:
+            compatibility_percentage = 70.0
+        elif common_count >= 10:
+            compatibility_percentage = 50.0
+        elif common_count > 0:
+            compatibility_percentage = (common_count / 10) * 50  # 1-9 arası için
+        else:
+            compatibility_percentage = 0
+        
+        return render_template("result.html", username1=username1, username2=username2, 
+                               common_movies=common_movies, compatibility_percentage=compatibility_percentage)
     return render_template("index.html")
 
 def get_watched_movies(username):
@@ -23,7 +36,8 @@ def get_watched_movies(username):
     def get_movies(source):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
-            watched_movies.append(movie.find("div")["data-target-link"])
+            movie_title = movie.find("img")["alt"]  # Film ismini al
+            watched_movies.append(movie_title)  # Sadece film ismini ekle
 
     def connect_page():
         page_num = 1

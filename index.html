@@ -3,117 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Letterboxd Ortak İzleme Listesi</title>
+    <title>Blendboxd</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: #0a0a0a;
+            color: #fff;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: #fff;
+            position: relative;
         }
         .container {
             background-color: #14181c;
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 350px;
             text-align: center;
-            color: white;
+            width: 350px;
         }
         h1 {
-            font-size: 24px;
             margin-bottom: 20px;
-            color: #00b7a4; /* Letterboxd yeşil */
+            color: #00b7a4;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+        input {
+            padding: 10px;
+            border-radius: 6px;
             border: none;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
-        }
-        input[type="text"]::placeholder {
-            color: #aaa;
+            margin: 5px 0;
+            width: 100%;
         }
         button {
-            width: 100%;
-            padding: 12px;
-            background: #ff8000; /* Letterboxd turuncusu */
+            padding: 10px;
+            border-radius: 6px;
             border: none;
-            border-radius: 8px;
+            background-color: #00b7a4;
             color: white;
-            font-size: 16px;
             cursor: pointer;
-            transition: background 0.3s;
+            width: 100%;
         }
         button:hover {
-            background: #ff5500;
+            background-color: #008a7a;
         }
-        .language-select {
-            margin-bottom: 20px;
-        }
-        select {
-            background-color: rgba(255, 255, 255, 0.1);
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
             color: #fff;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            font-size: 14px;
+            text-align: center;
+            z-index: 10;
         }
-        footer {
-            font-size: 12px;
-            color: #777;
-            margin-top: 20px;
+        .loading .spinner {
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="language-select">
-            <label for="language">Dil Seçin: / Select Language: </label>
-            <select id="language" onchange="changeLanguage()">
-                <option value="tr">Türkçe</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-        <h1 data-tr="İki Kullanıcı Adı Girin" data-en="Enter Two Letterboxd Usernames"></h1>
-        <form method="POST" onsubmit="showLoading()">
-            <input type="text" name="username1" placeholder="1. Kullanıcı Adı" required>
-            <input type="text" name="username2" placeholder="2. Kullanıcı Adı" required>
-            <button type="submit"><i class="fas fa-paper-plane"></i> <span data-tr="Gönder" data-en="Submit"></span></button>
+        <h1>Blendboxd</h1>
+        <h3>Blender'ın çalışması ve watchlist oluşturulması için iki kullanıcının bilgilerini girelim...</h3>
+        <form id="userForm" method="POST">
+            <input type="text" name="username1" placeholder="Kullanıcı Adı 1" required>
+            <input type="text" name="username2" placeholder="Kullanıcı Adı 2" required>
+            <button type="submit">Blenderla!</button>
         </form>
     </div>
-    <footer>
-        <p>© 2024 Mert Ergün</p>
-    </footer>
     
+    <div class="loading" id="loading">
+        <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+        <p>Yükleniyor...</p>
+    </div>
+
     <script>
-        function showLoading() {
-            // Yükleme göstergesi eklenebilir
-        }
+        const form = document.getElementById('userForm');
+        const loading = document.getElementById('loading');
 
-        function changeLanguage() {
-            const lang = document.getElementById("language").value;
-            const elements = document.querySelectorAll('[data-tr], [data-en]');
-            elements.forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
-            });
-        }
-
-        // Sayfa yüklendiğinde varsayılan dili ayarla
-        window.onload = function() {
-            changeLanguage();
-        };
+        form.addEventListener('submit', function() {
+            loading.style.display = 'block'; // Yükleme ekranını göster
+        });
     </script>
 </body>
 </html>

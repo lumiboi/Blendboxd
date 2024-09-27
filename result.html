@@ -16,6 +16,7 @@
             align-items: center;
             height: 100vh;
             color: #fff;
+            overflow: hidden; /* Kaydırma çubuğunu gizler */
         }
         .container {
             background-color: #14181c;
@@ -25,6 +26,8 @@
             width: 350px;
             text-align: center;
             color: white;
+            overflow-y: auto; /* Dikey kaydırma ekler */
+            max-height: 80vh; /* Maksimum yükseklik */
         }
         h1 {
             font-size: 24px;
@@ -63,21 +66,29 @@
             color: #777;
             margin-top: 20px;
         }
+        .compatibility {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #ff8000;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>{{ username1 }} ve {{ username2 }} için Ortak İzleme Listesi</h1>
-        <h2>Ortak Filmler:</h2>
+        <h1>{{ username1 }} ve {{ username2 }} için Blender Sonuçları</h1>
+        <h2>İşte BlendWatchlist:</h2>
         <ul>
-            {% if shared_movies %}
-                {% for movie in shared_movies %}
+            {% if common_movies %}
+                {% for movie in common_movies %}
                     <li>{{ movie }}</li>
                 {% endfor %}
             {% else %}
                 <li>Hiç ortak film bulunamadı.</li>
             {% endif %}
         </ul>
+        <div class="compatibility">
+            Uyum Oranı: {{ compatibility_percentage | round(2) }}%
+        </div>
         <a href="/">Yeni kullanıcı adları gir</a>
     </div>
     <footer>
