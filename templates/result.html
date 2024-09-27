@@ -50,6 +50,13 @@
             padding: 10px;
             border-radius: 6px;
             color: #fff;
+            display: flex; /* Flexbox kullanarak yan yana dizme */
+            align-items: center; /* Dikey olarak ortala */
+        }
+        img {
+            width: 30px; /* Kapak fotoğrafı boyutu */
+            height: auto; /* Orantılı yükseklik */
+            margin-right: 10px; /* Resim ile metin arasında boşluk */
         }
         a {
             display: inline-block;
@@ -75,12 +82,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>{{ username1 }} ve {{ username2 }} için Blender Sonuçları</h1>
-        <h2>İşte BlendWatchlist:</h2>
+        <h1>{{ username1 }} ve {{ username2 }} için Ortak İzleme Listesi</h1>
+        <h2>Ortak Filmler:</h2>
         <ul>
             {% if common_movies %}
                 {% for movie in common_movies %}
-                    <li>{{ movie }}</li>
+                    <li>
+                        <img src="{{ movie.cover }}" alt="{{ movie.title }} Kapak Fotoğrafı">
+                        {{ movie.title }}
+                    </li>
                 {% endfor %}
             {% else %}
                 <li>Hiç ortak film bulunamadı.</li>
