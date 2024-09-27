@@ -12,22 +12,17 @@ def index():
         username2 = request.form["username2"]
         user1_movies = get_watched_movies(username1)
         user2_movies = get_watched_movies(username2)
-        common_movies = set(user1_movies) & set(user2_movies)
+        
+        # Ortak filmleri belirle
+        common_movies = [movie for movie in user1_movies if movie in user2_movies]
         
         # Uyum yüzdesini hesapla
         common_count = len(common_movies)
-        total_movies = len(user1_movies) + len(user2_movies)
-
-        # Uyum oranını hesapla
-        if common_count >= 20:
-            compatibility_percentage = 70
-        elif common_count >= 10:
-            compatibility_percentage = 50
-        elif common_count == 0:
-            compatibility_percentage = 0
+        if common_count > 0:
+            compatibility_percentage = calculate_compatibility(common_count)
         else:
-            compatibility_percentage = (common_count / total_movies) * 100 if total_movies > 0 else 0
-        
+            compatibility_percentage = 0
+
         return render_template("result.html", username1=username1, username2=username2, 
                                common_movies=common_movies, compatibility_percentage=compatibility_percentage)
     return render_template("index.html")
@@ -40,7 +35,8 @@ def get_watched_movies(username):
         for movie in movies:
             movie_link = movie.find("div")["data-target-link"]
             movie_title = movie.find("img")["alt"]  # Film ismini al
-            watched_movies.append(movie_title)  # Sadece film ismini ekle
+            movie_cover = movie.find("img")["src"]  # Kapak fotoğrafını al
+            watched_movies.append({"title": movie_title, "cover": movie_cover})  # Film ismini ve kapak fotoğrafını ekle
 
     def connect_page():
         page_num = 1
@@ -57,6 +53,15 @@ def get_watched_movies(username):
 
     connect_page()
     return watched_movies
+
+def calculate_compatibility(common_count):
+    # Uyum oranını hesaplama mantığı
+    if common_count < 10:
+        return (common_count / 10) * 100
+    elif common_count < 20:
+        return 70 + ((common_count - 10) / 10) * 30  # 10 ile 20 arasında %70 ile %100 arası
+    else:
+        return 100  # 20 veya daha fazla ortak film varsa %100 uyum
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
