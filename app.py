@@ -30,7 +30,7 @@ def get_watched_movies(username):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
             movie_title = movie.find("img")["alt"]  # Film ismini al
-            watched_movies.append({"title": movie_title})  # Sadece film ismini ekle
+            watched_movies.append(movie_title)  # Sadece film ismini ekle
 
     def connect_page():
         page_num = 1
