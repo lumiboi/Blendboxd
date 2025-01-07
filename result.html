@@ -23,32 +23,27 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Videoyu arka plana gönderir */
         }
 
         .background-video iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120vw; /* Daha geniş tutularak ekranı kaplar */
-            height: 120vh; /* Daha yüksek tutularak ekranı kaplar */
-            transform: translate(-50%, -50%);
-            pointer-events: none; /* Tıklamaları engeller */
+            width: 100%;
+            height: 100%;
+            border: none;
         }
 
         .container {
-            background-color: rgba(20, 24, 28, 0.9); /* Arka planı opak yapar */
+            background-color: rgba(20, 24, 28, 0.9); /* Arka planı yarı opak yapar */
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
             width: 350px;
             text-align: center;
             color: white;
-            overflow-y: auto;
-            max-height: 80vh;
+            overflow-y: auto; /* Dikey kaydırma ekler */
+            max-height: 80vh; /* Maksimum yükseklik */
         }
 
         h1 {
@@ -103,17 +98,17 @@
     </style>
 </head>
 <body>
-    <!-- Arka planda video -->
+    <!-- Vimeo Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ" 
+            src="https://player.vimeo.com/video/676247342?background=1&autoplay=1&loop=1" 
             frameborder="0" 
-            allow="autoplay; loop; encrypted-media" 
+            allow="autoplay; fullscreen" 
             allowfullscreen>
         </iframe>
     </div>
 
-    <!-- İçerik -->
+    <!-- Ana İçerik -->
     <div class="container">
         <h1>{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
