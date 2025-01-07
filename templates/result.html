@@ -158,16 +158,13 @@
         const volumeSlider = document.getElementById('volumeRange');
         const iframe = document.getElementById('videoIframe');
 
+        // Ses seviyesini ayarlamak için video iframe'in sesini değiştirmek
         volumeSlider.addEventListener('input', function () {
             const volume = volumeSlider.value / 100; // Ses seviyesini 0-1 arasında ayarla
-            iframe.contentWindow.postMessage(
-                JSON.stringify({
-                    event: 'command',
-                    func: 'setVolume',
-                    args: [volume]
-                }),
-                '*'
-            );
+            const video = iframe.contentWindow.document.querySelector('video');
+            if (video) {
+                video.volume = volume;
+            }
         });
     </script>
 </body>
