@@ -146,42 +146,5 @@
     <footer>
         <p>© 2024 Mert Ergün</p>
     </footer>
-
-    <!-- Ses Kontrol Çubuğu -->
-    <div class="volume-control">
-        <label for="volumeRange">Ses:</label>
-        <input id="volumeRange" type="range" min="0" max="100" value="100">
-    </div>
-
-    <script>
-        // Ses kontrol çubuğu için slider
-        const volumeSlider = document.getElementById('volumeRange');
-
-        // Tüm video ve audio öğelerini seç
-        const mediaElements = document.querySelectorAll('video, audio, iframe');
-
-        // Ses seviyesini kontrol etmek için
-        volumeSlider.addEventListener('input', function () {
-            const volume = volumeSlider.value / 100; 
-
-            
-            mediaElements.forEach(media => {
-                if (media.tagName === 'IFRAME') {
-                   
-                    const iframe = media.contentWindow;
-                    if (iframe && iframe.document) {
-                        const iframeDocument = iframe.document;
-                        const iframeAudio = iframeDocument.querySelector('audio');
-                        if (iframeAudio) {
-                            iframeAudio.volume = volume;
-                        }
-                    }
-                } else {
-                   
-                    media.volume = volume;
-                }
-            });
-        });
-    </script>
 </body>
 </html>
