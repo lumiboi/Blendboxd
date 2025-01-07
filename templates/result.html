@@ -118,18 +118,11 @@
     <!-- Dailymotion Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            id="videoIframe"
-            src="https://geo.dailymotion.com/player.html?loop=true&autoplay=true&video=x82hnx2" 
+            src="https://geo.dailymotion.com/player.html?loop=true&video=x82hnx2" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
         </iframe>
-    </div>
-
-    <!-- Ses Kontrol Çubuğu -->
-    <div class="volume-control">
-        <label for="volumeRange">Ses:</label>
-        <input id="volumeRange" type="range" min="0" max="100" value="100">
     </div>
 
     <!-- Ana İçerik -->
@@ -154,17 +147,40 @@
         <p>© 2024 Mert Ergün</p>
     </footer>
 
-    <script>
-        const volumeSlider = document.getElementById('volumeRange');
-        const iframe = document.getElementById('videoIframe');
+    <!-- Ses Kontrol Çubuğu -->
+    <div class="volume-control">
+        <label for="volumeRange">Ses:</label>
+        <input id="volumeRange" type="range" min="0" max="100" value="100">
+    </div>
 
-        // Ses seviyesini ayarlamak için video iframe'in sesini değiştirmek
+    <script>
+        // Ses kontrol çubuğu için slider
+        const volumeSlider = document.getElementById('volumeRange');
+
+        // Tüm video ve audio öğelerini seç
+        const mediaElements = document.querySelectorAll('video, audio, iframe');
+
+        // Ses seviyesini kontrol etmek için
         volumeSlider.addEventListener('input', function () {
-            const volume = volumeSlider.value / 100; // Ses seviyesini 0-1 arasında ayarla
-            const video = iframe.contentWindow.document.querySelector('video');
-            if (video) {
-                video.volume = volume;
-            }
+            const volume = volumeSlider.value / 100; 
+
+            
+            mediaElements.forEach(media => {
+                if (media.tagName === 'IFRAME') {
+                   
+                    const iframe = media.contentWindow;
+                    if (iframe && iframe.document) {
+                        const iframeDocument = iframe.document;
+                        const iframeAudio = iframeDocument.querySelector('audio');
+                        if (iframeAudio) {
+                            iframeAudio.volume = volume;
+                        }
+                    }
+                } else {
+                   
+                    media.volume = volume;
+                }
+            });
         });
     </script>
 </body>
