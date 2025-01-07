@@ -16,34 +16,49 @@
             align-items: center;
             height: 100vh;
             color: #fff;
-            overflow: hidden; /* Kaydırma çubuğunu gizler */
+            overflow: hidden;
         }
+
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none; /* Tıklamaları engelle */
+        }
+
         .container {
-            background-color: #14181c;
+            background-color: rgba(20, 24, 28, 0.9); /* Arka planı biraz opak yap */
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
             width: 350px;
             text-align: center;
             color: white;
-            overflow-y: auto; /* Dikey kaydırma ekler */
-            max-height: 80vh; /* Maksimum yükseklik */
+            overflow-y: auto;
+            max-height: 80vh;
         }
+
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
             color: #00b7a4;
         }
+
         h2 {
             margin-bottom: 10px;
             color: #ff8000;
         }
+
         ul {
             list-style: none;
             padding: 0;
             margin: 0;
             text-align: left;
         }
+
         li {
             background: #1e272e;
             margin: 5px 0;
@@ -51,6 +66,7 @@
             border-radius: 6px;
             color: #fff;
         }
+
         a {
             display: inline-block;
             margin-top: 20px;
@@ -58,14 +74,17 @@
             color: #00b7a4;
             font-weight: bold;
         }
+
         a:hover {
             text-decoration: underline;
         }
+
         footer {
             font-size: 12px;
             color: #777;
             margin-top: 20px;
         }
+
         .compatibility {
             margin: 20px 0;
             font-size: 18px;
@@ -74,6 +93,18 @@
     </style>
 </head>
 <body>
+    <!-- Arka planda video -->
+    <div class="background-video">
+        <iframe 
+            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ" 
+            frameborder="0" 
+            allow="autoplay; loop; encrypted-media" 
+            allowfullscreen 
+            style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+        </iframe>
+    </div>
+
+    <!-- İçerik -->
     <div class="container">
         <h1>{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
