@@ -23,14 +23,24 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-video iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120vw; /* Daha geniş tutularak ekranı kaplar */
+            height: 120vh; /* Daha yüksek tutularak ekranı kaplar */
+            transform: translate(-50%, -50%);
             pointer-events: none; /* Tıklamaları engeller */
         }
 
         .container {
-            background-color: rgba(20, 24, 28, 0.9); /* Arka planı biraz opak yapar */
+            background-color: rgba(20, 24, 28, 0.9); /* Arka planı opak yapar */
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
@@ -99,8 +109,7 @@
             src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&loop=1&playlist=dQw4w9WgXcQ" 
             frameborder="0" 
             allow="autoplay; loop; encrypted-media" 
-            allowfullscreen 
-            style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
+            allowfullscreen>
         </iframe>
     </div>
 
