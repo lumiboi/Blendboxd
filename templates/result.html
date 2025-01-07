@@ -51,6 +51,68 @@
             margin-left: 10px;
             width: 150px;
         }
+
+        .container {
+            background-color: rgba(20, 24, 28, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+            width: 350px;
+            text-align: center;
+            color: white;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #00b7a4;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #ff8000;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        li {
+            background: #1e272e;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 6px;
+            color: #fff;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #00b7a4;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            font-size: 12px;
+            color: #777;
+            margin-top: 20px;
+        }
+
+        .compatibility {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #ff8000;
+        }
     </style>
 </head>
 <body>
@@ -72,14 +134,16 @@
     </div>
 
     <script>
-        // Ses kontrol çubuğu
         const volumeSlider = document.getElementById('volumeRange');
-        const videoIframe = document.getElementById('videoIframe');
-        const videoPlayer = videoIframe.contentWindow;
+        const iframe = document.getElementById('videoIframe');
 
+        // Dailymotion API'yi kullanarak ses seviyesini kontrol et
         volumeSlider.addEventListener('input', function () {
-            const volume = volumeSlider.value / 100;
-            videoPlayer.postMessage({ event: 'volume', value: volume }, '*');
+            const volume = volumeSlider.value / 100; // Ses seviyesini 0-1 arasında ayarla
+            iframe.contentWindow.postMessage({
+                command: 'volume',
+                value: volume
+            }, '*');
         });
     </script>
 </body>
