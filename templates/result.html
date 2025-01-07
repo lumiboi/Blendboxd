@@ -25,7 +25,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* Videoyu arka plana gönderir */
+            z-index: -1;
         }
 
         .background-video iframe {
@@ -34,66 +34,22 @@
             border: none;
         }
 
-        .container {
-            background-color: rgba(20, 24, 28, 0.9); /* Arka planı yarı opak yapar */
-            padding: 40px;
+        .volume-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 12px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 350px;
-            text-align: center;
-            color: white;
-            overflow-y: auto; /* Dikey kaydırma ekler */
-            max-height: 80vh; /* Maksimum yükseklik */
-        }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #00b7a4;
-        }
-
-        h2 {
-            margin-bottom: 10px;
-            color: #ff8000;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            text-align: left;
-        }
-
-        li {
-            background: #1e272e;
-            margin: 5px 0;
             padding: 10px;
-            border-radius: 6px;
-            color: #fff;
+            z-index: 9999;
+            color: white;
         }
 
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            color: #00b7a4;
-            font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        footer {
-            font-size: 12px;
-            color: #777;
-            margin-top: 20px;
-        }
-
-        .compatibility {
-            margin: 20px 0;
-            font-size: 18px;
-            color: #ff8000;
+        .volume-control input[type="range"] {
+            margin-left: 10px;
+            width: 150px;
         }
     </style>
 </head>
@@ -101,6 +57,7 @@
     <!-- Dailymotion Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
+            id="videoIframe"
             src="https://geo.dailymotion.com/player.html?loop=true&video=x82hnx2" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
@@ -108,26 +65,22 @@
         </iframe>
     </div>
 
-    <!-- Ana İçerik -->
-    <div class="container">
-        <h1>{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
-        <h2>WATCHBOX:</h2>
-        <ul>
-            {% if common_movies %}
-                {% for movie in common_movies %}
-                    <li>{{ movie.title }}</li>
-                {% endfor %}
-            {% else %}
-                <li>Hiç ortak film bulunamadı.</li>
-            {% endif %}
-        </ul>
-        <div class="compatibility">
-            Uyum Oranı: {{ compatibility_percentage | round(2) }}%
-        </div>
-        <a href="/">Yeni kullanıcı adları gir</a>
+    <!-- Ses Kontrol Çubuğu -->
+    <div class="volume-control">
+        <label for="volumeRange">Ses:</label>
+        <input id="volumeRange" type="range" min="0" max="100" value="100">
     </div>
-    <footer>
-        <p>© 2024 Mert Ergün</p>
-    </footer>
+
+    <script>
+        // Ses kontrol çubuğu
+        const volumeSlider = document.getElementById('volumeRange');
+        const videoIframe = document.getElementById('videoIframe');
+        const videoPlayer = videoIframe.contentWindow;
+
+        volumeSlider.addEventListener('input', function () {
+            const volume = volumeSlider.value / 100;
+            videoPlayer.postMessage({ event: 'volume', value: volume }, '*');
+        });
+    </script>
 </body>
 </html>
