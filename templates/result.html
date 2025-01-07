@@ -25,7 +25,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: -1; /* Videoyu arka plana gönderir */
         }
 
         .background-video iframe {
@@ -34,34 +34,16 @@
             border: none;
         }
 
-        .volume-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 12px;
-            padding: 10px;
-            z-index: 9999;
-            color: white;
-        }
-
-        .volume-control input[type="range"] {
-            margin-left: 10px;
-            width: 150px;
-        }
-
         .container {
-            background-color: rgba(20, 24, 28, 0.9);
+            background-color: rgba(20, 24, 28, 0.9); /* Arka planı yarı opak yapar */
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
             width: 350px;
             text-align: center;
             color: white;
-            overflow-y: auto;
-            max-height: 80vh;
+            overflow-y: auto; /* Dikey kaydırma ekler */
+            max-height: 80vh; /* Maksimum yükseklik */
         }
 
         h1 {
@@ -119,7 +101,6 @@
     <!-- Dailymotion Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            id="videoIframe"
             src="https://geo.dailymotion.com/player.html?loop=true&video=x82hnx2" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
@@ -127,24 +108,26 @@
         </iframe>
     </div>
 
-    <!-- Ses Kontrol Çubuğu -->
-    <div class="volume-control">
-        <label for="volumeRange">Ses:</label>
-        <input id="volumeRange" type="range" min="0" max="100" value="100">
+    <!-- Ana İçerik -->
+    <div class="container">
+        <h1>{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
+        <h2>WATCHBOX:</h2>
+        <ul>
+            {% if common_movies %}
+                {% for movie in common_movies %}
+                    <li>{{ movie.title }}</li>
+                {% endfor %}
+            {% else %}
+                <li>Hiç ortak film bulunamadı.</li>
+            {% endif %}
+        </ul>
+        <div class="compatibility">
+            Uyum Oranı: {{ compatibility_percentage | round(2) }}%
+        </div>
+        <a href="/">Yeni kullanıcı adları gir</a>
     </div>
-
-    <script>
-        const volumeSlider = document.getElementById('volumeRange');
-        const iframe = document.getElementById('videoIframe');
-
-        // Dailymotion API'yi kullanarak ses seviyesini kontrol et
-        volumeSlider.addEventListener('input', function () {
-            const volume = volumeSlider.value / 100; // Ses seviyesini 0-1 arasında ayarla
-            iframe.contentWindow.postMessage({
-                command: 'volume',
-                value: volume
-            }, '*');
-        });
-    </script>
+    <footer>
+        <p>© 2024 Mert Ergün</p>
+    </footer>
 </body>
 </html>
