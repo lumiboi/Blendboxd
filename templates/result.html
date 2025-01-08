@@ -143,87 +143,6 @@
     </div>
 
     <script>
-        document.getElementById('downloadBtn').addEventListener('click', function () {
-            const username1 = "{{ username1 }}";
-            const username2 = "{{ username2 }}";
-            const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
-            const compatibility = "{{ compatibility_percentage | round(2) }}%";
-
-            // Dinamik Canvas Boyutu
-            const canvasWidth = 1920;
-            const canvasHeight = 1080;
-            const itemsPerColumn = 5; // 5 film her sütunda
-            const columnWidth = 350; // Geniş sütun
-            const rowHeight = 40; // Yüksek satır
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-
-            // Arka Plan - Letterboxd Temalı
-            const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#121212'); // Siyah gri
-            gradient.addColorStop(0.5, '#333333'); // Koyu gri
-            gradient.addColorStop(1, '#121212'); // Siyah gri
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            // Başlık - Gradyan Renk
-            const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            titleGradient.addColorStop(0, '#ff8000');
-            titleGradient.addColorStop(0.5, '#00e054');
-            titleGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = titleGradient;
-            ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${username1} ve ${username2} için 100 filmlik Watchbox!`, canvasWidth / 2, 80);
-
-            // Filmler - Yeni Gradyan Renk
-            const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            movieGradient.addColorStop(0, '#40bcf4');
-            movieGradient.addColorStop(0.5, '#ff8000');
-            movieGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = movieGradient;
-            ctx.font = '22px "Helvetica Neue", sans-serif';
-            let x = 100;
-            let y = 120;
-
-            movies.slice(0, 100).forEach((movie, index) => {
-                if (y + rowHeight > canvasHeight - 150) {
-                    x += columnWidth;
-                    y = 120;
-                }
-                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Centered text
-                y += rowHeight;
-            });
-
-            // Uyum Oranı - Yeni Gradyan Renk
-            const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            compatibilityGradient.addColorStop(0, '#40bcf4');
-            compatibilityGradient.addColorStop(0.5, '#ff8000');
-            compatibilityGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = compatibilityGradient;
-            ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
-
-            // "Siz de kendi Watchbox'unuzu oluşturmak için blendboxd.up.railway.app'i ziyaret edebilirsiniz!" yazısı
-            const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
-            linkGradient.addColorStop(0, '#ff8000');
-            linkGradient.addColorStop(0.5, '#00e054');
-            linkGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = linkGradient;
-            ctx.font = 'italic 24px "Helvetica Neue", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Siz de kendi Watchbox\'unuzu oluşturmak için blendboxd.up.railway.app\'i ziyaret edebilirsiniz!', canvasWidth / 2, canvasHeight - 20);
-
-            // Görseli İndirme
-            const link = document.createElement('a');
-            link.download = 'watchbox.jpg';
-            link.href = canvas.toDataURL('image/jpeg');
-            link.click();
-        });
-
         document.getElementById('downloadInstagramStoryBtn').addEventListener('click', function () {
             const username1 = "{{ username1 }}";
             const username2 = "{{ username2 }}";
@@ -267,7 +186,7 @@
             movieGradient.addColorStop(1, '#00e054');
             ctx.fillStyle = movieGradient;
             ctx.font = '22px "Helvetica Neue", sans-serif';
-            let x = 100;
+            let x = (canvasWidth - columnWidth) / 2; // Ortalamak için bu değeri kullanıyoruz
             let y = 120;
 
             movies.slice(0, 50).forEach((movie, index) => {
