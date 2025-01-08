@@ -162,11 +162,12 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Başlık
-            linkGradient.addColorStop(0, '#ff8000');
-            linkGradient.addColorStop(0.5, '#00e054');
-            linkGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = linkGradient;
+            // Başlık - Gradyan Renk
+            const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+            titleGradient.addColorStop(0, '#ff8000');
+            titleGradient.addColorStop(0.5, '#00e054');
+            titleGradient.addColorStop(1, '#40bcf4');
+            ctx.fillStyle = titleGradient;
             ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için 100 filmlik Watchbox!`, canvasWidth / 2, 80);
