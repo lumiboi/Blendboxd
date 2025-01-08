@@ -22,12 +22,14 @@
             width: 100%;
             height: 100%;
             z-index: -1;
+            pointer-events: none; /* Video etkileşimi engelleniyor */
         }
 
         .background-video iframe {
             width: 100%;
             height: 100%;
             border: none;
+            object-fit: cover; /* Sayfaya tamamen uyacak şekilde video ayarlandı */
         }
 
         .container {
@@ -35,7 +37,8 @@
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 350px;
+            width: 90%; /* Sayfaya sığacak şekilde genişlik */
+            max-width: 1200px; /* Maksimum genişlik */
             text-align: center;
             color: white;
             margin: 20px auto;
@@ -44,9 +47,10 @@
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 36px;
             margin-bottom: 20px;
             color: #00b7a4;
+            line-height: 1.2;
         }
 
         h2 {
@@ -58,14 +62,17 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            max-height: 60vh;
+            overflow-y: auto;
         }
 
         li {
             background: #1e272e;
             margin: 5px 0;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             color: #fff;
+            font-size: 18px;
         }
 
         .button {
@@ -94,13 +101,19 @@
         .link:hover {
             text-decoration: underline;
         }
+
+        #compatibility {
+            font-size: 22px;
+            margin-top: 30px;
+            color: #ffcc00; /* Eski renk */
+        }
     </style>
 </head>
 <body>
     <!-- Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            src="https://streamable.com/e/1yz1ct?autoplay=1" 
+            src="https://streamable.com/e/e4v7f0?autoplay=1&mute=1&loop=1" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
@@ -121,7 +134,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
+        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
     </div>
 
@@ -135,8 +148,8 @@
             // Dinamik Canvas Boyutu
             const canvasWidth = 1920;
             const canvasHeight = 1080;
-            const itemsPerColumn = 10; // 10 film her sütunda
-            const columnWidth = 180; // Sütun genişliği
+            const itemsPerColumn = 8; // 8 film her sütunda
+            const columnWidth = 220; // Sütun genişliği
             const rowHeight = 40; // Satır yüksekliği
 
             const canvas = document.createElement('canvas');
