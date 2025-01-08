@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: hidden;
+            overflow: auto; /* Overflow ayarını değiştirdim */
         }
 
         .background-video {
@@ -39,6 +39,8 @@
             text-align: center;
             color: white;
             margin: 20px auto;
+            max-height: 80vh; /* Yüksekliği sınırladım */
+            overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu ekler */
         }
 
         h1 {
