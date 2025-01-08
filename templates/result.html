@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: auto; /* Overflow ayarını değiştirdim */
+            overflow: auto;
         }
 
         .background-video {
@@ -39,8 +39,8 @@
             text-align: center;
             color: white;
             margin: 20px auto;
-            max-height: 80vh; /* Yüksekliği sınırladım */
-            overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu ekler */
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         h1 {
@@ -132,13 +132,9 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Dinamik Canvas Boyutu
-            const itemsPerColumn = 20;
-            const columnWidth = 250;
-            const rowHeight = 30;
-            const columnCount = Math.ceil(movies.length / itemsPerColumn);
-            const canvasWidth = columnWidth * columnCount;
-            const canvasHeight = Math.max(300, rowHeight * Math.min(itemsPerColumn, movies.length) + 150);
+            // 1920x1080 Boyutlarında Canvas
+            const canvasWidth = 1920;
+            const canvasHeight = 1080;
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -156,27 +152,28 @@
 
             // Başlık
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px Helvetica';
-            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 20, 40);
+            ctx.font = 'bold 48px Helvetica';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${username1} ve ${username2} için Watchbox`, canvasWidth / 2, 80);
 
-            // Filmler (Yatay + Dikey Yazım)
-            ctx.font = '16px Helvetica';
-            let x = 20;
-            let y = 80;
+            // Filmler (Yatay ve Dikey Yazım)
+            ctx.font = '28px Helvetica';
+            let x = 100;
+            let y = 140;
 
             movies.forEach((movie, index) => {
-                if (index % itemsPerColumn === 0 && index !== 0) {
-                    x += columnWidth; // Yeni sütun
-                    y = 80;
+                if (y > canvasHeight - 100) { // Eğer alan dolarsa yeni satıra geç
+                    x += 600;
+                    y = 140;
                 }
                 ctx.fillText(`${index + 1}. ${movie}`, x, y);
-                y += rowHeight;
+                y += 40; // Satır aralığı
             });
 
             // Uyum Oranı
             ctx.fillStyle = '#ffcc00';
-            ctx.font = '20px Helvetica';
-            ctx.fillText(`Uyum Oranı: ${compatibility}`, 20, canvasHeight - 30);
+            ctx.font = '36px Helvetica';
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 60);
 
             // Görseli İndirme
             const link = document.createElement('a');
