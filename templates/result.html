@@ -121,7 +121,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
+        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
     </div>
 
@@ -132,13 +132,17 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // 1920x1080 Boyutlarında Canvas
+            // Canvas Boyutu 1920x1080
             const canvasWidth = 1920;
-            const canvasHeight = 1080;
+            const itemsPerColumn = 25; // Yüksekliği sınırlandırmak için
+            const columnWidth = 500; // Sütun genişliği
+            const rowHeight = 40; // Satır yüksekliği
+
+            // Canvas boyutunu hesapla
+            const canvasHeight = Math.max(1080, rowHeight * Math.ceil(movies.length / itemsPerColumn) + 100);
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
@@ -156,18 +160,18 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için Watchbox`, canvasWidth / 2, 80);
 
-            // Filmler (Yatay ve Dikey Yazım)
-            ctx.font = '28px Helvetica';
+            // Filmler (Daha Verimli Yerleştirme)
+            ctx.font = '24px Helvetica';
             let x = 100;
-            let y = 140;
+            let y = 120;
 
             movies.forEach((movie, index) => {
-                if (y > canvasHeight - 100) { // Eğer alan dolarsa yeni satıra geç
-                    x += 600;
-                    y = 140;
+                if (y + rowHeight > canvasHeight - 100) {
+                    x += columnWidth; // Eğer sütun dolarsa, yeni sütuna geç
+                    y = 120;
                 }
                 ctx.fillText(`${index + 1}. ${movie}`, x, y);
-                y += 40; // Satır aralığı
+                y += rowHeight; // Satır aralığı
             });
 
             // Uyum Oranı
