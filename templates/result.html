@@ -134,12 +134,12 @@
 
             // Canvas Boyutu 1920x1080
             const canvasWidth = 1920;
-            const itemsPerColumn = 25; // Yüksekliği sınırlandırmak için
-            const columnWidth = 500; // Sütun genişliği
-            const rowHeight = 40; // Satır yüksekliği
+            const itemsPerColumn = 15; // 15 film her sütunda
+            const columnWidth = 180; // Sütun genişliği
+            const rowHeight = 30; // Satır yüksekliği
 
             // Canvas boyutunu hesapla
-            const canvasHeight = Math.max(1080, rowHeight * Math.ceil(movies.length / itemsPerColumn) + 100);
+            const canvasHeight = Math.max(1080, rowHeight * Math.ceil(movies.length / itemsPerColumn) + 150);
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -166,7 +166,7 @@
             let y = 120;
 
             movies.forEach((movie, index) => {
-                if (y + rowHeight > canvasHeight - 100) {
+                if (y + rowHeight > canvasHeight - 150) {
                     x += columnWidth; // Eğer sütun dolarsa, yeni sütuna geç
                     y = 120;
                 }
