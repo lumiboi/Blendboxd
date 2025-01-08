@@ -172,8 +172,12 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için 100 filmlik Watchbox!`, canvasWidth / 2, 80);
 
-            // Filmler
-            ctx.fillStyle = '#40bcf4';
+            // Filmler - Yeni Gradyan Renk
+            const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+            movieGradient.addColorStop(0, '#40bcf4');
+            movieGradient.addColorStop(0.5, '#00e054');
+            movieGradient.addColorStop(1, '#ff8000');
+            ctx.fillStyle = movieGradient;
             ctx.font = '22px "Helvetica Neue", sans-serif';
             let x = 100;
             let y = 120;
