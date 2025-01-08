@@ -14,21 +14,6 @@
             color: #fff;
         }
 
-        .background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
-        .background-video iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
         .container {
             background-color: rgba(20, 24, 28, 0.9);
             padding: 40px;
@@ -37,11 +22,7 @@
             width: 350px;
             text-align: center;
             color: white;
-            overflow-y: auto;
-            max-height: 80vh;
-            position: relative;
             margin: 20px auto;
-            z-index: 1;
         }
 
         h1 {
@@ -59,7 +40,6 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            text-align: left;
         }
 
         li {
@@ -68,18 +48,6 @@
             padding: 10px;
             border-radius: 6px;
             color: #fff;
-        }
-
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            color: #00b7a4;
-            font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: underline;
         }
 
         .button {
@@ -99,17 +67,6 @@
     </style>
 </head>
 <body>
-    <!-- Arka Plan Videosu -->
-    <div class="background-video">
-        <iframe 
-            src="https://streamable.com/e/e4v7f0?autoplay=1" 
-            frameborder="0" 
-            allow="autoplay; fullscreen" 
-            allowfullscreen>
-        </iframe>
-    </div>
-
-    <!-- Ana İçerik -->
     <div class="container">
         <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
@@ -122,15 +79,10 @@
                 <li>Hiç ortak film bulunamadı.</li>
             {% endif %}
         </ul>
-        <div class="compatibility" id="compatibility">
-            Uyum Oranı: {{ compatibility_percentage | round(2) }}%
-        </div>
+        <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
         <button class="button" id="downloadBtn">JPG Olarak İndir</button>
        <br> <a href="/">Yeni kullanıcı adları gir</a>
     </div>
-    <footer>
-        <p>© 2024 Mert Ergün</p>
-    </footer>
 
     <script>
         document.getElementById('downloadBtn').addEventListener('click', function () {
@@ -139,46 +91,50 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Canvas Ayarları
+            // Dinamik Canvas Boyutu
+            const itemsPerColumn = 20;
+            const columnWidth = 250;
+            const rowHeight = 30;
+            const columnCount = Math.ceil(movies.length / itemsPerColumn);
+            const canvasWidth = columnWidth * columnCount;
+            const canvasHeight = Math.max(300, rowHeight * Math.min(itemsPerColumn, movies.length) + 150);
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            const canvasWidth = 500;
-            const canvasHeight = 500;
 
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
             // Degrade Arkaplan
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#1e3a5f');
-            gradient.addColorStop(1, '#4a90e2');
+            gradient.addColorStop(0, '#FF8000'); // Turuncu
+            gradient.addColorStop(0.5, '#00FF88'); // Yeşil
+            gradient.addColorStop(1, '#0077FF'); // Mavi
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
             // Başlık
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 20px Helvetica';
-            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 20, 30);
+            ctx.font = 'bold 24px Helvetica';
+            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 20, 40);
 
             // Filmler (Yatay + Dikey Yazım)
+            ctx.font = '16px Helvetica';
             let x = 20;
-            let y = 60;
-            const columnWidth = 230;
+            let y = 80;
 
-            ctx.font = '14px Helvetica';
             movies.forEach((movie, index) => {
-                if (y + 20 > canvasHeight) {
-                    y = 60; // Yeni sütuna geç
-                    x += columnWidth;
+                if (index % itemsPerColumn === 0 && index !== 0) {
+                    x += columnWidth; // Yeni sütun
+                    y = 80;
                 }
                 ctx.fillText(`${index + 1}. ${movie}`, x, y);
-                y += 20; // Satır ilerleme
+                y += rowHeight;
             });
 
             // Uyum Oranı
             ctx.fillStyle = '#ffcc00';
-            ctx.font = '16px Helvetica';
+            ctx.font = '20px Helvetica';
             ctx.fillText(`Uyum Oranı: ${compatibility}`, 20, canvasHeight - 30);
 
             // Görseli İndirme
