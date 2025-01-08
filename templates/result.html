@@ -99,7 +99,6 @@
             text-decoration: underline;
         }
 
-       
         #compatibility {
             color: #ff8000;
             font-size: 24px;
@@ -188,6 +187,16 @@
             ctx.fillStyle = '#ff8000';
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
             ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
+
+            // "Sizde kendi Watchbox'unuzu oluşturmak için blendboxd.up.railway.app'i ziyaret edebilirsiniz!" yazısı
+            const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
+            linkGradient.addColorStop(0, '#ff8000');
+            linkGradient.addColorStop(0.5, '#00e054');
+            linkGradient.addColorStop(1, '#40bcf4');
+            ctx.fillStyle = linkGradient;
+            ctx.font = 'italic 24px "Helvetica Neue", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sizde kendi Watchbox\'unuzu oluşturmak için blendboxd.up.railway.app\'i ziyaret edebilirsiniz!', canvasWidth / 2, canvasHeight - 20);
 
             // Görseli İndirme
             const link = document.createElement('a');
