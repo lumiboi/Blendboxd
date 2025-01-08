@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: auto; /* Kaydırma çubuğu sorunu için overflow:auto */
+            overflow: auto;
         }
 
         .background-video {
@@ -28,7 +28,7 @@
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: none; /* Video üzerindeki tıklamaları engelle */
+            pointer-events: none;
         }
 
         .container {
@@ -40,7 +40,7 @@
             text-align: center;
             color: white;
             margin: 20px auto;
-            overflow-y: auto; /* Kaydırma çubuğunun görünür olması için */
+            overflow-y: auto;
             max-height: 90vh;
         }
 
@@ -60,7 +60,8 @@
             padding: 0;
             margin: 0;
             max-height: 50vh;
-            overflow-y: auto; /* Kaydırma çubuğu için */
+            overflow-y: auto;
+            text-align: center; /* Ortala */
         }
 
         li {
@@ -96,6 +97,13 @@
 
         .link:hover {
             text-decoration: underline;
+        }
+
+        /* Eski uyum oranı rengi */
+        #compatibility {
+            color: #00b7a4;
+            font-size: 24px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -138,16 +146,16 @@
             // Dinamik Canvas Boyutu
             const canvasWidth = 1920;
             const canvasHeight = 1080;
-            const itemsPerColumn = 6; // 6 film her sütunda
-            const columnWidth = 300; // Sütun genişliği
-            const rowHeight = 40; // Satır yüksekliği
+            const itemsPerColumn = 5; // 5 film her sütunda
+            const columnWidth = 350; // Geniş sütun
+            const rowHeight = 40; // Yüksek satır
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            // Degrade Arkaplan
+            // Arka Plan - Gradient
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
             gradient.addColorStop(0, '#FF8000'); // Turuncu
             gradient.addColorStop(0.5, '#00FF88'); // Yeşil
@@ -161,18 +169,18 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için Watchbox`, canvasWidth / 2, 80);
 
-            // Filmler (Yazı Aralığı Düzenlemesi)
+            // Filmler
             ctx.font = '24px Helvetica';
             let x = 100;
             let y = 120;
 
             movies.slice(0, 100).forEach((movie, index) => {
                 if (y + rowHeight > canvasHeight - 150) {
-                    x += columnWidth; // Eğer sütun dolarsa, yeni sütuna geç
+                    x += columnWidth;
                     y = 120;
                 }
                 ctx.fillText(`${index + 1}. ${movie}`, x, y);
-                y += rowHeight; // Satır aralığı
+                y += rowHeight;
             });
 
             // "Devamı Blendbox'da" Yazısı
