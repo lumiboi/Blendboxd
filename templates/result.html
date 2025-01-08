@@ -157,9 +157,9 @@
 
             // Arka Plan - Letterboxd Temalı
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#333333'); // Koyu gri
-            gradient.addColorStop(0.5, '#121212'); // Siyah gri
-            gradient.addColorStop(1, '#333333'); // Koyu gri
+            gradient.addColorStop(0, '#121212'); // Siyah gri
+            gradient.addColorStop(0.5, '#333333'); // Koyu gri
+            gradient.addColorStop(1, '#121212'); // Siyah gri
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
@@ -179,14 +179,14 @@
                     x += columnWidth;
                     y = 120;
                 }
-                ctx.fillText(`${index + 1}. ${movie}`, x, y);
+                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Centered text
                 y += rowHeight;
             });
 
-            // "Devamı Blendbox'da" Yazısı
-            ctx.fillStyle = '#ff8000';
+            // Uyum Oranı
+            ctx.fillStyle = '#00b7a4';
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText("Devamı Blendbox'da :)", canvasWidth / 2, canvasHeight - 60);
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
 
             // Görseli İndirme
             const link = document.createElement('a');
