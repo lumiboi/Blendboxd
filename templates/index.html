@@ -71,35 +71,68 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .language-switch {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <!-- Language Switcher -->
+    <div class="language-switch" id="languageSwitch" onclick="toggleLanguage()">Türkçe</div>
+
     <div class="container">
-        <h1>Blendboxd</h1>
-        <h3>Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</h3>
+        <h1 id="title">Blendboxd</h1>
+        <h3 id="subTitle">Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</h3>
         <form id="userForm" method="POST">
             <input type="text" name="username1" placeholder="Kullanıcı Adı 1" required>
             <input type="text" name="username2" placeholder="Kullanıcı Adı 2" required>
-            <button type="submit">Blender'la!</button>
+            <button type="submit" id="submitButton">Blender'la!</button>
         </form>
     </div>
     
     <div class="loading" id="loading">
         <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
-        <p>Blender çalışıyor... </p>
-        <p>Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)
-Tsshhh... (rüzgar sesi)
-Woop-woop... (filmler kayıyor)
-Klink! (filmler birbirine çarpıyor)</p>
+        <p id="loadingText">Blender çalışıyor...</p>
+        <p id="soundEffects">Bzzzzzt... Bzzz... Bzzzz... (dönme sesi) Tsshhh... (rüzgar sesi) Woop-woop... (filmler kayıyor) Klink! (filmler birbirine çarpıyor)</p>
     </div>
 
     <script>
         const form = document.getElementById('userForm');
         const loading = document.getElementById('loading');
-
+        const languageSwitch = document.getElementById('languageSwitch');
+        const title = document.getElementById('title');
+        const subTitle = document.getElementById('subTitle');
+        const submitButton = document.getElementById('submitButton');
+        const loadingText = document.getElementById('loadingText');
+        const soundEffects = document.getElementById('soundEffects');
+        
         form.addEventListener('submit', function() {
             loading.style.display = 'block'; // Yükleme ekranını göster
         });
+
+        function toggleLanguage() {
+            const currentLanguage = languageSwitch.innerText;
+            if (currentLanguage === 'Türkçe') {
+                languageSwitch.innerText = 'English';
+                title.innerText = 'Blendboxd';
+                subTitle.innerText = "Let's enter the information of two users to make Blender work and create a watchbox...";
+                submitButton.innerText = 'Blend with Blender!';
+                loadingText.innerText = 'Blender is working...';
+                soundEffects.innerText = 'Bzzzzzt... Bzzz... Bzzzz... (spinning sound) Tsshhh... (wind sound) Woop-woop... (movies sliding) Klink! (movies hitting each other)';
+            } else {
+                languageSwitch.innerText = 'Türkçe';
+                title.innerText = 'Blendboxd';
+                subTitle.innerText = 'Blender\'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...';
+                submitButton.innerText = 'Blender\'la!';
+                loadingText.innerText = 'Blender çalışıyor...';
+                soundEffects.innerText = 'Bzzzzzt... Bzzz... Bzzzz... (dönme sesi) Tsshhh... (rüzgar sesi) Woop-woop... (filmler kayıyor) Klink! (filmler birbirine çarpıyor)';
+            }
+        }
     </script>
 </body>
 </html>
