@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: auto; /* Kaydırma çubuğu için */
+            overflow: hidden;
         }
 
         .background-video {
@@ -22,14 +22,12 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            pointer-events: none; /* Video etkileşimi engelleniyor */
         }
 
         .background-video iframe {
             width: 100%;
             height: 100%;
             border: none;
-            object-fit: cover; /* Sayfaya tamamen uyacak şekilde video ayarlandı */
         }
 
         .container {
@@ -37,20 +35,16 @@
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 90%; /* Sayfaya sığacak şekilde genişlik */
-            max-width: 1200px; /* Maksimum genişlik */
+            width: 350px;
             text-align: center;
             color: white;
             margin: 20px auto;
-            overflow-y: auto; /* Kaydırma çubuğu ekleme */
-            max-height: 80vh; /* İçeriği sığdırma */
         }
 
         h1 {
-            font-size: 36px;
+            font-size: 24px;
             margin-bottom: 20px;
             color: #00b7a4;
-            line-height: 1.2;
         }
 
         h2 {
@@ -62,17 +56,14 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 60vh;
-            overflow-y: auto;
         }
 
         li {
             background: #1e272e;
             margin: 5px 0;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
             color: #fff;
-            font-size: 18px;
         }
 
         .button {
@@ -101,19 +92,13 @@
         .link:hover {
             text-decoration: underline;
         }
-
-        #compatibility {
-            font-size: 22px;
-            margin-top: 30px;
-            color: #ffcc00; /* Eski renk */
-        }
     </style>
 </head>
 <body>
     <!-- Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            src="https://streamable.com/e/e4v7f0?autoplay=1&mute=1&loop=1" 
+            src="https://streamable.com/e/e4v7f0?autoplay=1" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
@@ -148,8 +133,8 @@
             // Dinamik Canvas Boyutu
             const canvasWidth = 1920;
             const canvasHeight = 1080;
-            const itemsPerColumn = 8; // 8 film her sütunda
-            const columnWidth = 220; // Sütun genişliği
+            const itemsPerColumn = 6; // 6 film her sütunda
+            const columnWidth = 300; // Sütun genişliği
             const rowHeight = 40; // Satır yüksekliği
 
             const canvas = document.createElement('canvas');
@@ -171,7 +156,7 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için Watchbox`, canvasWidth / 2, 80);
 
-            // Filmler (Daha Verimli Yerleştirme)
+            // Filmler (Yazı Aralığı Düzenlemesi)
             ctx.font = '24px Helvetica';
             let x = 100;
             let y = 120;
@@ -188,7 +173,7 @@
             // "Devamı Blendbox'da" Yazısı
             ctx.fillStyle = '#ff8000';
             ctx.font = 'bold 36px Helvetica';
-            ctx.fillText("Devamı Blendboxd'ta :)", canvasWidth / 2, canvasHeight - 60);
+            ctx.fillText("Devamı Blendbox'da :)", canvasWidth / 2, canvasHeight - 60);
 
             // Görseli İndirme
             const link = document.createElement('a');
