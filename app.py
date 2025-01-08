@@ -67,7 +67,8 @@ def calculate_compatibility(user1_movie_count, user2_movie_count, common_movie_c
         # Ortak film sayısı 5'in altındaysa direkt uyumluluk hesapla
         compatibility_percentage = (2 * common_movie_count / total_movies) * 100
     
-    return compatibility_percentage
+    # Uyumluluk yüzdesinin %100'ü geçmemesini sağla
+    return min(compatibility_percentage, 100)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
