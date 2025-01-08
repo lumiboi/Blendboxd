@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #0a0a0a;
+            background-color: #121212;
             margin: 0;
             padding: 0;
             color: #fff;
@@ -31,20 +31,21 @@
         }
 
         .container {
-            background-color: rgba(20, 24, 28, 0.9);
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 350px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.7);
+            width: 70%;
+            max-width: 1200px;
             text-align: center;
             color: white;
             margin: 20px auto;
-            max-height: 80vh;
-            overflow-y: auto;
+            overflow: hidden;
+            border: 2px solid #00b7a4;
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 36px;
             margin-bottom: 20px;
             color: #00b7a4;
         }
@@ -52,31 +53,39 @@
         h2 {
             margin-bottom: 10px;
             color: #ff8000;
+            font-size: 24px;
         }
 
         ul {
             list-style: none;
             padding: 0;
             margin: 0;
+            max-height: 450px;
+            overflow-y: auto;
+            font-size: 18px;
+            line-height: 1.5;
         }
 
         li {
             background: #1e272e;
             margin: 5px 0;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             color: #fff;
+            font-weight: bold;
+            border: 1px solid #333;
         }
 
         .button {
-            margin-top: 20px;
+            margin-top: 30px;
             background-color: #00b7a4;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 12px 25px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
         .button:hover {
@@ -85,7 +94,7 @@
 
         .link {
             display: block;
-            margin-top: 10px;
+            margin-top: 20px;
             text-decoration: none;
             color: #00b7a4;
             font-weight: bold;
@@ -93,6 +102,13 @@
 
         .link:hover {
             text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 40px;
+            color: #ff8000;
+            font-size: 16px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -113,7 +129,7 @@
         <h2>WATCHBOX:</h2>
         <ul id="movieList">
             {% if common_movies %}
-                {% for movie in common_movies %}
+                {% for movie in common_movies[:100] %}
                     <li>{{ movie.title }}</li>
                 {% endfor %}
             {% else %}
@@ -121,8 +137,9 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
+        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
+        <div class="footer">Devamı Blendbox'da :)</div>
     </div>
 
     <script>
@@ -134,9 +151,9 @@
 
             // Canvas Boyutu 1920x1080
             const canvasWidth = 1920;
-            const itemsPerColumn = 15; // 15 film her sütunda
+            const itemsPerColumn = 10; // 10 film her sütunda
             const columnWidth = 180; // Sütun genişliği
-            const rowHeight = 30; // Satır yüksekliği
+            const rowHeight = 40; // Satır yüksekliği
 
             // Canvas boyutunu hesapla
             const canvasHeight = Math.max(1080, rowHeight * Math.ceil(movies.length / itemsPerColumn) + 150);
