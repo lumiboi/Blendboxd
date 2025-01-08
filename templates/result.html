@@ -71,29 +71,19 @@
             color: #fff;
         }
 
-        .compatibility {
-            margin: 20px 0;
-            font-size: 18px;
-            color: #ff8000;
-        }
-
-        .button-group {
+        .button {
             margin-top: 20px;
-        }
-
-        .button-group button {
-            background: #00b7a4;
+            background-color: #00b7a4;
             color: white;
             border: none;
-            border-radius: 6px;
             padding: 10px 20px;
-            margin: 5px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
         }
 
-        .button-group button:hover {
-            background: #008a7a;
+        .button:hover {
+            background-color: #008a7a;
         }
     </style>
 </head>
@@ -109,10 +99,10 @@
     </div>
 
     <!-- Ana İçerik -->
-    <div class="container" id="watchbox">
-        <h1>{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
+    <div class="container">
+        <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
-        <ul>
+        <ul id="movieList">
             {% if common_movies %}
                 {% for movie in common_movies %}
                     <li>{{ movie.title }}</li>
@@ -121,54 +111,60 @@
                 <li>Hiç ortak film bulunamadı.</li>
             {% endif %}
         </ul>
-        <div class="compatibility">
+        <div class="compatibility" id="compatibility">
             Uyum Oranı: {{ compatibility_percentage | round(2) }}%
         </div>
-        <div class="button-group">
-            <button id="downloadBtn">JPG Olarak İndir</button>
-            <button id="twitterBtn">Twitter'da Paylaş</button>
-        </div>
-        <a href="/" id="backButton">Yeni kullanıcı adları gir</a>
+        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
     </div>
     <footer>
         <p>© 2024 Mert Ergün</p>
     </footer>
 
     <script>
-        // Tam ekran görüntü oluşturma
         document.getElementById('downloadBtn').addEventListener('click', function () {
-            const watchbox = document.getElementById('watchbox');
-            html2canvas(watchbox, { useCORS: true }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'watchbox.jpg';
-                link.href = canvas.toDataURL('image/jpeg');
-                link.click();
+            const username1 = "{{ username1 }}";
+            const username2 = "{{ username2 }}";
+            const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
+            const compatibility = "{{ compatibility_percentage | round(2) }}%";
+
+            // Canvas Ayarları
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const width = 800;
+            const height = 600;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Arka Plan Rengi
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, width, height);
+
+            // Başlık
+            ctx.fillStyle = '#00b7a4';
+            ctx.font = 'bold 24px Helvetica';
+            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 50, 50);
+
+            // Filmler
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Helvetica';
+            ctx.fillText('Filmler:', 50, 100);
+
+            movies.forEach((movie, index) => {
+                ctx.fillText(`${index + 1}. ${movie}`, 50, 130 + index * 20);
             });
-        });
 
-        // Twitter paylaşımı
-        document.getElementById('twitterBtn').addEventListener('click', function () {
-            const watchbox = document.getElementById('watchbox');
-            html2canvas(watchbox, { useCORS: true }).then(canvas => {
-                canvas.toBlob(blob => {
-                    const file = new File([blob], 'watchbox.jpg', { type: 'image/jpeg' });
-                    const data = new FormData();
-                    data.append('media', file);
+            // Uyum Oranı
+            ctx.fillStyle = '#ff8000';
+            ctx.font = '18px Helvetica';
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, 50, height - 50);
 
-                    const tweetText = `${"{{ username1 }}"} ve ${"{{ username2 }}"} için Watchbox!`;
-                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-                    
-                    // (Not: Bu URL yüklenip medyayı bağlamak API kullanımı gerektirir.)
-                    alert("Görsel Twitter paylaşımı tamamlandı!");
-                    window.open(twitterUrl, '_blank');
-                });
-            });
-        });
-
-        // Geri dönüş butonu çalışır hale getirme
-        document.getElementById('backButton').addEventListener('click', function (event) {
-            event.preventDefault();
-            window.location.href = '/';
+            // Görseli İndirme
+            const link = document.createElement('a');
+            link.download = 'watchbox.jpg';
+            link.href = canvas.toDataURL('image/jpeg');
+            link.click();
         });
     </script>
 </body>
