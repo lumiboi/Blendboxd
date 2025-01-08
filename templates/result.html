@@ -15,27 +15,27 @@
             overflow: auto;
         }
 
-      .background-video {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        overflow: hidden; /* Taşan kısmı gizler */
-    }
+        .background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden; /* Taşan kısmı gizler */
+        }
 
-    .background-video iframe {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100%;
-        height: 100%;
-        border: none;
-        pointer-events: none;
-        transform: translate(-50%, -50%); /* Video'yu tam ortalar */
-        object-fit: cover; /* Video'nun tam alanı kaplamasını sağlar */
-    }
+        .background-video iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            transform: translate(-50%, -50%); /* Video'yu tam ortalar */
+            object-fit: cover; /* Video'nun tam alanı kaplamasını sağlar */
+        }
 
         .container {
             background-color: rgba(20, 24, 28, 0.9);
@@ -137,7 +137,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">Canvas Olarak İndir</button> <br>
+        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
         <button class="button" id="downloadInstagramStoryBtn">Canvas Olarak İndir (Instagram Story)</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
     </div>
@@ -230,12 +230,12 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Instagram Story Boyutu
+            // Instagram Story boyutları
             const canvasWidth = 1080;
             const canvasHeight = 1920;
             const itemsPerColumn = 5; // 5 film her sütunda
             const columnWidth = 350; // Geniş sütun
-            const rowHeight = 40; // Yüksek satır
+            const rowHeight = 80; // Yüksek satır (50 film sonrası boşluk azaltıldı)
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
