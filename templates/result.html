@@ -99,9 +99,9 @@
             text-decoration: underline;
         }
 
-        /* Eski uyum oranı rengi */
+       
         #compatibility {
-            color: #00b7a4;
+            color: #ff8000;
             font-size: 24px;
             margin-top: 20px;
         }
@@ -132,7 +132,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
+        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
     </div>
 
@@ -184,7 +184,7 @@
             });
 
             // Uyum Oranı
-            ctx.fillStyle = '#00b7a4';
+            ctx.fillStyle = '#ff8000';
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
             ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
 
