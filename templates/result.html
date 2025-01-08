@@ -12,7 +12,6 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: hidden;
         }
 
         .background-video {
@@ -127,7 +126,7 @@
             Uyum Oranı: {{ compatibility_percentage | round(2) }}%
         </div>
         <button class="button" id="downloadBtn">JPG Olarak İndir</button>
-        <a href="/">Yeni kullanıcı adları gir</a>
+       <br> <a href="/">Yeni kullanıcı adları gir</a>
     </div>
     <footer>
         <p>© 2024 Mert Ergün</p>
@@ -144,38 +143,42 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Dinamik Yükseklik Hesabı
-            const movieCount = movies.length;
-            const canvasWidth = 800;
-            const canvasHeight = 200 + movieCount * 40;
+            const canvasWidth = 500;
+            const canvasHeight = 500;
 
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
             // Degrade Arkaplan
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#0a0a0a');
-            gradient.addColorStop(1, '#1e272e');
+            gradient.addColorStop(0, '#1e3a5f');
+            gradient.addColorStop(1, '#4a90e2');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
             // Başlık
-            ctx.fillStyle = '#00b7a4';
-            ctx.font = 'bold 24px Helvetica';
-            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 20, 50);
-
-            // Filmler
             ctx.fillStyle = '#ffffff';
-            ctx.font = '16px Helvetica';
-            ctx.fillText('Filmler:', 20, 90);
+            ctx.font = 'bold 20px Helvetica';
+            ctx.fillText(`${username1} ve ${username2} için Watchbox`, 20, 30);
 
+            // Filmler (Yatay + Dikey Yazım)
+            let x = 20;
+            let y = 60;
+            const columnWidth = 230;
+
+            ctx.font = '14px Helvetica';
             movies.forEach((movie, index) => {
-                ctx.fillText(`${index + 1}. ${movie}`, 20, 120 + index * 30);
+                if (y + 20 > canvasHeight) {
+                    y = 60; // Yeni sütuna geç
+                    x += columnWidth;
+                }
+                ctx.fillText(`${index + 1}. ${movie}`, x, y);
+                y += 20; // Satır ilerleme
             });
 
             // Uyum Oranı
-            ctx.fillStyle = '#ff8000';
-            ctx.font = '18px Helvetica';
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = '16px Helvetica';
             ctx.fillText(`Uyum Oranı: ${compatibility}`, 20, canvasHeight - 30);
 
             // Görseli İndirme
