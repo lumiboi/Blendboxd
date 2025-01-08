@@ -163,7 +163,10 @@
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
             // Başlık
-            ctx.fillStyle = '#00e054';
+            linkGradient.addColorStop(0, '#ff8000');
+            linkGradient.addColorStop(0.5, '#00e054');
+            linkGradient.addColorStop(1, '#40bcf4');
+            ctx.fillStyle = linkGradient;
             ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için 100 filmlik Watchbox!`, canvasWidth / 2, 80);
