@@ -15,22 +15,27 @@
             overflow: auto;
         }
 
-        .background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;  /* Yüzde yüz genişlik */
-            height: 100vh;
-            z-index: -1;
-        }
+      .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden; /* Taşan kısmı gizler */
+    }
 
-        .background-video iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: none;
-            object-fit: cover;
-        }
+    .background-video iframe {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        border: none;
+        pointer-events: none;
+        transform: translate(-50%, -50%); /* Video'yu tam ortalar */
+        object-fit: cover; /* Video'nun tam alanı kaplamasını sağlar */
+    }
 
         .container {
             background-color: rgba(20, 24, 28, 0.9);
