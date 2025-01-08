@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             color: #fff;
-            overflow: hidden;
+            overflow: auto; /* Kaydırma çubuğu için */
         }
 
         .background-video {
@@ -39,6 +39,8 @@
             text-align: center;
             color: white;
             margin: 20px auto;
+            overflow-y: auto; /* Kaydırma çubuğu ekleme */
+            max-height: 80vh; /* İçeriği sığdırma */
         }
 
         h1 {
@@ -98,7 +100,7 @@
     <!-- Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            src="https://streamable.com/e/1yz1ct" 
+            src="https://streamable.com/e/1yz1ct?autoplay=1" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
@@ -119,7 +121,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
+        <button class="button" id="downloadBtn">JPG Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
     </div>
 
@@ -173,7 +175,7 @@
             // "Devamı Blendbox'da" Yazısı
             ctx.fillStyle = '#ff8000';
             ctx.font = 'bold 36px Helvetica';
-            ctx.fillText("Devamı Blendbox'da :)", canvasWidth / 2, canvasHeight - 60);
+            ctx.fillText("Devamı Blendboxd'ta :)", canvasWidth / 2, canvasHeight - 60);
 
             // Görseli İndirme
             const link = document.createElement('a');
