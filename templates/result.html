@@ -175,8 +175,8 @@
             // Filmler - Yeni Gradyan Renk
             const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             movieGradient.addColorStop(0, '#40bcf4');
-            movieGradient.addColorStop(0.5, '#00e054');
-            movieGradient.addColorStop(1, '#ff8000');
+            movieGradient.addColorStop(0.5, '#ff8000');
+            movieGradient.addColorStop(1, '#00e054');
             ctx.fillStyle = movieGradient;
             ctx.font = '22px "Helvetica Neue", sans-serif';
             let x = 100;
@@ -191,8 +191,12 @@
                 y += rowHeight;
             });
 
-            // Uyum Oranı
-            ctx.fillStyle = '#ff8000';
+            // Uyum Oranı - Yeni Gradyan Renk
+            const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
+            compatibilityGradient.addColorStop(0, '#40bcf4');
+            compatibilityGradient.addColorStop(0.5, '#ff8000');
+            compatibilityGradient.addColorStop(1, '#00e054');
+            ctx.fillStyle = compatibilityGradient;
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
             ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
 
