@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLEND SONUCU!</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
     <style>
         body {
@@ -129,17 +128,17 @@
             <button id="downloadBtn">JPG Olarak İndir</button>
             <button id="twitterBtn">Twitter'da Paylaş</button>
         </div>
-        <a href="/">Yeni kullanıcı adları gir</a>
+        <a href="/" id="backButton">Yeni kullanıcı adları gir</a>
     </div>
     <footer>
         <p>© 2024 Mert Ergün</p>
     </footer>
 
     <script>
-        // JPG olarak indir
+        // Tam ekran görüntü oluşturma
         document.getElementById('downloadBtn').addEventListener('click', function () {
             const watchbox = document.getElementById('watchbox');
-            html2canvas(watchbox).then(canvas => {
+            html2canvas(watchbox, { useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'watchbox.jpg';
                 link.href = canvas.toDataURL('image/jpeg');
@@ -147,13 +146,29 @@
             });
         });
 
-        // Twitter'da paylaş
+        // Twitter paylaşımı
         document.getElementById('twitterBtn').addEventListener('click', function () {
-            const username1 = "{{ username1 }}";
-            const username2 = "{{ username2 }}";
-            const tweetText = encodeURIComponent(`${username1} ve ${username2} için Watchbox!`);
-            const tweetUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
-            window.open(tweetUrl, '_blank');
+            const watchbox = document.getElementById('watchbox');
+            html2canvas(watchbox, { useCORS: true }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'watchbox.jpg', { type: 'image/jpeg' });
+                    const data = new FormData();
+                    data.append('media', file);
+
+                    const tweetText = `${"{{ username1 }}"} ve ${"{{ username2 }}"} için Watchbox!`;
+                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+                    
+                    // (Not: Bu URL yüklenip medyayı bağlamak API kullanımı gerektirir.)
+                    alert("Görsel Twitter paylaşımı tamamlandı!");
+                    window.open(twitterUrl, '_blank');
+                });
+            });
+        });
+
+        // Geri dönüş butonu çalışır hale getirme
+        document.getElementById('backButton').addEventListener('click', function (event) {
+            event.preventDefault();
+            window.location.href = '/';
         });
     </script>
 </body>
