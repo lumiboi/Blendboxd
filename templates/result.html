@@ -183,7 +183,7 @@
             let x = 100;
             let y = 120;
 
-            movies.slice(0, 100).forEach((movie, index) => {
+            movies.slice(0, 60).forEach((movie, index) => {
                 if (y + rowHeight > canvasHeight - 150) {
                     x += columnWidth;
                     y = 120;
@@ -246,7 +246,7 @@
             ctx.fillStyle = titleGradient;
             ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`${username1} ve ${username2} için 80 filmlik Watchbox!`, canvasWidth / 2, 80);
+            ctx.fillText(`${username1} ve ${username2} için 60 filmlik Watchbox!`, canvasWidth / 2, 80);
 
             const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             movieGradient.addColorStop(0, '#40bcf4');
@@ -257,7 +257,7 @@
             let x = 100;
             let y = 120;
 
-            movies.slice(0, 80).forEach((movie, index) => {
+            movies.slice(0, 60).forEach((movie, index) => {
                 if (y + rowHeight > canvasHeight - 150) {
                     x += columnWidth;
                     y = 120;
