@@ -8,33 +8,12 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #0a0a0a;
             margin: 0;
             padding: 0;
             color: #fff;
             overflow: auto;
-        }
-
-        .background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden; /* Taşan kısmı gizler */
-        }
-
-        .background-video iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: none;
-            transform: translate(-50%, -50%); /* Video'yu tam ortalar */
-            object-fit: cover; /* Video'nun tam alanı kaplamasını sağlar */
+            background: url('https://images.squarespace-cdn.com/content/v1/5cf54a1ef43cee00010c78fc/1608724393387-JROGY10OEX8EGS7F8VUD/EWS.gif') no-repeat center center fixed;
+            background-size: cover;
         }
 
         .container {
@@ -113,16 +92,6 @@
     </style>
 </head>
 <body>
-    <!-- Arka Plan Videosu -->
-    <div class="background-video">
-        <iframe 
-            src="https://streamable.com/e/1yz1ct?autoplay=1" 
-            frameborder="0" 
-            allow="autoplay; fullscreen" 
-            allowfullscreen>
-        </iframe>
-    </div>
-
     <!-- Ana İçerik -->
     <div class="container">
         <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
