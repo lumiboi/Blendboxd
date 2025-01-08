@@ -56,8 +56,6 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 300px;
-            overflow-y: auto;
         }
 
         li {
@@ -94,20 +92,13 @@
         .link:hover {
             text-decoration: underline;
         }
-
-        .footer {
-            margin-top: 30px;
-            color: #ff8000;
-            font-size: 14px;
-            font-style: italic;
-        }
     </style>
 </head>
 <body>
     <!-- Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
-            src="https://streamable.com/e/1yz1ct?autoplay=1" 
+            src="https://streamable.com/e/1yz1ct" 
             frameborder="0" 
             allow="autoplay; fullscreen" 
             allowfullscreen>
@@ -120,7 +111,7 @@
         <h2>WATCHBOX:</h2>
         <ul id="movieList">
             {% if common_movies %}
-                {% for movie in common_movies[:100] %}
+                {% for movie in common_movies %}
                     <li>{{ movie.title }}</li>
                 {% endfor %}
             {% else %}
@@ -130,7 +121,6 @@
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
         <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
-        <div class="footer">Devamı Blendbox'da :)</div>
     </div>
 
     <script>
@@ -147,7 +137,6 @@
             const columnWidth = 180; // Sütun genişliği
             const rowHeight = 40; // Satır yüksekliği
 
-            // Canvas boyutunu hesapla
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvasWidth;
@@ -172,7 +161,7 @@
             let x = 100;
             let y = 120;
 
-            movies.forEach((movie, index) => {
+            movies.slice(0, 100).forEach((movie, index) => {
                 if (y + rowHeight > canvasHeight - 150) {
                     x += columnWidth; // Eğer sütun dolarsa, yeni sütuna geç
                     y = 120;
