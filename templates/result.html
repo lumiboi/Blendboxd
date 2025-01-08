@@ -99,7 +99,6 @@
             text-decoration: underline;
         }
 
-        /* Eski uyum oranı rengi */
         #compatibility {
             color: #00b7a4;
             font-size: 24px;
@@ -152,28 +151,28 @@
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            // Arka Plan - Modern Gradient
+            // Şık ve sade arka plan: Yumuşak geçişli, minimal renkler
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#ff6f00'); // Canlı Turuncu
-            gradient.addColorStop(0.5, '#009688'); // Zümrüt Yeşili
+            gradient.addColorStop(0, '#00b7a4'); // Mint Yeşili
+            gradient.addColorStop(0.5, '#ff8000'); // Yumuşak Turuncu
             gradient.addColorStop(1, '#0288d1'); // Derin Mavi
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Başlık
+            // Başlık - Modern, sade, dinamik yazı
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 48px Helvetica Neue';
+            ctx.font = 'bold 56px Helvetica Neue';
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için Watchbox`, canvasWidth / 2, 100);
 
-            // Filmler
-            ctx.font = '24px Helvetica Neue';
+            // Filmler - Daha minimal ve asimetrik dizilim
+            ctx.font = '26px Helvetica Neue';
             let x = 150;
             let y = 180;
-            const columnWidth = 400;
-            const rowHeight = 40;
+            const columnWidth = 500;
+            const rowHeight = 50;
 
-            movies.slice(0, 20).forEach((movie, index) => {
+            movies.slice(0, 15).forEach((movie, index) => {
                 if (y + rowHeight > canvasHeight - 120) {
                     x += columnWidth;
                     y = 180;
@@ -184,13 +183,13 @@
             });
 
             // Uyum Oranı
-            ctx.fillStyle = '#00b7a4';
-            ctx.font = 'bold 36px Helvetica Neue';
-            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 100);
+            ctx.fillStyle = '#ff8000';
+            ctx.font = 'bold 40px Helvetica Neue';
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 120);
 
-            // "Devamı Blendbox'da" Yazısı
-            ctx.fillStyle = '#ff6f00';
-            ctx.font = 'bold 36px Helvetica Neue';
+            // Alt Yazı: Devamı Blendbox'da
+            ctx.fillStyle = '#0288d1';
+            ctx.font = 'italic 32px Helvetica Neue';
             ctx.fillText("Devamı Blendbox'da :)", canvasWidth / 2, canvasHeight - 60);
 
             // Görseli İndirme
