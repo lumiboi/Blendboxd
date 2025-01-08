@@ -22,7 +22,7 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            overflow: hidden; /* Taşan kısmı gizler */
+            overflow: hidden;
         }
 
         .background-video iframe {
@@ -33,8 +33,8 @@
             height: 100%;
             border: none;
             pointer-events: none;
-            transform: translate(-50%, -50%); /* Video'yu tam ortalar */
-            object-fit: cover; /* Video'nun tam alanı kaplamasını sağlar */
+            transform: translate(-50%, -50%);
+            object-fit: cover;
         }
 
         .container {
@@ -67,7 +67,7 @@
             margin: 0;
             max-height: 50vh;
             overflow-y: auto;
-            text-align: center; /* Ortala */
+            text-align: center;
         }
 
         li {
@@ -113,7 +113,6 @@
     </style>
 </head>
 <body>
-    <!-- Arka Plan Videosu -->
     <div class="background-video">
         <iframe 
             src="https://streamable.com/e/1yz1ct?autoplay=1" 
@@ -123,7 +122,6 @@
         </iframe>
     </div>
 
-    <!-- Ana İçerik -->
     <div class="container">
         <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
@@ -149,27 +147,24 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Dinamik Canvas Boyutu
             const canvasWidth = 1920;
             const canvasHeight = 1080;
-            const itemsPerColumn = 5; // 5 film her sütunda
-            const columnWidth = 350; // Geniş sütun
-            const rowHeight = 40; // Yüksek satır
+            const itemsPerColumn = 5;
+            const columnWidth = 350;
+            const rowHeight = 40;
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            // Arka Plan - Letterboxd Temalı
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#121212'); // Siyah gri
-            gradient.addColorStop(0.5, '#333333'); // Koyu gri
-            gradient.addColorStop(1, '#121212'); // Siyah gri
+            gradient.addColorStop(0, '#121212');
+            gradient.addColorStop(0.5, '#333333');
+            gradient.addColorStop(1, '#121212');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Başlık - Gradyan Renk
             const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             titleGradient.addColorStop(0, '#ff8000');
             titleGradient.addColorStop(0.5, '#00e054');
@@ -179,7 +174,6 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için 100 filmlik Watchbox!`, canvasWidth / 2, 80);
 
-            // Filmler - Yeni Gradyan Renk
             const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             movieGradient.addColorStop(0, '#40bcf4');
             movieGradient.addColorStop(0.5, '#ff8000');
@@ -194,20 +188,18 @@
                     x += columnWidth;
                     y = 120;
                 }
-                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Centered text
+                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y);
                 y += rowHeight;
             });
 
-            // Uyum Oranı - Yeni Gradyan Renk
             const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             compatibilityGradient.addColorStop(0, '#40bcf4');
             compatibilityGradient.addColorStop(0.5, '#ff8000');
             compatibilityGradient.addColorStop(1, '#00e054');
             ctx.fillStyle = compatibilityGradient;
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80);
 
-            // "Siz de kendi Watchbox'unuzu oluşturmak için blendboxd.up.railway.app'i ziyaret edebilirsiniz!" yazısı
             const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
             linkGradient.addColorStop(0, '#ff8000');
             linkGradient.addColorStop(0.5, '#00e054');
@@ -217,7 +209,6 @@
             ctx.textAlign = 'center';
             ctx.fillText('Siz de kendi Watchbox\'unuzu oluşturmak için blendboxd.up.railway.app\'i ziyaret edebilirsiniz!', canvasWidth / 2, canvasHeight - 20);
 
-            // Görseli İndirme
             const link = document.createElement('a');
             link.download = 'watchbox.jpg';
             link.href = canvas.toDataURL('image/jpeg');
@@ -230,27 +221,24 @@
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Instagram Story boyutları
             const canvasWidth = 1080;
             const canvasHeight = 1920;
-            const itemsPerColumn = 5; // 5 film her sütunda
-            const columnWidth = 350; // Geniş sütun
-            const rowHeight = 80; // Yüksek satır (50 film sonrası boşluk azaltıldı)
+            const itemsPerColumn = 5;
+            const columnWidth = 350;
+            const rowHeight = 80;
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            // Arka Plan - Letterboxd Temalı
             const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#121212'); // Siyah gri
-            gradient.addColorStop(0.5, '#333333'); // Koyu gri
-            gradient.addColorStop(1, '#121212'); // Siyah gri
+            gradient.addColorStop(0, '#121212');
+            gradient.addColorStop(0.5, '#333333');
+            gradient.addColorStop(1, '#121212');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Başlık - Gradyan Renk
             const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             titleGradient.addColorStop(0, '#ff8000');
             titleGradient.addColorStop(0.5, '#00e054');
@@ -260,7 +248,6 @@
             ctx.textAlign = 'center';
             ctx.fillText(`${username1} ve ${username2} için 80 filmlik Watchbox!`, canvasWidth / 2, 80);
 
-            // Filmler - Yeni Gradyan Renk
             const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             movieGradient.addColorStop(0, '#40bcf4');
             movieGradient.addColorStop(0.5, '#ff8000');
@@ -275,20 +262,20 @@
                     x += columnWidth;
                     y = 120;
                 }
-                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Centered text
+                const textWidth = ctx.measureText(`${index + 1}. ${movie}`).width;
+                const centeredX = (canvasWidth - textWidth) / 2;
+                ctx.fillText(`${index + 1}. ${movie}`, centeredX, y);
                 y += rowHeight;
             });
 
-            // Uyum Oranı - Yeni Gradyan Renk
             const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
             compatibilityGradient.addColorStop(0, '#40bcf4');
             compatibilityGradient.addColorStop(0.5, '#ff8000');
             compatibilityGradient.addColorStop(1, '#00e054');
             ctx.fillStyle = compatibilityGradient;
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Centered compatibility
+            ctx.fillText(`Uyum Oranı: ${compatibility}`, canvasWidth / 2, canvasHeight - 80);
 
-            // "Siz de kendi Watchbox'unuzu oluşturmak için blendboxd.up.railway.app'i ziyaret edebilirsiniz!" yazısı
             const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
             linkGradient.addColorStop(0, '#ff8000');
             linkGradient.addColorStop(0.5, '#00e054');
@@ -298,7 +285,6 @@
             ctx.textAlign = 'center';
             ctx.fillText('Siz de kendi Watchbox\'unuzu oluşturmak için blendboxd.up.railway.app\'i ziyaret edebilirsiniz!', canvasWidth / 2, canvasHeight - 20);
 
-            // Görseli İndirme
             const link = document.createElement('a');
             link.download = 'watchbox_instagram_story.jpg';
             link.href = canvas.toDataURL('image/jpeg');
