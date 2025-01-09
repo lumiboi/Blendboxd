@@ -96,6 +96,10 @@
     </style>
 </head>
 <body>
+    <div class="language-selector" id="languageSelector">
+        <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
+    </div>
+
     <!-- Ana İçerik -->
     <div class="container">
         <h1 id="header">{{ username1 }} and {{ username2 }} Watchbox!</h1>
@@ -159,6 +163,26 @@
 
             return translations[currentLanguage][key] || key;
         }
+
+        // Language selector for dynamic content translation
+        document.getElementById('languageSelector').addEventListener('click', function() {
+            const currentLanguage = document.documentElement.lang || 'en';
+            if (currentLanguage === 'en') {
+                document.documentElement.lang = 'tr';
+                document.getElementById('languageText').textContent = 'Dil: Türkçe';
+            } else {
+                document.documentElement.lang = 'en';
+                document.getElementById('languageText').textContent = 'Language: English';
+            }
+            // Update all static text elements
+            document.getElementById('header').textContent = getTranslation('header');
+            document.querySelector('h2').textContent = getTranslation('watchbox');
+            document.getElementById('tavsiye').textContent = getTranslation('movie_recommendations');
+            document.getElementById('compatibility').textContent = `${getTranslation('compatibility')}: ${document.getElementById('compatibility').textContent.split(':')[1]}`;
+            document.getElementById('downloadBtn').textContent = getTranslation('download_button');
+            document.getElementById('downloadInstagramStoryBtn').textContent = getTranslation('download_instagram_button');
+            document.querySelector('.link').textContent = getTranslation('enter_usernames');
+        });
 
         // Canvas olarak indirme butonuna tıklama işlemi
         document.getElementById('downloadBtn').addEventListener('click', function () {
