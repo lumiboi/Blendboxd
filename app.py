@@ -13,11 +13,11 @@ def index():
         user1_movies = get_watched_movies(username1)
         user2_movies = get_watched_movies(username2)
         
-        # Ortak filmleri belirle
+        # Determine common movies
         common_movies = [movie for movie in user1_movies if movie in user2_movies]
         
-        # Uyum yüzdesini hesapla (her iki kullanıcının da toplam film sayısına göre)
-        compatibility_percentage = calculate_compatibility(len(user1_movies), len(user2_movies), len(common_movies))
+        # Calculate compatibility percentage in a symmetric way
+        compatibility_percentage = calculate_compatibility(user1_movies, user2_movies, common_movies)
 
         return render_template("result.html", username1=username1, username2=username2, 
                                common_movies=common_movies, compatibility_percentage=compatibility_percentage)
@@ -29,8 +29,8 @@ def get_watched_movies(username):
     def get_movies(source):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
-            movie_title = movie.find("img")["alt"]  # Film ismini al
-            watched_movies.append({"title": movie_title})  # Sadece film ismini ekle
+            movie_title = movie.find("img")["alt"]  # Get movie title
+            watched_movies.append({"title": movie_title})  # Add only the movie title
 
     def connect_page():
         page_num = 1
@@ -46,28 +46,24 @@ def get_watched_movies(username):
                 break
 
     connect_page()
-    return watched_movies
+    return [movie["title"] for movie in watched_movies]  # Return just the titles
 
-def calculate_compatibility(user1_movie_count, user2_movie_count, common_movie_count):
-    # İki kullanıcının toplam izlediği film sayısına göre uyum oranı hesapla
-    total_movies = user1_movie_count + user2_movie_count
+def calculate_compatibility(user1_movies, user2_movies, common_movies):
+    # Calculate total unique movies watched by both users
+    total_unique_movies = len(set(user1_movies + user2_movies))
     
-    # Eğer iki kullanıcıdan biri hiç film izlememişse uyum oranı 0 olmalı
-    if total_movies == 0:
+    # If no unique movies were watched, return 0
+    if total_unique_movies == 0:
         return 0
     
-    # Eğer hiç ortak film yoksa uyum oranı %0 olmalı
-    if common_movie_count == 0:
+    # If no common movies, compatibility is 0
+    if not common_movies:
         return 0
 
-    # Eğer ortak film sayısı 5'in üzerindeyse hesaplamaya %50 ekleyerek başla
-    if common_movie_count > 5:
-        compatibility_percentage = 50 + ((2 * common_movie_count / total_movies) * 100)
-    else:
-        # Ortak film sayısı 5'in altındaysa direkt uyumluluk hesapla
-        compatibility_percentage = (2 * common_movie_count / total_movies) * 100
-    
-    # Uyumluluk yüzdesinin %100'ü geçmemesini sağla
+    # Calculate compatibility based on the proportion of common movies to total unique movies
+    compatibility_percentage = (len(common_movies) / total_unique_movies) * 100
+
+    # Ensure compatibility percentage doesn't exceed 100%
     return min(compatibility_percentage, 100)
 
 if __name__ == "__main__":
