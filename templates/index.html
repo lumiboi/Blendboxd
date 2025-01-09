@@ -5,96 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blendboxd</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-  gtag('config', 'G-2Q77KLT449');
-</script>
-    
+        gtag('config', 'G-2Q77KLT449');
+    </script>
     <style>
+        /* Genel stil ayarları */
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif') no-repeat center center fixed;
-            background-size: cover;
-            color: #fff;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            position: relative;
+            flex-direction: column;
         }
+
         .container {
-            background-color: rgba(20, 24, 28, 0.8);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
             text-align: center;
-            width: 350px;
+            max-width: 600px;
+            margin: 20px;
         }
+
         h1 {
-            margin-bottom: 20px;
             color: #00b7a4;
         }
-        input {
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            margin: 5px 0;
-            width: 100%;
+
+        h3 {
+            color: #333;
         }
-        button {
+
+        input {
+            width: 80%;
             padding: 10px;
-            border-radius: 6px;
-            border: none;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 80%;
+            padding: 12px;
+            font-size: 18px;
             background-color: #00b7a4;
             color: white;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            width: 100%;
+            margin: 10px 0;
         }
+
         button:hover {
-            background-color: #008a7a;
+            background-color: #009e8e;
         }
+
         .language-selector {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 6px;
-            color: white;
-            display: flex;
-            align-items: center;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
             cursor: pointer;
         }
-        .language-selector i {
-            margin-right: 5px;
-        }
+
         .loading {
             display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            color: #fff;
             text-align: center;
-            z-index: 10;
+            margin-top: 20px;
         }
-        .loading .spinner {
-            margin-bottom: 10px;
-            animation: spin 1s linear infinite;
+
+        .spinner {
+            font-size: 50px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        h6 {
+            font-size: 14px;
+            color: #999;
+        }
+
+        p5 {
+            font-size: 14px;
+        }
+
+        .link {
+            color: #00b7a4;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -110,17 +120,19 @@
             <input type="text" name="username1" id="username1" placeholder="Kullanıcı Adı 1" required>
             <input type="text" name="username2" id="username2" placeholder="Kullanıcı Adı 2" required>
             <button type="submit">Blender!</button> 
-            <br> <h6>&copy; Tüm Hakları Mert Ergün'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.</h6> 
-            <p5><a href="mailto:070lumi@gmail.com" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Sponsorluk saire vesaire blabla</a>
-</p5> <br>
-            <br> <a href="https://letterboxd.com/lumiboi/">Bu da benim letırbaks linkim.</a>
+            <br> 
+            <h6 id="copyright">© Tüm Hakları Mert Ergün'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.</h6> 
+            <p5><a href="mailto:070lumi@gmail.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Sponsorluk saire vesaire blabla</a></p5> 
+            <br>
+            <br> 
+            <a href="https://letterboxd.com/lumiboi/" id="letterboxdLink">Bu da benim letırbaks linkim.</a>
         </form>
     </div>
 
-   <div class="loading" id="loading">
+    <div class="loading" id="loading">
         <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
-        <p>Blender çalışıyor... </p>
-        <p>Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)
+        <p id="loadingText">Blender çalışıyor... </p>
+        <p id="loadingSounds">Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)
 Tsshhh... (rüzgar sesi)
 Woop-woop... (filmler kayıyor)
 Klink! (filmler birbirine çarpıyor)</p>
@@ -132,9 +144,13 @@ Klink! (filmler birbirine çarpıyor)</p>
         const languageSelector = document.getElementById('languageSelector');
         const languageText = document.getElementById('languageText');
         const description = document.getElementById('description');
-        const loadingText = document.getElementById('loadingText');
         const username1Input = document.getElementById('username1');
         const username2Input = document.getElementById('username2');
+        const copyright = document.getElementById('copyright');
+        const sponsorButton = document.getElementById('sponsorButton');
+        const letterboxdLink = document.getElementById('letterboxdLink');
+        const loadingText = document.getElementById('loadingText');
+        const loadingSounds = document.getElementById('loadingSounds');
         
         let language = 'tr'; // Default language is Turkish
         
@@ -147,16 +163,24 @@ Klink! (filmler birbirine çarpıyor)</p>
                 language = 'en';
                 languageText.textContent = 'Language: English';
                 description.textContent = 'Let\'s enter the details of two users to run the blender and create the watchbox...';
-                loadingText.textContent = 'Blender is working...';
                 username1Input.placeholder = 'Username 1';
                 username2Input.placeholder = 'Username 2';
+                copyright.textContent = '© All Rights Reserved by Mert Ergün… Just kidding. I didn’t get into those professional things, but there’s effort.';
+                sponsorButton.textContent = 'Sponsorship etc. blah blah';
+                letterboxdLink.textContent = 'Here’s my Letterboxd link.';
+                loadingText.textContent = 'Blender is running...';
+                loadingSounds.textContent = 'Bzzzzzt... Bzzz... Bzzzz... (spinning sound)\nTsshhh... (wind sound)\nWoop-woop... (movies sliding)\nKlink! (movies crashing)';
             } else {
                 language = 'tr';
                 languageText.textContent = 'Dil: Türkçe';
                 description.textContent = 'Blender\'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...';
-                loadingText.textContent = 'Blender çalışıyor...';
                 username1Input.placeholder = 'Kullanıcı Adı 1';
                 username2Input.placeholder = 'Kullanıcı Adı 2';
+                copyright.textContent = '© Tüm Hakları Mert Ergün\'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.';
+                sponsorButton.textContent = 'Sponsorluk saire vesaire blabla';
+                letterboxdLink.textContent = 'Bu da benim letırbaks linkim.';
+                loadingText.textContent = 'Blender çalışıyor...';
+                loadingSounds.textContent = 'Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)\nTsshhh... (rüzgar sesi)\nWoop-woop... (filmler kayıyor)\nKlink! (filmler birbirine çarpıyor)';
             }
         });
     </script>
