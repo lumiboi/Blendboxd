@@ -16,7 +16,7 @@ def index():
         # Ortak filmleri belirle
         common_movies = [movie for movie in user1_movies if movie in user2_movies]
         
-        # Uyum yüzdesini hesapla
+        # Uyum yüzdesini hesapla (her iki kullanıcının da toplam film sayısına göre)
         compatibility_percentage = calculate_compatibility(len(user1_movies), len(user2_movies), len(common_movies))
 
         return render_template("result.html", username1=username1, username2=username2, 
@@ -30,7 +30,7 @@ def get_watched_movies(username):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
             movie_title = movie.find("img")["alt"]  # Film ismini al
-            watched_movies.append(movie_title)  # Sadece film ismini ekle
+            watched_movies.append({"title": movie_title})  # Sadece film ismini ekle
 
     def connect_page():
         page_num = 1
@@ -49,17 +49,24 @@ def get_watched_movies(username):
     return watched_movies
 
 def calculate_compatibility(user1_movie_count, user2_movie_count, common_movie_count):
-    # Eğer toplamda hiç film izlenmediyse uyum oranı 0 olmalı
-    if user1_movie_count == 0 or user2_movie_count == 0:
+    # İki kullanıcının toplam izlediği film sayısına göre uyum oranı hesapla
+    total_movies = user1_movie_count + user2_movie_count
+    
+    # Eğer iki kullanıcıdan biri hiç film izlememişse uyum oranı 0 olmalı
+    if total_movies == 0:
+        return 0
+    
+    # Eğer hiç ortak film yoksa uyum oranı %0 olmalı
+    if common_movie_count == 0:
         return 0
 
-    # İki kullanıcının izleme oranlarına göre simetrik bir metrik oluştur
-    user1_ratio = common_movie_count / user1_movie_count
-    user2_ratio = common_movie_count / user2_movie_count
-
-    # İki oranın ortalamasını alarak genel uyum oranını belirle
-    compatibility_percentage = (user1_ratio + user2_ratio) / 2 * 100
-
+    # Eğer ortak film sayısı 5'in üzerindeyse hesaplamaya %50 ekleyerek başla
+    if common_movie_count > 5:
+        compatibility_percentage = 50 + ((2 * common_movie_count / total_movies) * 100)
+    else:
+        # Ortak film sayısı 5'in altındaysa direkt uyumluluk hesapla
+        compatibility_percentage = (2 * common_movie_count / total_movies) * 100
+    
     # Uyumluluk yüzdesinin %100'ü geçmemesini sağla
     return min(compatibility_percentage, 100)
 
