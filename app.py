@@ -5,6 +5,8 @@ import os
 
 app = Flask(__name__)
 
+TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658"  
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -19,8 +21,17 @@ def index():
         # İstenilen mantıkla uyumluluk yüzdesini hesapla
         compatibility_percentage = calculate_compatibility(user1_movies, user2_movies, common_movies)
 
-        return render_template("result.html", username1=username1, username2=username2, 
-                               common_movies=common_movies, compatibility_percentage=compatibility_percentage)
+        # Film tavsiyelerini al
+        movie_recommendations = get_recommendations(common_movies)
+
+        return render_template(
+            "result.html",
+            username1=username1,
+            username2=username2,
+            common_movies=common_movies,
+            compatibility_percentage=compatibility_percentage,
+            recommendations=movie_recommendations
+        )
     return render_template("index.html")
 
 def get_watched_movies(username):
@@ -71,6 +82,23 @@ def calculate_compatibility(user1_movies, user2_movies, common_movies):
     
     # Uyumluluk yüzdesinin %100'ü geçmemesini sağla
     return min(compatibility_percentage, 100)
+
+def get_recommendations(common_movies):
+    recommendations = []
+    for movie in common_movies:
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie}"
+        search_response = requests.get(search_url).json()
+        
+        if search_response.get("results"):
+            movie_id = search_response["results"][0]["id"]
+            recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
+            rec_response = requests.get(recommendations_url).json()
+            
+            if rec_response.get("results"):
+                for rec_movie in rec_response["results"]:
+                    recommendations.append(rec_movie["title"])
+
+    return list(set(recommendations))  # Benzersiz öneriler
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
