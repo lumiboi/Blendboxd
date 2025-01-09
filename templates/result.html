@@ -119,7 +119,7 @@
 
     <!-- Ana İçerik -->
     <div class="container">
-        <h1 id="header">{{ username1 }} and {{ username2 }} Watchbox!</h1>
+        <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
         <ul id="movieList">
             {% if common_movies %}
@@ -127,23 +127,23 @@
                      <li>{{ movie }}</li>
                 {% endfor %}
             {% else %}
-                <li>No common movies found.</li>
+                <li>Ortak film bulunamadı</li>
             {% endif %}
         </ul>
-        <div id="compatibility">Compatibility: {{ compatibility_percentage | round(2) }}%</div>
-        <h3 id="tavsiye">Movie Recommendations for This Duo:</h3>
+        <div id="compatibility">Uyum: {{ compatibility_percentage | round(2) }}%</div>
+        <h3 id="tavsiye">Bu İkili İçin Film Önerileri:</h3>
         <ul id="recommendationList">
             {% if recommendations %}
                 {% for recommendation in recommendations[:10] %} <!-- Only 10 movies -->
                     <li>{{ recommendation }}</li>
                 {% endfor %}
             {% else %}
-                <li>No movie recommendations found.</li>
+                <li>Film önerisi bulunamadı.</li>
             {% endif %}
         </ul>
-        <button class="button" id="downloadBtn">Download as Canvas</button>
-        <button class="button" id="downloadInstagramStoryBtn">Download as Canvas (Instagram Story)</button>
-        <a href="/" class="link">Enter new usernames</a>
+        <button class="button" id="downloadBtn">Canvas olarak indir</button>
+        <button class="button" id="downloadInstagramStoryBtn">Canvas olarak indir (Instagram Hikayesi)</button>
+        <a href="/" class="link">Yeni kullanıcı adları girin</a>
     </div>
 
     <script>
