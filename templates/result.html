@@ -176,9 +176,9 @@
             };
 
             // Sayfa dilini kontrol et ('en' ya da 'tr')
-            //const currentLanguage = document.documentElement.lang || 'tr'; // Varsayılan dil
+           const currentLanguage = document.documentElement.lang || 'en'; // Varsayılan dil
 
-            //return translations[currentLanguage][key] || key;
+            return translations[currentLanguage][key] || key;
         }
 
         // Language selector for dynamic content translation
