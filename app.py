@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 import os
+import random
 
 app = Flask(__name__)
 
@@ -99,6 +100,48 @@ def get_recommendations(common_movies):
                     recommendations.append(rec_movie["title"])
 
     return list(set(recommendations))  # Benzersiz öneriler
+
+@app.route('/picker', methods=['GET'])
+def picker():
+    return render_template("picker.html")
+
+@app.route('/pick_movies', methods=['POST'])
+def pick_movies():
+    username = request.form.get('username')
+    count = int(request.form.get('count', 1))
+
+    watchlist = get_watchlist(username)
+    selected_movies = random.sample(watchlist, min(count, len(watchlist)))
+
+    movies_info = []
+    for movie in selected_movies:
+        movie_info = get_movie_info(movie)
+        if movie_info:
+            movies_info.append(movie_info)
+
+    return jsonify(movies_info)
+
+def get_watchlist(username):
+    watchlist = []
+    url = f"https://letterboxd.com/{username}/watchlist/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "lxml")
+    movies = soup.find_all("li", class_="poster-container")
+    for movie in movies:
+        title = movie.find("img")["alt"].title()
+        watchlist.append(title)
+    return watchlist
+
+def get_movie_info(title):
+    search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={title}"
+    response = requests.get(search_url).json()
+    if response.get("results"):
+        movie_data = response["results"][0]
+        return {
+            "title": movie_data.get("title", "Unknown Title"),
+            "poster": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path', '')}"
+        }
+    return None
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
