@@ -131,7 +131,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Compatibility: {{ compatibility_percentage | round(2) }}%</div>
-        <h3 id="tavsiye">Movie Recommendations for This Pair:</h3>
+        <h3 id="tavsiye">Movie Recommendations for This Duo:</h3>
         <ul id="recommendationList">
             {% if recommendations %}
                 {% for recommendation in recommendations[:10] %} <!-- Only 10 movies -->
