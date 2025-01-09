@@ -44,6 +44,12 @@
             margin-bottom: 10px;
             color: #ff8000;
         }
+
+         tavsiye {
+            margin-bottom: 10px;
+            color: #00e054;
+        }
+       
         ul {
             list-style: none;
             padding: 0;
@@ -104,7 +110,7 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
-        <h2>Film Tavsiyeleri:</h2>
+        <h3 id="tavsiye">Bu İkili İçin Film Tavsiyeleri:</h3>
         <ul id="recommendationList">
             {% if recommendations %}
                 {% for recommendation in recommendations[:10] %} <!-- Sadece 10 film -->
