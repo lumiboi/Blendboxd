@@ -266,7 +266,7 @@
             ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
             ctx.fillText(`${getTranslation('compatibility')}: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Ortalanmış uyum
 
-            // "Kendi Watchbox'ınızı oluşturmak için blendboxd.up.railway.app'ı ziyaret edin!" metni
+            // blendboxd.up.railway.app metni
             const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
             linkGradient.addColorStop(0, '#ff8000');
             linkGradient.addColorStop(0.5, '#00e054');
@@ -274,7 +274,7 @@
             ctx.fillStyle = linkGradient;
             ctx.font = 'italic 24px "Helvetica Neue", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(getTranslation('enter_usernames'), canvasWidth / 2, canvasHeight - 20);
+            ctx.fillText('blendboxd.up.railway.app', canvasWidth / 2, canvasHeight - 20);
 
             // Görseli İndir
             const link = document.createElement('a');
