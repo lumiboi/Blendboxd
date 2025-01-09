@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLEND SONUCU!</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-2Q77KLT449');
-</script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2Q77KLT449');
+    </script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -24,7 +23,6 @@
             background: url('https://i.ibb.co/VNSHSXD/EWS-ezgif-com-optimize.gif') no-repeat center center fixed;
             background-size: cover;
         }
-
         .container {
             background-color: rgba(20, 24, 28, 0.9);
             padding: 40px;
@@ -37,27 +35,23 @@
             overflow-y: auto;
             max-height: 90vh;
         }
-
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
             color: #00b7a4;
         }
-
         h2 {
             margin-bottom: 10px;
             color: #ff8000;
         }
-
         ul {
             list-style: none;
             padding: 0;
             margin: 0;
             max-height: 50vh;
             overflow-y: auto;
-            text-align: center; /* Ortala */
+            text-align: center;
         }
-
         li {
             background: #1e272e;
             margin: 5px 0;
@@ -65,7 +59,6 @@
             border-radius: 6px;
             color: #fff;
         }
-
         .button {
             margin-top: 20px;
             background-color: #00b7a4;
@@ -76,11 +69,9 @@
             cursor: pointer;
             font-size: 14px;
         }
-
         .button:hover {
             background-color: #008a7a;
         }
-
         .link {
             display: block;
             margin-top: 10px;
@@ -88,11 +79,9 @@
             color: #00b7a4;
             font-weight: bold;
         }
-
         .link:hover {
             text-decoration: underline;
         }
-
         #compatibility {
             color: #ff8000;
             font-size: 24px;
@@ -115,6 +104,16 @@
             {% endif %}
         </ul>
         <div id="compatibility">Uyum Oranı: {{ compatibility_percentage | round(2) }}%</div>
+        <h2>Film Tavsiyeleri:</h2>
+        <ul id="recommendationList">
+            {% if recommendations %}
+                {% for recommendation in recommendations[:10] %} <!-- Sadece 10 film -->
+                    <li>{{ recommendation }}</li>
+                {% endfor %}
+            {% else %}
+                <li>Tavsiye edilebilecek film bulunamadı.</li>
+            {% endif %}
+        </ul>
         <button class="button" id="downloadBtn">Canvas Olarak İndir</button>
         <button class="button" id="downloadInstagramStoryBtn">Canvas Olarak İndir (Instagram Story)</button>
         <a href="/" class="link">Yeni kullanıcı adları gir</a>
