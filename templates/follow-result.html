@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonuçlar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            width: 300px;
+            max-height: 80vh; /* Maksimum yükseklik */
+            overflow-y: auto; /* Dikey kaydırma ekler */
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        li {
+            background: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .language-select {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            font-size: 24px;
+            text-align: center;
+        }
+        footer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        @media screen and (max-width: 400px) {
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-select">
+        <label for="language">Dil Seçin: / Select Language: </label>
+        <select id="language" onchange="changeLanguage()">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+    <div class="container">
+        <h1 data-tr="{{ username }}'nin Takipçi Durumu" data-en="{{ username }}'s Follower Status"></h1>
+        <h2 data-tr="Seni Takip Etmeyen Şeref Yoksunları:" data-en="People Not Following You:"></h2>
+        <ul>
+            {% if difference_list %}
+                {% for user in difference_list %}
+                    <li>{{ user[1:-1] }}</li>
+                {% endfor %}
+            {% else %}
+                <li data-tr="0 kişi" data-en="0 people"></li>
+            {% endif %}
+        </ul>
+        <a href="/"><span data-tr="Yeni bir kullanıcı adı gir" data-en="Enter a new username"></span></a>
+    </div>
+    <div id="loading">
+        <div data-tr="Yükleniyordur... (İşlem biraz zaman alabilirdir.)" data-en="Loading...(The process may take some time.)"></div>
+    </div>
+    <footer>
+        <p>Bütün hakları Mert Ergün'e aittir ha. Şaka şaka hak mak yok ama uğraştık o kadar çalmayın.</p>
+    </footer>
+
+    <script>
+        function showLoading() {
+            document.getElementById("loading").style.display = "flex";
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById("language").value;
+            const elements = document.querySelectorAll('[data-tr], [data-en]');
+            elements.forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+        }
+
+        // Sayfa yüklendiğinde varsayılan dili ayarla
+        window.onload = function() {
+            changeLanguage();
+        };
+    </script>
+</body>
+</html>
