@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letterboxd Takipçi Kontrolü</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+            position: relative;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            width: 300px;
+        }
+        .language-select {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: linear-gradient(90deg, #1e6d59, #ff7f50); /* Yeşil ve Turuncu */
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #155846, #ff6347); /* Daha koyu yeşil ve turuncu */
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            font-size: 24px;
+            text-align: center;
+        }
+        footer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-select">
+        <label for="language">Dil Seçin: / Select Language: </label>
+        <select id="language" onchange="changeLanguage()">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+    <div class="container">
+        <h1 data-tr="Letterboxd Kullanıcı Adı Girin" data-en="Enter Letterboxd Username"></h1>
+        <form method="POST" onsubmit="showLoading()">
+            <input type="text" name="username" placeholder="Kullanıcı Adı" required>
+            <button type="submit"><i class="fas fa-paper-plane"></i> <span data-tr="Gönder" data-en="Submit"></span></button>
+        </form>
+    </div>
+    <div id="loading">
+        <div data-tr="Yükleniyordur... (İşlem birazcık zaman alabilirdir.)" data-en="Loading... (The process may take some time.)"></div>
+    </div>
+    <footer>
+        <p>Bütün hakları Mert Ergün'e aittir ha. Şaka şaka hak mak yok ama uğraştık o kadar çalmayın.</p>
+    </footer>
+    
+    <script>
+        function showLoading() {
+            document.getElementById("loading").style.display = "flex";
+        }
+
+        function changeLanguage() {
+            const lang = document.getElementById("language").value;
+            const elements = document.querySelectorAll('[data-tr], [data-en]');
+            elements.forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+        }
+
+        // Sayfa yüklendiğinde varsayılan dili ayarla
+        window.onload = function() {
+            changeLanguage();
+        };
+    </script>
+</body>
+</html>
