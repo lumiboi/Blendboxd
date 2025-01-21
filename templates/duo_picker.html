@@ -97,7 +97,7 @@
     <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
 </a>
 <br> <br>
-        <h1>{{ 'Film Seçici' if lang == 'tr' else 'Movie Picker' }}</h1>
+        <h1>{{ 'Grup Film Seçici' if lang == 'tr' else 'Group Movie Picker' }}</h1>
         <form method="GET" action="/duo_picker">
             <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
             <select name="lang" id="lang" onchange="this.form.submit()">
