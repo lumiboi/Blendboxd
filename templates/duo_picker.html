@@ -93,9 +93,10 @@
 </head>
 <body>
     <header>
-             <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #F05A28; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
+            <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #F05A28; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
     <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
-                 <br> <br>
+</a>
+
         <h1>{{ 'Film Seçici' if lang == 'tr' else 'Movie Picker' }}</h1>
         <form method="GET" action="/duo_picker">
             <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
@@ -118,7 +119,6 @@
             <input type="number" id="film_count" name="film_count" min="1" value="1" required>
             <button type="submit">{{ 'Film Getir' if lang == 'tr' else 'Fetch Movies' }}</button>
        
-</a>
         </form>
     </main>
     <script>
