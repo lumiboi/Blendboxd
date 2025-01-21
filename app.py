@@ -181,5 +181,34 @@ def get_movie_info(title):
         }
     return None
 
+@app.route('/duo_picker', methods=['GET', 'POST'])
+def duo_picker():
+    if request.method == 'POST':
+        try:
+            # Kullanıcı adı girişlerini ve film sayısını al
+            user_count = int(request.form.get('user_count', 1))
+            film_count = int(request.form.get('film_count', 1))
+            
+            usernames = [request.form.get(f'username{i+1}') for i in range(user_count)]
+            
+            all_movies = []
+
+            for username in usernames:
+                watchlist = get_watchlist(username)
+                selected_movies = random.sample(watchlist, min(film_count, len(watchlist)))
+                for movie in selected_movies:
+                    movie_info = get_movie_info(movie)
+                    if movie_info:
+                        all_movies.append(movie_info)
+
+            # Sonuçları yeni bir HTML şablonunda render et
+            return render_template("duo_picker_result.html", movies=all_movies, usernames=usernames)
+
+        except Exception as e:
+            return render_template("duo_picker_result.html", error=str(e))
+
+    return render_template('duo_picker.html')
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
