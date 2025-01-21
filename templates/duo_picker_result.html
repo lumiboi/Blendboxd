@@ -1,31 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duo Picker Results</title>
+    <title>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #181818;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #242424;
+            padding: 10px 20px;
+            border-bottom: 2px solid #F05A28;
+        }
+
+        h1 {
+            color: #F05A28;
+            font-size: 2rem;
+        }
+
+        h2 {
+            color: #F05A28;
+            font-size: 1.5rem;
+            margin-top: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        li {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        li img {
+            max-width: 100%;
+            border-radius: 10px;
+            height: 150px;
+        }
+
+        p {
+            color: #FFFFFF;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: #F05A28;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #A3E635;
+        }
+
+        form select {
+            background-color: #242424;
+            color: #FFFFFF;
+            border: 1px solid #F05A28;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+    </style>
 </head>
 <body>
-    <h1>Duo Picker Results</h1>
-    {% if error %}
-        <p style="color: red;">Error: {{ error }}</p>
-    {% else %}
-        <h2>Selected Users:</h2>
-        <ul>
-            {% for username in usernames %}
-                <li>{{ username }}</li>
-            {% endfor %}
-        </ul>
-        <h2>Randomly Selected Movies:</h2>
-        <ul>
-            {% for movie in movies %}
-                <li>
-                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" style="height: 150px;">
-                    <p>{{ movie.title }}</p>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-    <a href="/duo_picker">Go Back</a>
+    <header>
+        <h1>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</h1>
+        <form method="GET" action="/duo_picker">
+            <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
+            <select name="lang" id="lang" onchange="this.form.submit()">
+                <option value="tr" {% if lang == 'tr' %}selected{% endif %}>Türkçe</option>
+                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+            </select>
+        </form>
+    </header>
+    <main>
+        {% if error %}
+            <p class="error">{{ 'Hata: ' if lang == 'tr' else 'Error: ' }}{{ error }}</p>
+        {% else %}
+            <section>
+                <h2>{{ 'Seçilen Kullanıcılar:' if lang == 'tr' else 'Selected Users:' }}</h2>
+                <ul>
+                    {% for username in usernames %}
+                        <li>{{ username }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            <section>
+                <h2>{{ 'Rastgele Seçilen Filmler:' if lang == 'tr' else 'Randomly Selected Movies:' }}</h2>
+                <ul>
+                    {% for movie in movies %}
+                        <li>
+                            <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+                            <p>{{ movie.title }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        <a href="/duo_picker">{{ 'Geri Dön' if lang == 'tr' else 'Go Back' }}</a>
+    </main>
 </body>
 </html>
