@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duo Picker Results</title>
+</head>
+<body>
+    <h1>Duo Picker Results</h1>
+    {% if error %}
+        <p style="color: red;">Error: {{ error }}</p>
+    {% else %}
+        <h2>Selected Users:</h2>
+        <ul>
+            {% for username in usernames %}
+                <li>{{ username }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Randomly Selected Movies:</h2>
+        <ul>
+            {% for movie in movies %}
+                <li>
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" style="height: 150px;">
+                    <p>{{ movie.title }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="/duo_picker">Go Back</a>
+</body>
+</html>
