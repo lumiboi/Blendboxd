@@ -181,20 +181,19 @@ def get_movie_info(title):
         }
     return None
 
-@app.route('/duo_picker', methods=['GET', 'POST'])
 def duo_picker():
     lang = request.args.get('lang', 'tr')  # Varsayılan dil Türkçe
     if request.method == 'POST':
         try:
-            user_count = int(request.form.get('user_count', 1))
-            film_count = int(request.form.get('film_count', 1))
+            user_count = int(request.form.get('user_count', 1))  # Kullanıcı sayısını al
+            film_count = int(request.form.get('film_count', 1))  # Film sayısını al
             usernames = [request.form.get(f'username{i+1}') for i in range(user_count)]
             
             all_movies = []
 
             for username in usernames:
                 watchlist = get_watchlist(username)
-                selected_movies = random.sample(watchlist, min(film_count, len(watchlist)))
+                selected_movies = random.sample(watchlist, min(film_count, len(watchlist)))  # Film sayısını doğru al
                 for movie in selected_movies:
                     movie_info = get_movie_info(movie)
                     if movie_info:
@@ -206,6 +205,7 @@ def duo_picker():
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
 
     return render_template('duo_picker.html', lang=lang)
+
 
 
 
