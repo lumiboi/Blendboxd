@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duo Picker</title>
+</head>
+<body>
+    <h1>Duo Picker</h1>
+    <form method="POST" action="/duo_picker">
+        <label for="user_count">Number of Users:</label>
+        <input type="range" id="user_count" name="user_count" min="1" max="5" value="1" oninput="updateUserInputs(this.value)">
+        <span id="user_count_label">1</span>
+        <div id="user_inputs">
+            <label for="username1">Username 1:</label>
+            <input type="text" id="username1" name="username1" required>
+        </div>
+        <label for="film_count">Number of Films per User:</label>
+        <input type="number" id="film_count" name="film_count" min="1" value="1" required>
+        <button type="submit">Fetch Films</button>
+    </form>
+    <script>
+        function updateUserInputs(count) {
+            document.getElementById('user_count_label').innerText = count;
+            const userInputsDiv = document.getElementById('user_inputs');
+            userInputsDiv.innerHTML = '';
+            for (let i = 1; i <= count; i++) {
+                const label = document.createElement('label');
+                label.setAttribute('for', `username${i}`);
+                label.textContent = `Username ${i}:`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `username${i}`;
+                input.name = `username${i}`;
+                input.required = true;
+                userInputsDiv.appendChild(label);
+                userInputsDiv.appendChild(input);
+            }
+        }
+    </script>
+</body>
+</html>
