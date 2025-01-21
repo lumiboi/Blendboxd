@@ -111,7 +111,7 @@
                 <label for="username1">{{ 'Kullanıcı Adı 1' if lang == 'tr' else 'Username 1' }}:</label>
                 <input type="text" id="username1" name="username1" required>
             </div>
-            <label for="film_count">{{ 'Film Sayısı' if lang == 'tr' else 'Number of Films' }}:</label>
+            <label for="film_count">{{ 'Film Sayısı (Her iki kullanıcıdan)' if lang == 'tr' else 'Number of Films(From both users)' }}:</label>
             <input type="number" id="film_count" name="film_count" min="1" value="1" required>
             <button type="submit">{{ 'Film Getir' if lang == 'tr' else 'Fetch Movies' }}</button>
         </form>
