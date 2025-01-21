@@ -1,140 +1,31 @@
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Sonuçlar' if lang == 'tr' else 'Results' }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #181818;
-            color: #FFFFFF;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #242424;
-            padding: 10px 20px;
-            border-bottom: 2px solid #F05A28;
-        }
-
-        header select {
-            background-color: #242424;
-            color: #FFFFFF;
-            border: 1px solid #F05A28;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        h1 {
-            color: #F05A28;
-            font-size: 2rem;
-        }
-
-        main {
-            padding: 20px;
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .section {
-            margin-bottom: 30px;
-        }
-
-        .section h2 {
-            color: #A3E635;
-            margin-bottom: 10px;
-        }
-
-        .movie-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            list-style: none;
-            padding: 0;
-        }
-
-        .movie-item {
-            background-color: #242424;
-            border-radius: 10px;
-            overflow: hidden;
-            width: 150px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .movie-item img {
-            width: 100%;
-            border-bottom: 2px solid #F05A28;
-        }
-
-        .movie-item p {
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-
-        .compatibility {
-            font-size: 1.5rem;
-            text-align: center;
-            color: #F05A28;
-            margin-bottom: 20px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #242424;
-            border-top: 2px solid #F05A28;
-        }
-    </style>
+    <title>Duo Picker Results</title>
 </head>
 <body>
-    <header>
-        <h1>{{ 'Sonuçlar' if lang == 'tr' else 'Results' }}</h1>
-        <form method="GET" action="/duo_picker">
-            <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
-            <select name="lang" id="lang" onchange="this.form.submit()">
-                <option value="tr" {% if lang == 'tr' %}selected{% endif %}>Türkçe</option>
-                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
-            </select>
-        </form>
-    </header>
-    <main>
-        <div class="compatibility">
-            {{ 'Uyumluluk Oranı: ' if lang == 'tr' else 'Compatibility Rate: ' }} 
-            <strong>{{ compatibility_percentage }}%</strong>
-        </div>
-
-        <div class="section">
-            <h2>{{ 'Ortak Filmler' if lang == 'tr' else 'Common Movies' }}</h2>
-            <ul class="movie-list">
-                {% for movie in common_movies %}
-                <li class="movie-item">
-                    <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+    <h1>Duo Picker Results</h1>
+    {% if error %}
+        <p style="color: red;">Error: {{ error }}</p>
+    {% else %}
+        <h2>Selected Users:</h2>
+        <ul>
+            {% for username in usernames %}
+                <li>{{ username }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Randomly Selected Movies:</h2>
+        <ul>
+            {% for movie in movies %}
+                <li>
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" style="height: 150px;">
                     <p>{{ movie.title }}</p>
                 </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>{{ 'Film Tavsiyeleri' if lang == 'tr' else 'Movie Recommendations' }}</h2>
-            <ul class="movie-list">
-                {% for rec in recommendations %}
-                <li class="movie-item">
-                    <img src="{{ rec.poster }}" alt="{{ rec.title }}">
-                    <p>{{ rec.title }}</p>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </main>
-    <footer>
-        <p>{{ "Bir tane daha telif şakası yapmayacağım." if lang == "tr" else "I won't make another copyright joke." }}</p>
-    </footer>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <a href="/duo_picker">Go Back</a>
 </body>
 </html>
