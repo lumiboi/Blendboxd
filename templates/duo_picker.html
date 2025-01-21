@@ -1,24 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duo Picker</title>
+    <title>{{ 'Film Seçici' if lang == 'tr' else 'Movie Picker' }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #181818;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #242424;
+            padding: 10px 20px;
+            border-bottom: 2px solid #F05A28;
+        }
+
+        header select {
+            background-color: #242424;
+            color: #FFFFFF;
+            border: 1px solid #F05A28;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        h1 {
+            color: #F05A28;
+            font-size: 2rem;
+        }
+
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            background-color: #242424;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        form input, form button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        form input {
+            background-color: #303030;
+            color: #FFFFFF;
+        }
+
+        form button {
+            background-color: #F05A28;
+            color: #FFFFFF;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        form button:hover {
+            background-color: #A3E635;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        li img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Duo Picker</h1>
-    <form method="POST" action="/duo_picker">
-        <label for="user_count">Number of Users:</label>
-        <input type="range" id="user_count" name="user_count" min="1" max="5" value="1" oninput="updateUserInputs(this.value)">
-        <span id="user_count_label">1</span>
-        <div id="user_inputs">
-            <label for="username1">Username 1:</label>
-            <input type="text" id="username1" name="username1" required>
-        </div>
-        <label for="film_count">Number of Films per User:</label>
-        <input type="number" id="film_count" name="film_count" min="1" value="1" required>
-        <button type="submit">Fetch Films</button>
-    </form>
+    <header>
+        <h1>{{ 'Film Seçici' if lang == 'tr' else 'Movie Picker' }}</h1>
+        <form method="GET" action="/duo_picker">
+            <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
+            <select name="lang" id="lang" onchange="this.form.submit()">
+                <option value="tr" {% if lang == 'tr' %}selected{% endif %}>Türkçe</option>
+                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+            </select>
+        </form>
+    </header>
+    <main>
+        <form method="POST" action="/duo_picker">
+            <label for="user_count">{{ 'Kullanıcı Sayısı' if lang == 'tr' else 'Number of Users' }}:</label>
+            <input type="range" id="user_count" name="user_count" min="1" max="5" value="1" oninput="updateUserInputs(this.value)">
+            <span id="user_count_label">1</span>
+            <div id="user_inputs">
+                <label for="username1">{{ 'Kullanıcı Adı 1' if lang == 'tr' else 'Username 1' }}:</label>
+                <input type="text" id="username1" name="username1" required>
+            </div>
+            <label for="film_count">{{ 'Film Sayısı' if lang == 'tr' else 'Number of Films' }}:</label>
+            <input type="number" id="film_count" name="film_count" min="1" value="1" required>
+            <button type="submit">{{ 'Film Getir' if lang == 'tr' else 'Fetch Movies' }}</button>
+        </form>
+    </main>
     <script>
         function updateUserInputs(count) {
             document.getElementById('user_count_label').innerText = count;
@@ -27,7 +124,7 @@
             for (let i = 1; i <= count; i++) {
                 const label = document.createElement('label');
                 label.setAttribute('for', `username${i}`);
-                label.textContent = `Username ${i}:`;
+                label.textContent = `{{ 'Kullanıcı Adı' if lang == 'tr' else 'Username' }} ${i}:`;
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.id = `username${i}`;
