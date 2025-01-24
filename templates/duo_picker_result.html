@@ -121,11 +121,10 @@
         <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #00e054; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
             <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
         </a>
-        <br><br>
         <h1>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</h1>
-        <form method="GET" action="/duo_picker">
+        <form id="language-form">
             <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
-            <select name="lang" id="lang" onchange="this.form.submit()">
+            <select name="lang" id="lang">
                 <option value="tr" {% if lang == 'tr' %}selected{% endif %}>Türkçe</option>
                 <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
             </select>
@@ -161,6 +160,14 @@
         <a href="/duo_picker">{{ 'Geri Dön' if lang == 'tr' else 'Go Back' }}</a>
     </main>
     <script>
+        // Dil değişikliği formu için mevcut URL'yi koruma
+        document.getElementById('lang').addEventListener('change', function() {
+            const currentUrl = new URL(window.location.href); // Mevcut URL'yi al
+            currentUrl.searchParams.set('lang', this.value);  // 'lang' parametresini güncelle
+            window.location.href = currentUrl.toString();    // Güncellenmiş URL'ye yönlendir
+        });
+
+        // Tek bir film seçme işlemi
         function pickSingleMovie() {
             const movieList = document.getElementById('movie-list');
             const movies = movieList.querySelectorAll('li');
