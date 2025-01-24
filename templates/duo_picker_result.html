@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</title>
     <style>
+        /* Mevcut CSS */
         body {
             background: url('https://i.ibb.co/dgKRTvD/c8708e0a-7405-440a-a1ab-86d3e09efa23.gif') no-repeat center center fixed;
             background-size: cover;
@@ -16,7 +17,7 @@
         }
 
         header {
-             opacity: 0.85;
+            opacity: 0.85;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -41,21 +42,27 @@
             padding: 0;
             margin-top: 10px;
             color: #00e054;
-            
         }
 
         li {
             margin-bottom: 20px;
             text-align: center;
             color: #00e054;
-            font-weight: bold; 
-        text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Yazıya hafif gölge */
+            font-weight: bold;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7); /* Yazıya hafif gölge */
+            opacity: 1;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
         li img {
             max-width: 100%;
             border-radius: 10px;
             height: 150px;
+        }
+
+        li.removing {
+            opacity: 0;
+            transform: translateY(20px);
         }
 
         p {
@@ -91,13 +98,29 @@
             border-radius: 5px;
         }
 
+        .single-movie-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #00e054;
+            color: #FFFFFF;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .single-movie-button:hover {
+            background-color: #40bcf4;
+        }
     </style>
 </head>
 <body>
     <header>
-       <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #00e054; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
-    <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
-</a>
+        <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #00e054; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
+            <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
+        </a>
         <br><br>
         <h1>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</h1>
         <form method="GET" action="/duo_picker">
@@ -122,7 +145,7 @@
             </section>
             <section>
                 <h2>{{ 'Rastgele Seçilen Filmler:' if lang == 'tr' else 'Randomly Selected Movies:' }}</h2>
-                <ul>
+                <ul id="movie-list">
                     {% for movie in movies %}
                         <li>
                             <img src="{{ movie.poster }}" alt="{{ movie.title }}">
@@ -132,7 +155,23 @@
                 </ul>
             </section>
         {% endif %}
+        <button class="single-movie-button" onclick="pickSingleMovie()">
+            {{ 'Tek Bir Film Seç' if lang == 'tr' else 'Pick One Movie' }}
+        </button>
         <a href="/duo_picker">{{ 'Geri Dön' if lang == 'tr' else 'Go Back' }}</a>
     </main>
+    <script>
+        function pickSingleMovie() {
+            const movieList = document.getElementById('movie-list');
+            const movies = movieList.querySelectorAll('li');
+            const randomIndex = Math.floor(Math.random() * movies.length);
+            movies.forEach((movie, index) => {
+                if (index !== randomIndex) {
+                    movie.classList.add('removing');
+                    setTimeout(() => movie.remove(), 500);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
