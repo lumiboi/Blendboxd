@@ -9,7 +9,7 @@
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96">
         <h1 class="text-2xl font-bold mb-4">Meydan Okuma Oluştur</h1>
-        <form action="/create_challenge" method="POST">
+        <form action="{{ url_for('create_challenge') }}" method="POST">
             <label for="movie1" class="block text-lg mb-2">Film 1:</label>
             <input type="text" id="movie1" name="movie1" class="bg-gray-700 text-white p-2 rounded mb-4 w-full" required>
 
