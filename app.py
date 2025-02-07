@@ -210,7 +210,10 @@ def duo_picker():
 
 @app.route('/challenge')
 def challenge():
-    return render_template('challenge.html') 
+    movie1_id = request.args.get('movie1')
+    movie2_id = request.args.get('movie2')
+    # Burada movie1_id ve movie2_id'ye göre film detaylarını getirip sayfada gösterebilirsiniz.
+    return render_template('challenge.html', movie1_id=movie1_id, movie2_id=movie2_id)
 
 
 if __name__ == "__main__":
