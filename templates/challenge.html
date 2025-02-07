@@ -116,10 +116,38 @@
             font-size: 20px;
             margin-top: 20px;
         }
+
+             #battle-container {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .film {
+            width: 45%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .film img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #battle-section {
+            margin-top: 20px;
+        }
+
+        #challenge-section {
+            margin-top: 20px;
+            display: none;
+        }
+
+        
     </style>
 </head>
 <body>
-    <h1>Film Battle</h1>
+      <h1>Film Battle</h1>
     <div id="battle-container">
         <input type="text" id="search" placeholder="Film Ara">
         <div id="search-results"></div>
@@ -231,7 +259,7 @@
 
         // Arkadaşına meydan oku bağlantısını göster
         function showChallengeUrl() {
-            const challengeLink = `${window.location.href}?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
+            const challengeLink = `${window.location.origin}${window.location.pathname}?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
             document.getElementById('challenge-url').value = challengeLink;
             document.getElementById('challenge-section').style.display = 'block';
         }
@@ -243,6 +271,33 @@
             document.execCommand('copy');
             alert("Bağlantı kopyalandı!");
         }
+
+        // Sayfa yüklendiğinde URL parametrelerine göre film seçimi yapma
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const film1Id = params.get('film1');
+            const film2Id = params.get('film2');
+            if (film1Id && film2Id) {
+                fetchMovieById(film1Id, 1);
+                fetchMovieById(film2Id, 2);
+            }
+        };
+
+        // Film bilgilerini ID'ye göre API'den çekme
+        function fetchMovieById(movieId, filmNumber) {
+            fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (filmNumber === 1) {
+                        selectedFilm1 = data;
+                        displayFilm(data, 'film1');
+                    } else {
+                        selectedFilm2 = data;
+                        displayFilm(data, 'film2');
+                    }
+                });
+        }
+    </script>
     </script>
 </body>
 </html>
