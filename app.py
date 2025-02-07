@@ -207,18 +207,23 @@ def duo_picker():
 
     return render_template('duo_picker.html', lang=lang)
 
-@app.route("/create_challenge", methods=["POST"])
+@app.route("/create_challenge", methods=["GET", "POST"])
 def create_challenge():
-    movie1 = request.form.get("movie1")
-    movie2 = request.form.get("movie2")
+    if request.method == "POST":
+        movie1 = request.form.get("movie1")
+        movie2 = request.form.get("movie2")
+        
+        if not movie1 or not movie2:
+            movie1, movie2 = get_random_movies()
+        
+        challenge_id = str(uuid.uuid4())
+        challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
+        
+        return redirect(url_for("challenge", challenge_id=challenge_id))
     
-    if not movie1 or not movie2:
-        movie1, movie2 = get_random_movies()
-    
-    challenge_id = str(uuid.uuid4())
-    challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
-    
-    return redirect(url_for("challenge", challenge_id=challenge_id))
+    # Eğer GET isteği yapılırsa, burada bir sayfa dönebiliriz
+    return render_template("create_challenge.html")  # create_challenge.html formu ile kullanıcıya sayfa gösteriyoruz
+
 
 @app.route("/challenge/<challenge_id>", methods=["GET"])
 def challenge(challenge_id):
@@ -233,7 +238,7 @@ def vote(challenge_id):
     challenge_data = challenges.get(challenge_id)
     if not challenge_data:
         return jsonify({"error": "Meydan okuma bulunamadı!"}), 404
-    
+
     movie = request.json.get("movie")
     if movie not in [challenge_data["movie1"], challenge_data["movie2"]]:
         return jsonify({"error": "Geçersiz oy"}), 400
