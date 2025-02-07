@@ -1,277 +1,86 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Film Battle</title>
-    <style>
-        /* Genel Stil */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        /* Film seçimi ve sonuç kısmı */
-        #battle-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        /* Yanyana film seçimi için stil */
-        #battle-section {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .film {
-            width: 45%;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            display: inline-block;
-            box-sizing: border-box;
-        }
-
-        .film img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-
-        /* Film arama kısmı */
-        #search-container {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        #search-results {
-            margin-top: 10px;
-        }
-
-        #search-results div {
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            margin-bottom: 5px;
-            border-radius: 5px;
-        }
-
-        #search-results div:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Film seçimi ve sonuç kısmı */
-        #results {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #film-selected {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        /* Meydan okuma kısmı */
-        #challenge-section {
-            margin-top: 20px;
-            display: none;
-            text-align: center;
-        }
-
-        #challenge-url {
-            width: 80%;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            background-color: #5c6bc0;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #3f51b5;
-        }
-    </style>
+    <title>Film Challenge</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Film Battle</h1>
-    <div id="battle-container">
-        <div id="search-container">
-            <input type="text" id="search" placeholder="Film Ara">
-            <div id="search-results"></div>
+    <div class="container">
+        <h1>Film Challenge</h1>
+        <div id="film-selection">
+            <h3>Film Seç</h3>
+            <input type="text" id="film1-search" placeholder="Film 1 Seçiniz" onkeyup="searchFilms('film1')">
+            <input type="text" id="film2-search" placeholder="Film 2 Seçiniz" onkeyup="searchFilms('film2')">
+            <div id="film1-info"></div>
+            <div id="film2-info"></div>
         </div>
-        <div id="battle-section" style="display: none;">
-            <div id="film1" class="film"></div>
-            <div id="film2" class="film"></div>
-            <button onclick="vote(1)">Film 1 Seç</button>
-            <button onclick="vote(2)">Film 2 Seç</button>
-        </div>
-        <div id="results"></div>
-        <div id="film-selected"></div>
 
-        <div id="challenge-section">
-            <h3>Arkadaşına meydan oku!</h3>
-            <p>Benzersiz bağlantıyı kopyalayarak arkadaşına gönder:</p>
-            <input type="text" id="challenge-url" readonly>
-            <button onclick="copyChallengeUrl()">Bağlantıyı Kopyala</button>
+        <div id="selected-films" class="selected-films">
+            <!-- Seçilen Filmler Burada Gösterilecek -->
         </div>
+
+        <button id="generate-url" onclick="showChallengeUrl()">Arkadaşına Meydan Oku</button>
+
+        <!-- Benzersiz URL Bölümü -->
+        <div id="challenge-section" style="display: none;">
+            <label for="challenge-url">Benzersiz URL:</label>
+            <input type="text" id="challenge-url" readonly>
+        </div>
+
     </div>
 
     <script>
-        const TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658";
-        const API_URL = "https://api.themoviedb.org/3/search/movie?api_key=" + TMDB_API_KEY + "&query=";
-
         let selectedFilm1 = null;
         let selectedFilm2 = null;
-        let votes = { film1: 0, film2: 0 };
-        let hasVoted = false;
 
-        // Film arama
-        document.getElementById('search').addEventListener('input', function(event) {
-            const query = event.target.value;
-            if (query.length >= 3) {
-                fetch(API_URL + query)
-                    .then(response => response.json())
-                    .then(data => {
-                        const results = data.results;
-                        const searchResultsDiv = document.getElementById('search-results');
-                        searchResultsDiv.innerHTML = "";
-                        results.forEach(movie => {
-                            const movieDiv = document.createElement('div');
-                            movieDiv.innerHTML = `<p>${movie.title}</p>`;
-                            movieDiv.onclick = () => selectFilm(movie);
-                            searchResultsDiv.appendChild(movieDiv);
-                        });
-                    });
-            }
-        });
+        // Film arama fonksiyonu (TMDB API'sinden veri çekme)
+        function searchFilms(filmNumber) {
+            let searchQuery = document.getElementById(filmNumber + '-search').value;
+            if (searchQuery.length < 3) return;  // Kullanıcı 3 karakter yazana kadar bekleyelim
 
-        // Film seçimi
-        function selectFilm(movie) {
-            if (!selectedFilm1) {
-                selectedFilm1 = movie;
-                displayFilm(selectedFilm1, 'film1');
-                document.getElementById('film-selected').textContent = "Film 1 Seçildi!";
-            } else if (!selectedFilm2) {
-                selectedFilm2 = movie;
-                displayFilm(selectedFilm2, 'film2');
-                document.getElementById('film-selected').textContent = "Film 2 Seçildi!";
-                document.getElementById('battle-section').style.display = 'block';
-                // Arkadaşına meydan oku bağlantısını göster
-                showChallengeUrl();
-            }
+            fetch(`https://api.themoviedb.org/3/search/movie?api_key=f3abc39a6d4fbdcc0b2a79906b528658&query=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    const films = data.results;
+                    if (films.length > 0) {
+                        let film = films[0];  // İlk filmi alıyoruz
+                        const filmInfoDiv = document.getElementById(filmNumber + '-info');
+                        filmInfoDiv.innerHTML = `
+                            <h4>${film.title}</h4>
+                            <p>Yönetmen: ${film.director || 'Bilinmiyor'}</p>
+                            <p>Puan: ${film.vote_average}</p>
+                            <p>Özet: ${film.overview}</p>
+                            <img src="https://image.tmdb.org/t/p/w500${film.poster_path}" alt="${film.title}">
+                        `;
+                        if (filmNumber === 'film1') {
+                            selectedFilm1 = film;
+                        } else {
+                            selectedFilm2 = film;
+                        }
+                    }
+                })
+                .catch(error => console.log('Error:', error));
         }
 
-        // Film bilgilerini ekrana yazdır
-        function displayFilm(movie, filmId) {
-            const filmDiv = document.getElementById(filmId);
-            filmDiv.innerHTML = `
-                <h2>${movie.title}</h2>
-                <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
-                <p>${movie.overview}</p>
-                <p><strong>Puan:</strong> ${movie.vote_average}</p>
-            `;
+        // Benzersiz URL oluşturma fonksiyonu
+        function generateUniqueId() {
+            const film1Id = selectedFilm1 ? selectedFilm1.id : '';
+            const film2Id = selectedFilm2 ? selectedFilm2.id : '';
+            return `${film1Id}-${film2Id}-${Math.random().toString(36).substr(2, 9)}`;
         }
 
-        // Oy verme
-        function vote(filmNumber) {
-            if (hasVoted) {
-                alert("Sadece bir kez oy verebilirsiniz.");
+        // Arkadaşına meydan oku butonu
+        function showChallengeUrl() {
+            if (!selectedFilm1 || !selectedFilm2) {
+                alert('Lütfen iki film seçin!');
                 return;
             }
 
-            if (filmNumber === 1) {
-                votes.film1++;
-            } else {
-                votes.film2++;
-            }
-            hasVoted = true;
-            updateResults();
-        }
-
-        // Sonuçları güncelle
-        function updateResults() {
-            const totalVotes = votes.film1 + votes.film2;
-            const film1Percentage = ((votes.film1 / totalVotes) * 100).toFixed(2);
-            const film2Percentage = ((votes.film2 / totalVotes) * 100).toFixed(2);
-
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `
-                <h3>Sonuçlar:</h3>
-                <p>Film 1: ${film1Percentage}% (${votes.film1} oy)</p>
-                <p>Film 2: ${film2Percentage}% (${votes.film2} oy)</p>
-            `;
-        }
-
-        // Arkadaşına meydan oku bağlantısını göster
-        function showChallengeUrl() {
             const challengeLink = window.location.origin + "/challenge/" + generateUniqueId();
             document.getElementById('challenge-url').value = challengeLink;
             document.getElementById('challenge-section').style.display = 'block';
-        }
-
-        // Benzersiz ID oluşturma
-        function generateUniqueId() {
-            return Math.random().toString(36).substring(2, 15);
-        }
-
-        // Bağlantıyı kopyalama
-        function copyChallengeUrl() {
-            const challengeUrlInput = document.getElementById('challenge-url');
-            challengeUrlInput.select();
-            document.execCommand('copy');
-            alert("Bağlantı kopyalandı!");
-        }
-
-        // Sayfa yüklendiğinde URL parametrelerine göre film seçimi yapma
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            const film1Id = params.get('film1');
-            const film2Id = params.get('film2');
-            if (film1Id && film2Id) {
-                fetchMovieById(film1Id, 1);
-                fetchMovieById(film2Id, 2);
-            }
-        };
-
-        // Film bilgilerini ID'ye göre API'den çekme
-        function fetchMovieById(movieId, filmNumber) {
-            fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (filmNumber === 1) {
-                        selectedFilm1 = data;
-                        displayFilm(data, 'film1');
-                    } else {
-                        selectedFilm2 = data;
-                        displayFilm(data, 'film2');
-                    }
-                });
         }
     </script>
 </body>
