@@ -138,18 +138,6 @@
             displayLeaderboard();
         }
 
-        // Leaderboard'u gösterme
-        function displayLeaderboard() {
-            const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1].wins - a[1].wins);
-            const leaderboardHTML = sortedLeaderboard.map(([movieId, data]) => `
-                <p>${data.title}: ${data.wins} kazanma</p>
-            `).join('');
-            document.getElementById('leaderboard').innerHTML = `
-                <h2>Kazananlar Listesi</h2>
-                ${leaderboardHTML}
-            `;
-        }
-
         // Link kopyalama
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
@@ -158,6 +146,28 @@
                     document.getElementById('copyMessage').style.display = 'none';
                 }, 3000);
             });
+        }
+
+        // Meydan okuma oluştur
+        async function createChallenge() {
+            if (selectedMovie1 && selectedMovie2) {
+                const response = await fetch('/create_challenge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        movie1_id: selectedMovie1.id,
+                        movie2_id: selectedMovie2.id,
+                    }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    copyToClipboard(data.challenge_url);
+                }
+            } else {
+                alert("Lütfen önce iki film seçin.");
+            }
         }
 
         // Event Listeners
@@ -185,14 +195,7 @@
             }
         });
 
-        document.getElementById('challengeFriend').addEventListener('click', () => {
-            if (selectedMovie1 && selectedMovie2) {
-                const uniqueLink = `https://your-flask-app-url/challenge?movie1=${selectedMovie1.id}&movie2=${selectedMovie2.id}`;
-                copyToClipboard(uniqueLink);
-            } else {
-                alert("Lütfen önce iki film seçin.");
-            }
-        });
+        document.getElementById('challengeFriend').addEventListener('click', createChallenge);
 
         // Sayfa yüklendiğinde leaderboard'u göster
         displayLeaderboard();
