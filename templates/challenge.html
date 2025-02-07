@@ -59,6 +59,7 @@
     <!-- Arkadaşına Meydan Okuma -->
     <div>
         <button id="challengeFriend">Arkadaşına Meydan Oku</button>
+        <p id="copyMessage" style="color: green; display: none;">Link kopyalandı!</p>
     </div>
 
     <!-- Leaderboard -->
@@ -106,9 +107,9 @@
                         <p>${details.overview}</p>
                     `;
                     if (inputElement.id === "movie1") {
-                        selectedMovie1 = details.id;
+                        selectedMovie1 = { id: details.id, title: details.title };
                     } else {
-                        selectedMovie2 = details.id;
+                        selectedMovie2 = { id: details.id, title: details.title };
                     }
                 }
             }
@@ -127,11 +128,11 @@
         }
 
         // Leaderboard'u güncelleme
-        function updateLeaderboard(movieId) {
-            if (leaderboard[movieId]) {
-                leaderboard[movieId]++;
+        function updateLeaderboard(movie) {
+            if (leaderboard[movie.id]) {
+                leaderboard[movie.id].wins++;
             } else {
-                leaderboard[movieId] = 1;
+                leaderboard[movie.id] = { title: movie.title, wins: 1 };
             }
             localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
             displayLeaderboard();
@@ -139,14 +140,24 @@
 
         // Leaderboard'u gösterme
         function displayLeaderboard() {
-            const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
-            const leaderboardHTML = sortedLeaderboard.map(([movieId, wins]) => `
-                <p>Film ID: ${movieId} - Kazanma Sayısı: ${wins}</p>
+            const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1].wins - a[1].wins);
+            const leaderboardHTML = sortedLeaderboard.map(([movieId, data]) => `
+                <p>${data.title}: ${data.wins} kazanma</p>
             `).join('');
             document.getElementById('leaderboard').innerHTML = `
                 <h2>Kazananlar Listesi</h2>
                 ${leaderboardHTML}
             `;
+        }
+
+        // Link kopyalama
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                document.getElementById('copyMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copyMessage').style.display = 'none';
+                }, 3000);
+            });
         }
 
         // Event Listeners
@@ -176,8 +187,8 @@
 
         document.getElementById('challengeFriend').addEventListener('click', () => {
             if (selectedMovie1 && selectedMovie2) {
-                const uniqueLink = `${window.location.origin}/battle?movie1=${selectedMovie1}&movie2=${selectedMovie2}`;
-                alert(`Arkadaşına meydan okumak için bu linki paylaş: ${uniqueLink}`);
+                const uniqueLink = `https://your-flask-app-url/challenge?movie1=${selectedMovie1.id}&movie2=${selectedMovie2.id}`;
+                copyToClipboard(uniqueLink);
             } else {
                 alert("Lütfen önce iki film seçin.");
             }
