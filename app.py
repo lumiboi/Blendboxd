@@ -211,21 +211,21 @@ def duo_picker():
 
 challenges = {}
 
-@app.route('/create_challenge', methods=['POST'])
+@app.route('/create_challenge', methods=['GET', 'POST'])
 def create_challenge():
-    movie1 = request.form['movie1']
-    movie2 = request.form['movie2']
-    
-    if not movie1 or not movie2:
-        movie1, movie2 = get_random_movies()
-    
-    challenge_id = str(uuid.uuid4())
-    challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
-    
-    return redirect(url_for("challenge", challenge_id=challenge_id))
-    
-    # Eğer GET isteği yapılırsa, burada bir sayfa dönebiliriz
-    return render_template("create_challenge.html")  # create_challenge.html formu ile kullanıcıya sayfa gösteriyoruz
+    if request.method == 'POST':
+        movie1 = request.form['movie1']
+        movie2 = request.form['movie2']
+        
+        if not movie1 or not movie2:
+            movie1, movie2 = get_random_movies()
+        
+        challenge_id = str(uuid.uuid4())
+        challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
+        
+        return redirect(url_for("challenge", challenge_id=challenge_id))
+    return render_template('create_challenge.html')  # GET isteği için
+
 
 
 @app.route("/challenge/<challenge_id>", methods=["GET"])
