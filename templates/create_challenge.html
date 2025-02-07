@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Battleground - Meydan Okuma Oluştur</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96">
+        <h1 class="text-2xl font-bold mb-4">Meydan Okuma Oluştur</h1>
+        <form action="/create_challenge" method="POST">
+            <label for="movie1" class="block text-lg mb-2">Film 1:</label>
+            <input type="text" id="movie1" name="movie1" class="bg-gray-700 text-white p-2 rounded mb-4 w-full" required>
+
+            <label for="movie2" class="block text-lg mb-2">Film 2:</label>
+            <input type="text" id="movie2" name="movie2" class="bg-gray-700 text-white p-2 rounded mb-4 w-full" required>
+
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Meydan Okuma Oluştur</button>
+        </form>
+    </div>
+</body>
+</html>
