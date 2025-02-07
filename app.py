@@ -212,6 +212,10 @@ def duo_picker():
 @app.route('/challenge')
 def challenge():
     return render_template('challenge.html')
+
+@app.route('/challenge/<unique_id>')
+def challenge(unique_id):
+    return render_template('challenge.html', unique_id=unique_id)
     
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
