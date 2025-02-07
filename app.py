@@ -1,9 +1,8 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 import os
 import random
-import string
 
 app = Flask(__name__)
 
