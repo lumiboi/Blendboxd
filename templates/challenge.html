@@ -117,9 +117,9 @@
             margin-top: 20px;
         }
 
-             #battle-container {
+          #battle-container {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
         }
 
         .film {
@@ -136,6 +136,7 @@
 
         #battle-section {
             margin-top: 20px;
+            display: none; /* Başlangıçta gizli */
         }
 
         #challenge-section {
@@ -147,11 +148,11 @@
     </style>
 </head>
 <body>
-      <h1>Film Battle</h1>
+       <h1>Film Battle</h1>
     <div id="battle-container">
         <input type="text" id="search" placeholder="Film Ara">
         <div id="search-results"></div>
-        <div id="battle-section" style="display:none;">
+        <div id="battle-section">
             <div id="film1" class="film"></div>
             <div id="film2" class="film"></div>
             <button onclick="vote(1)">Film 1 Seç</button>
@@ -159,10 +160,8 @@
         </div>
         <div id="results"></div>
         <div id="film-selected"></div>
-        <div id="leaderboard"></div>
         
-        <!-- Arkadaşına meydan oku kısmı -->
-        <div id="challenge-section" style="display:none;">
+        <div id="challenge-section">
             <h3>Arkadaşına meydan oku!</h3>
             <p>Benzersiz bağlantıyı kopyalayarak arkadaşına gönder:</p>
             <input type="text" id="challenge-url" readonly>
@@ -297,7 +296,6 @@
                     }
                 });
         }
-    </script>
     </script>
 </body>
 </html>
