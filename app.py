@@ -207,42 +207,49 @@ def duo_picker():
 
     return render_template('duo_picker.html', lang=lang)
 
-@app.route("/challenge", methods=["GET", "POST"])
-def challenge():
-    if request.method == "POST":
-        movie1 = request.form.get("movie1")
-        movie2 = request.form.get("movie2")
-        
-        return render_template("challenge.html", movie1=movie1, movie2=movie2)
+@app.route("/create_challenge", methods=["POST"])
+def create_challenge():
+    movie1 = request.form.get("movie1")
+    movie2 = request.form.get("movie2")
     
-    return render_template("challenge.html", movie1=None, movie2=None)
+    if not movie1 or not movie2:
+        movie1, movie2 = get_random_movies()
+    
+    challenge_id = str(uuid.uuid4())
+    challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
+    
+    return redirect(url_for("challenge", challenge_id=challenge_id))
 
-@app.route("/vote", methods=["POST"])
-def vote():
+@app.route("/challenge/<challenge_id>", methods=["GET"])
+def challenge(challenge_id):
+    challenge_data = challenges.get(challenge_id)
+    if not challenge_data:
+        return "Meydan okuma bulunamadı!", 404
+    
+    return render_template("challenge.html", movie1=challenge_data["movie1"], movie2=challenge_data["movie2"], challenge_id=challenge_id)
+
+@app.route("/vote/<challenge_id>", methods=["POST"])
+def vote(challenge_id):
+    challenge_data = challenges.get(challenge_id)
+    if not challenge_data:
+        return jsonify({"error": "Meydan okuma bulunamadı!"}), 404
+    
     movie = request.json.get("movie")
-    if not movie:
+    if movie not in [challenge_data["movie1"], challenge_data["movie2"]]:
         return jsonify({"error": "Geçersiz oy"}), 400
     
-    with open("votes.txt", "a") as f:
-        f.write(movie + "\n")
-    
+    challenge_data["votes"][movie] += 1
     return jsonify({"message": "Oyunuz kaydedildi!"})
 
 @app.route("/leaderboard", methods=["GET"])
 def leaderboard():
-    vote_counts = {}
+    all_votes = {}
+    for challenge in challenges.values():
+        for movie, count in challenge["votes"].items():
+            all_votes[movie] = all_votes.get(movie, 0) + count
     
-    if os.path.exists("votes.txt"):
-        with open("votes.txt", "r") as f:
-            votes = f.readlines()
-            for vote in votes:
-                movie = vote.strip()
-                vote_counts[movie] = vote_counts.get(movie, 0) + 1
-    
-    sorted_votes = sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)
-    
+    sorted_votes = sorted(all_votes.items(), key=lambda x: x[1], reverse=True)
     return jsonify(sorted_votes)
-
 
 
 
