@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import requests
 from bs4 import BeautifulSoup
 import os
 import random
+import string
 
 app = Flask(__name__)
 
@@ -208,12 +209,67 @@ def duo_picker():
     return render_template('duo_picker.html', lang=lang)
 
 
-@app.route('/challenge')
-def challenge():
-    movie1_id = request.args.get('movie1')
-    movie2_id = request.args.get('movie2')
-    # Burada movie1_id ve movie2_id'ye göre film detaylarını getirip sayfada gösterebilirsiniz.
-    return render_template('challenge.html', movie1_id=movie1_id, movie2_id=movie2_id)
+challenge_rooms = {}
+
+# Rastgele bir oda ID'si oluştur
+def generate_room_id():
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/create_challenge', methods=['POST'])
+def create_challenge():
+    movie1_id = request.form.get('movie1_id')
+    movie2_id = request.form.get('movie2_id')
+    
+    # Yeni bir oda ID'si oluştur
+    room_id = generate_room_id()
+    
+    # Odanın bilgilerini kaydet
+    challenge_rooms[room_id] = {
+        'movie1_id': movie1_id,
+        'movie2_id': movie2_id,
+        'votes': {'movie1': 0, 'movie2': 0}
+    }
+    
+    # Kullanıcıyı özel odaya yönlendir
+    challenge_url = f"https://blendboxd.up.railway.app/challenge/{room_id}"
+    return {'success': True, 'challenge_url': challenge_url}
+
+@app.route('/challenge/<room_id>')
+def challenge(room_id):
+    # Oda bilgilerini al
+    room = challenge_rooms.get(room_id)
+    if not room:
+        return "Oda bulunamadı!", 404
+    
+    # Film detaylarını getir (TMDB API kullanarak)
+    movie1_id = room['movie1_id']
+    movie2_id = room['movie2_id']
+    
+    # Burada TMDB API'den film detaylarını getirebilirsiniz
+    # Örnek:
+    # movie1_details = get_movie_details(movie1_id)
+    # movie2_details = get_movie_details(movie2_id)
+    
+    return render_template('challenge.html', room_id=room_id, movie1_id=movie1_id, movie2_id=movie2_id)
+
+@app.route('/vote', methods=['POST'])
+def vote():
+    room_id = request.form.get('room_id')
+    movie = request.form.get('movie')  # 'movie1' veya 'movie2'
+    
+    # Oda bilgilerini al
+    room = challenge_rooms.get(room_id)
+    if not room:
+        return {'success': False, 'message': 'Oda bulunamadı!'}
+    
+    # Oy ver
+    room['votes'][movie] += 1
+    
+    return {'success': True, 'votes': room['votes']}
 
 
 if __name__ == "__main__":
