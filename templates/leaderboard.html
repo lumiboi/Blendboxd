@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+</head>
+<body>
+    <h1>Leaderboard</h1>
+    <ul>
+        {% for movie in movies %}
+        <li>
+            <h2>{{ movie.title }} (Wins: {{ movie.wins }})</h2>
+            <img src="{{ movie.poster }}" alt="{{ movie.title }}" width="200">
+            <p>{{ movie.overview }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
