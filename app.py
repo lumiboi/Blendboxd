@@ -215,9 +215,9 @@ challenge_rooms = {}
 def generate_room_id():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+@app.route('/challenge')
+def challenge():
+    return render_template('challenge.html') 
 
 @app.route('/create_challenge', methods=['POST'])
 def create_challenge():
