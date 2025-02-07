@@ -207,6 +207,41 @@ def duo_picker():
 
     return render_template('duo_picker.html', lang=lang)
 
+@app.route("/challenge", methods=["GET", "POST"])
+def challenge():
+    if request.method == "POST":
+        movie1 = request.form.get("movie1")
+        movie2 = request.form.get("movie2")
+        
+        return render_template("challenge.html", movie1=movie1, movie2=movie2)
+    
+    return render_template("challenge.html", movie1=None, movie2=None)
+
+@app.route("/vote", methods=["POST"])
+def vote():
+    movie = request.json.get("movie")
+    if not movie:
+        return jsonify({"error": "Geçersiz oy"}), 400
+    
+    with open("votes.txt", "a") as f:
+        f.write(movie + "\n")
+    
+    return jsonify({"message": "Oyunuz kaydedildi!"})
+
+@app.route("/leaderboard", methods=["GET"])
+def leaderboard():
+    vote_counts = {}
+    
+    if os.path.exists("votes.txt"):
+        with open("votes.txt", "r") as f:
+            votes = f.readlines()
+            for vote in votes:
+                movie = vote.strip()
+                vote_counts[movie] = vote_counts.get(movie, 0) + 1
+    
+    sorted_votes = sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    return jsonify(sorted_votes)
 
 
 
