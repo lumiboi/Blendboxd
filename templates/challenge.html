@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Film Battle</title>
     <style>
-        /* Genel stil */
-        body {
+         body {
             font-family: 'Arial', sans-serif;
             background-color: #1c1c1c;
             color: white;
@@ -103,6 +102,20 @@
             margin: 5px;
             border-radius: 5px;
         }
+
+        /* Öneri kutusunun alanını kısıtlayalım */
+        #search-results {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Seçilen film bildirisi */
+        #film-selected {
+            color: #27ae60;
+            text-align: center;
+            font-size: 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -117,7 +130,16 @@
             <button onclick="vote(2)">Film 2 Seç</button>
         </div>
         <div id="results"></div>
+        <div id="film-selected"></div>
         <div id="leaderboard"></div>
+        
+        <!-- Arkadaşına meydan oku kısmı -->
+        <div id="challenge-section" style="display:none;">
+            <h3>Arkadaşına meydan oku!</h3>
+            <p>Benzersiz bağlantıyı kopyalayarak arkadaşına gönder:</p>
+            <input type="text" id="challenge-url" readonly>
+            <button onclick="copyChallengeUrl()">Bağlantıyı Kopyala</button>
+        </div>
     </div>
 
     <script>
@@ -127,7 +149,9 @@
         let selectedFilm1 = null;
         let selectedFilm2 = null;
         let votes = { film1: 0, film2: 0 };
+        let hasVoted = false;
 
+        // Film arama
         document.getElementById('search').addEventListener('input', function(event) {
             const query = event.target.value;
             if (query.length >= 3) {
@@ -147,17 +171,23 @@
             }
         });
 
+        // Film seçimi
         function selectFilm(movie) {
             if (!selectedFilm1) {
                 selectedFilm1 = movie;
                 displayFilm(selectedFilm1, 'film1');
+                document.getElementById('film-selected').textContent = "Film 1 Seçildi!";
             } else if (!selectedFilm2) {
                 selectedFilm2 = movie;
                 displayFilm(selectedFilm2, 'film2');
+                document.getElementById('film-selected').textContent = "Film 2 Seçildi!";
                 document.getElementById('battle-section').style.display = 'block';
+                // Arkadaşına meydan oku bağlantısını göster
+                showChallengeUrl();
             }
         }
 
+        // Film bilgilerini ekrana yazdır
         function displayFilm(movie, filmId) {
             const filmDiv = document.getElementById(filmId);
             filmDiv.innerHTML = `
@@ -169,15 +199,23 @@
             `;
         }
 
+        // Oy verme
         function vote(filmNumber) {
+            if (hasVoted) {
+                alert("Sadece bir kez oy verebilirsiniz.");
+                return;
+            }
+
             if (filmNumber === 1) {
                 votes.film1++;
             } else {
                 votes.film2++;
             }
+            hasVoted = true;
             updateResults();
         }
 
+        // Sonuçları güncelle
         function updateResults() {
             const totalVotes = votes.film1 + votes.film2;
             const film1Percentage = ((votes.film1 / totalVotes) * 100).toFixed(2);
@@ -191,9 +229,19 @@
             `;
         }
 
-        function sendChallenge() {
-            const challengeLink = `${window.location.href}?challenge=true`;
-            alert("Arkadaşına meydan oku: " + challengeLink);
+        // Arkadaşına meydan oku bağlantısını göster
+        function showChallengeUrl() {
+            const challengeLink = `${window.location.href}?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
+            document.getElementById('challenge-url').value = challengeLink;
+            document.getElementById('challenge-section').style.display = 'block';
+        }
+
+        // Bağlantıyı kopyalama
+        function copyChallengeUrl() {
+            const challengeUrlInput = document.getElementById('challenge-url');
+            challengeUrlInput.select();
+            document.execCommand('copy');
+            alert("Bağlantı kopyalandı!");
         }
     </script>
 </body>
