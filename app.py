@@ -209,57 +209,131 @@ def duo_picker():
 
     return render_template('duo_picker.html', lang=lang)
 
-challenges = {}
-
-@app.route('/create_challenge', methods=['GET', 'POST'])
-def create_challenge():
+@app.route('/battleground', methods=['GET', 'POST'])
+def battleground():
     if request.method == 'POST':
-        movie1 = request.form['movie1']
-        movie2 = request.form['movie2']
-        
-        if not movie1 or not movie2:
-            movie1, movie2 = get_random_movies()
-        
-        challenge_id = str(uuid.uuid4())
-        challenges[challenge_id] = {"movie1": movie1, "movie2": movie2, "votes": {movie1: 0, movie2: 0}}
-        
-        return redirect(url_for("challenge", challenge_id=challenge_id))
-    return render_template('create_challenge.html')  # GET isteği için
+        # Oylama işlemi
+        winner_id = request.form.get('winner')
+        loser_id = request.form.get('loser')
+        # Kazanan ve kaybeden filmleri işle (örneğin, veritabanında oyları güncelle)
+        # Bu kısmı daha sonra geliştireceğiz.
+        return redirect(url_for('battleground'))
 
+    # Rastgele iki film seç
+    random_movies = get_random_movies_from_tmdb(2)
+    return render_template('battleground.html', film1=random_movies[0], film2=random_movies[1])
 
-
-@app.route("/challenge/<challenge_id>", methods=["GET"])
-def challenge(challenge_id):
-    challenge_data = challenges.get(challenge_id)
-    if not challenge_data:
-        return "Meydan okuma bulunamadı!", 404
+def get_random_movies_from_tmdb(count):
+    # TMDB'den popüler filmleri çek
+    url = f"https://api.themoviedb.org/3/movie/popular?api_key={TMDB_API_KEY}&language=en-US&page=1"
+    response = requests.get(url).json()
+    movies = response.get('results', [])
     
-    return render_template("challenge.html", movie1=challenge_data["movie1"], movie2=challenge_data["movie2"], challenge_id=challenge_id)
-
-@app.route("/vote/<challenge_id>", methods=["POST"])
-def vote(challenge_id):
-    challenge_data = challenges.get(challenge_id)
-    if not challenge_data:
-        return jsonify({"error": "Meydan okuma bulunamadı!"}), 404
-
-    movie = request.json.get("movie")
-    if movie not in [challenge_data["movie1"], challenge_data["movie2"]]:
-        return jsonify({"error": "Geçersiz oy"}), 400
+    # Rastgele 'count' kadar film seç
+    selected_movies = random.sample(movies, min(count, len(movies)))
     
-    challenge_data["votes"][movie] += 1
-    return jsonify({"message": "Oyunuz kaydedildi!"})
+    # Film bilgilerini düzenle
+    formatted_movies = []
+    for movie in selected_movies:
+        formatted_movies.append({
+            'id': movie['id'],
+            'title': movie['title'],
+            'poster': f"https://image.tmdb.org/t/p/w500{movie['poster_path']}",
+            'overview': movie['overview'],
+            'rating': movie['vote_average']
+        })
+    return formatted_movies
 
-@app.route("/leaderboard", methods=["GET"])
+# Oyları saklamak için geçici bir liste
+votes = []
+
+@app.route('/vote', methods=['POST'])
+def vote():
+    winner_id = request.form.get('winner')
+    loser_id = request.form.get('loser')
+    
+    # Oyu kaydet
+    votes.append({'winner': winner_id, 'loser': loser_id})
+    
+    # Kazanan ve kaybeden filmleri işle (örneğin, veritabanında oyları güncelle)
+    # Bu kısmı daha sonra geliştireceğiz.
+    
+    return jsonify({'status': 'success'})
+
+@app.route('/leaderboard')
 def leaderboard():
-    all_votes = {}
-    for challenge in challenges.values():
-        for movie, count in challenge["votes"].items():
-            all_votes[movie] = all_votes.get(movie, 0) + count
+    # Kazanan filmleri hesapla
+    from collections import defaultdict
+    win_counts = defaultdict(int)
     
-    sorted_votes = sorted(all_votes.items(), key=lambda x: x[1], reverse=True)
-    return jsonify(sorted_votes)
+    for vote in votes:
+        win_counts[vote['winner']] += 1
+    
+    # Kazanan filmleri sırala
+    sorted_wins = sorted(win_counts.items(), key=lambda x: x[1], reverse=True)
+    
+    # Film bilgilerini TMDB'den al
+    leaderboard_movies = []
+    for movie_id, wins in sorted_wins:
+        movie_info = get_movie_info_by_id(movie_id)
+        if movie_info:
+            movie_info['wins'] = wins
+            leaderboard_movies.append(movie_info)
+    
+    return render_template('leaderboard.html', movies=leaderboard_movies)
 
+def get_movie_info_by_id(movie_id):
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&language=en-US"
+    response = requests.get(url).json()
+    if response.get('id'):
+        return {
+            'id': response['id'],
+            'title': response['title'],
+            'poster': f"https://image.tmdb.org/t/p/w500{response['poster_path']}",
+            'overview': response['overview'],
+            'rating': response['vote_average']
+        }
+    return None
 
+@app.route('/challenge/<int:movie1_id>/<int:movie2_id>')
+def challenge(movie1_id, movie2_id):
+    movie1 = get_movie_info_by_id(movie1_id)
+    movie2 = get_movie_info_by_id(movie2_id)
+    if movie1 and movie2:
+        return render_template('battleground.html', film1=movie1, film2=movie2)
+    return redirect(url_for('battleground'))
 
+@app.route('/category/<genre_name>')
+def category_battleground(genre_name):
+    # TMDB'den belirli bir türe ait filmleri çek
+    url = f"https://api.themoviedb.org/3/discover/movie?api_key={TMDB_API_KEY}&language=en-US&with_genres={get_genre_id(genre_name)}"
+    response = requests.get(url).json()
+    movies = response.get('results', [])
+    
+    # Rastgele iki film seç
+    random_movies = random.sample(movies, min(2, len(movies)))
+    formatted_movies = []
+    for movie in random_movies:
+        formatted_movies.append({
+            'id': movie['id'],
+            'title': movie['title'],
+            'poster': f"https://image.tmdb.org/t/p/w500{movie['poster_path']}",
+            'overview': movie['overview'],
+            'rating': movie['vote_average']
+        })
+    
+    return render_template('battleground.html', film1=formatted_movies[0], film2=formatted_movies[1])
+
+def get_genre_id(genre_name):
+    # TMDB genre ID'lerini döndür
+    genres = {
+        'action': 28,
+        'comedy': 35,
+        'drama': 18,
+        'horror': 27,
+        'sci-fi': 878
+    }
+    return genres.get(genre_name.lower(), 28)  # Varsayılan olarak Action
+    
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
