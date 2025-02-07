@@ -17,10 +17,19 @@
             color: #333;
         }
 
-        /* Yanyana film seçimi için stil */
+        /* Film seçimi ve sonuç kısmı */
         #battle-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Yanyana film seçimi için stil */
+        #battle-section {
+            display: flex;
+            justify-content: space-around;
             flex-wrap: wrap;
             gap: 20px;
             margin-top: 20px;
@@ -34,6 +43,7 @@
             text-align: center;
             border-radius: 8px;
             display: inline-block;
+            box-sizing: border-box;
         }
 
         .film img {
@@ -42,12 +52,31 @@
             border-radius: 8px;
         }
 
-        /* Film seçimi ve sonuç kısmı */
-        #battle-section {
+        /* Film arama kısmı */
+        #search-container {
             margin-top: 20px;
-            display: none;
+            width: 100%;
+            max-width: 500px;
         }
 
+        #search-results {
+            margin-top: 10px;
+        }
+
+        #search-results div {
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        #search-results div:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Film seçimi ve sonuç kısmı */
         #results {
             margin-top: 20px;
             text-align: center;
@@ -87,32 +116,16 @@
         button:hover {
             background-color: #3f51b5;
         }
-
-        /* Film arama kısmı */
-        #search-results {
-            margin-top: 10px;
-        }
-
-        #search-results div {
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            margin-bottom: 5px;
-            border-radius: 5px;
-        }
-
-        #search-results div:hover {
-            background-color: #f1f1f1;
-        }
     </style>
 </head>
 <body>
     <h1>Film Battle</h1>
     <div id="battle-container">
-        <input type="text" id="search" placeholder="Film Ara">
-        <div id="search-results"></div>
-        <div id="battle-section">
+        <div id="search-container">
+            <input type="text" id="search" placeholder="Film Ara">
+            <div id="search-results"></div>
+        </div>
+        <div id="battle-section" style="display: none;">
             <div id="film1" class="film"></div>
             <div id="film2" class="film"></div>
             <button onclick="vote(1)">Film 1 Seç</button>
@@ -217,9 +230,14 @@
 
         // Arkadaşına meydan oku bağlantısını göster
         function showChallengeUrl() {
-            const challengeLink = `${window.location.origin}/challenge?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
+            const challengeLink = window.location.origin + "/challenge/" + generateUniqueId();
             document.getElementById('challenge-url').value = challengeLink;
             document.getElementById('challenge-section').style.display = 'block';
+        }
+
+        // Benzersiz ID oluşturma
+        function generateUniqueId() {
+            return Math.random().toString(36).substring(2, 15);
         }
 
         // Bağlantıyı kopyalama
