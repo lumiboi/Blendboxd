@@ -33,6 +33,7 @@
             background-color: #fff;
             text-align: center;
             border-radius: 8px;
+            display: inline-block;
         }
 
         .film img {
@@ -216,7 +217,7 @@
 
         // Arkadaşına meydan oku bağlantısını göster
         function showChallengeUrl() {
-            const challengeLink = `${window.location.origin}${window.location.pathname}?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
+            const challengeLink = `${window.location.origin}/challenge?film1=${selectedFilm1.id}&film2=${selectedFilm2.id}`;
             document.getElementById('challenge-url').value = challengeLink;
             document.getElementById('challenge-section').style.display = 'block';
         }
