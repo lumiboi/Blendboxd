@@ -208,7 +208,9 @@ def duo_picker():
     return render_template('duo_picker.html', lang=lang)
 
 
-
+@app.route('/challenge')
+def challenge():
+    return render_template('challenge.html') 
 
 
 if __name__ == "__main__":
