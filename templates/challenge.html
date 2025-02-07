@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Battle</title>
+    <style>
+        /* Genel stil */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1c1c1c;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px 0;
+            color: #f1c40f;
+        }
+
+        /* Arama ve Battle bölümü */
+        #battle-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #search {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2c3e50;
+            color: white;
+            font-size: 16px;
+        }
+
+        #search-results div {
+            background-color: #34495e;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #search-results div:hover {
+            background-color: #1abc9c;
+        }
+
+        #battle-section {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 20px;
+        }
+
+        .film {
+            width: 48%;
+            background-color: #34495e;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .film img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #f1c40f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #f39c12;
+        }
+
+        #results {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #leaderboard {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .leaderboard-item {
+            background-color: #34495e;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Film Battle</h1>
+    <div id="battle-container">
+        <input type="text" id="search" placeholder="Film Ara">
+        <div id="search-results"></div>
+        <div id="battle-section" style="display:none;">
+            <div id="film1" class="film"></div>
+            <div id="film2" class="film"></div>
+            <button onclick="vote(1)">Film 1 Seç</button>
+            <button onclick="vote(2)">Film 2 Seç</button>
+        </div>
+        <div id="results"></div>
+        <div id="leaderboard"></div>
+    </div>
+
+    <script>
+        const TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658";
+        const API_URL = "https://api.themoviedb.org/3/search/movie?api_key=" + TMDB_API_KEY + "&query=";
+
+        let selectedFilm1 = null;
+        let selectedFilm2 = null;
+        let votes = { film1: 0, film2: 0 };
+
+        document.getElementById('search').addEventListener('input', function(event) {
+            const query = event.target.value;
+            if (query.length >= 3) {
+                fetch(API_URL + query)
+                    .then(response => response.json())
+                    .then(data => {
+                        const results = data.results;
+                        const searchResultsDiv = document.getElementById('search-results');
+                        searchResultsDiv.innerHTML = "";
+                        results.forEach(movie => {
+                            const movieDiv = document.createElement('div');
+                            movieDiv.innerHTML = `<p>${movie.title}</p>`;
+                            movieDiv.onclick = () => selectFilm(movie);
+                            searchResultsDiv.appendChild(movieDiv);
+                        });
+                    });
+            }
+        });
+
+        function selectFilm(movie) {
+            if (!selectedFilm1) {
+                selectedFilm1 = movie;
+                displayFilm(selectedFilm1, 'film1');
+            } else if (!selectedFilm2) {
+                selectedFilm2 = movie;
+                displayFilm(selectedFilm2, 'film2');
+                document.getElementById('battle-section').style.display = 'block';
+            }
+        }
+
+        function displayFilm(movie, filmId) {
+            const filmDiv = document.getElementById(filmId);
+            filmDiv.innerHTML = `
+                <h2>${movie.title}</h2>
+                <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+                <p>${movie.overview}</p>
+                <p><strong>Yönetmen:</strong> ${movie.director || 'Bilinmiyor'}</p>
+                <p><strong>Puan:</strong> ${movie.vote_average}</p>
+            `;
+        }
+
+        function vote(filmNumber) {
+            if (filmNumber === 1) {
+                votes.film1++;
+            } else {
+                votes.film2++;
+            }
+            updateResults();
+        }
+
+        function updateResults() {
+            const totalVotes = votes.film1 + votes.film2;
+            const film1Percentage = ((votes.film1 / totalVotes) * 100).toFixed(2);
+            const film2Percentage = ((votes.film2 / totalVotes) * 100).toFixed(2);
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h3>Sonuçlar:</h3>
+                <p>Film 1: ${film1Percentage}% (${votes.film1} oy)</p>
+                <p>Film 2: ${film2Percentage}% (${votes.film2} oy)</p>
+            `;
+        }
+
+        function sendChallenge() {
+            const challengeLink = `${window.location.href}?challenge=true`;
+            alert("Arkadaşına meydan oku: " + challengeLink);
+        }
+    </script>
+</body>
+</html>
