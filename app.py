@@ -79,8 +79,8 @@ def get_watched_movies(username):
     def get_movies(source):
         movies = source.find_all("li", class_="poster-container")
         for movie in movies:
-            movie_title = movie.find("img")["alt"].title()  # title() metodunu çağır
-            watched_movies.append(movie_title)  # Sadece film ismini ekle
+            movie_title = movie.find("img")["alt"].title()
+            watched_movies.append(movie_title)
 
     def connect_page():
         page_num = 1
@@ -88,7 +88,7 @@ def get_watched_movies(username):
             url = f"https://letterboxd.com/{username}/films/page/{page_num}/"
             response = requests.get(url)
             source = BeautifulSoup(response.content, "lxml")
-            if source.find("a", class_="next"):  # Sonraki sayfa linkini kontrol et
+            if source.find("a", class_="next"):
                 get_movies(source)
                 page_num += 1
             else:
@@ -99,27 +99,16 @@ def get_watched_movies(username):
     return watched_movies
 
 def calculate_compatibility(user1_movies, user2_movies, common_movies):
-    # İki kullanıcının toplam izlediği film sayısını hesapla
     total_movies = len(user1_movies) + len(user2_movies)
-    
-    # Eğer iki kullanıcıdan biri hiç film izlememişse uyum oranı 0 olmalı
     if total_movies == 0:
         return 0
-    
-    # Eğer hiç ortak film yoksa uyum oranı %0 olmalı
     if not common_movies:
         return 0
-
     common_movie_count = len(common_movies)
-
-    # Eski mantıkla uyum yüzdesini hesapla
     if common_movie_count > 5:
         compatibility_percentage = 50 + ((2 * common_movie_count / total_movies) * 100)
     else:
-        # Ortak film sayısı 5'in altındaysa direkt uyumluluk hesapla
         compatibility_percentage = (2 * common_movie_count / total_movies) * 100
-    
-    # Uyumluluk yüzdesinin %100'ü geçmemesini sağla
     return min(compatibility_percentage, 100)
 
 def get_recommendations(common_movies):
@@ -127,17 +116,14 @@ def get_recommendations(common_movies):
     for movie in common_movies:
         search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie}"
         search_response = requests.get(search_url).json()
-        
         if search_response.get("results"):
             movie_id = search_response["results"][0]["id"]
             recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
             rec_response = requests.get(recommendations_url).json()
-            
             if rec_response.get("results"):
                 for rec_movie in rec_response["results"]:
                     recommendations.append(rec_movie["title"])
-
-    return list(set(recommendations))  # Benzersiz öneriler
+    return list(set(recommendations))
 
 @app.route('/picker', methods=['GET'])
 def picker():
@@ -147,16 +133,13 @@ def picker():
 def pick_movies():
     username = request.form.get('username')
     count = int(request.form.get('count', 1))
-
     watchlist = get_watchlist(username)
     selected_movies = random.sample(watchlist, min(count, len(watchlist)))
-
     movies_info = []
     for movie in selected_movies:
         movie_info = get_movie_info(movie)
         if movie_info:
             movies_info.append(movie_info)
-
     return jsonify(movies_info)
 
 def get_watchlist(username):
@@ -182,31 +165,115 @@ def get_movie_info(title):
     return None
 
 @app.route('/duo_picker', methods=['GET', 'POST'])
-def duo_picker():
-    lang = request.args.get('lang', 'tr')  # Varsayılan dil Türkçe
+def to_picker():
+    lang = request.args.get('lang', 'tr')
     if request.method == 'POST':
         try:
-            user_count = int(request.form.get('user_count', 1))  # Kullanıcı sayısını al
-            film_count = int(request.form.get('film_count', 1))  # Film sayısını al
+            user_count = int(request.form.get('user_count', 1))
+            film_count = int(request.form.get('film_count', 1))
             usernames = [request.form.get(f'username{i+1}') for i in range(user_count)]
-            
             all_movies = []
-
             for username in usernames:
                 watchlist = get_watchlist(username)
-                selected_movies = random.sample(watchlist, min(film_count, len(watchlist)))  # Film sayısını doğru al
+                selected_movies = random.sample(watchlist, min(film_count, len(watchlist)))
                 for movie in selected_movies:
                     movie_info = get_movie_info(movie)
                     if movie_info:
                         all_movies.append(movie_info)
-
             return render_template("duo_picker_result.html", movies=all_movies, usernames=usernames, lang=lang)
-
         except Exception as e:
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
-
     return render_template('duo_picker.html', lang=lang)
 
+# --- Yeni Eklenen Imaro Generator Kodu ---
+from deepface import DeepFace
+from PIL import Image
+import cv2
+import io
+import base64
 
+# Sabit fotoğraf URL'si
+FIXED_IMAGE_URL = "https://i.hizliresim.com/p5s5as7.png"
+
+# Görüntüyü dosyaya kaydetme
+def save_image(data, path):
+    try:
+        img = Image.open(data)
+        img.save(path)
+    except Exception as e:
+        raise Exception(f"Görüntü kaydedilemedi: {str(e)}")
+
+# Görüntüyü base64'e çevirme
+def image_to_base64(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    except Exception as e:
+        raise Exception(f"Base64 dönüşümü başarısız: {str(e)}")
+
+# Imaro Generator rotası
+@app.route('/imaro-generator', methods=['GET', 'POST'])
+def imaro_generator():
+    if request.method == 'POST':
+        # Kullanıcıdan yüklenen fotoğraf
+        if 'profile_pic' not in request.files:
+            return render_template('imaro-generator.html', error="Profil fotoğrafı yüklenmedi")
+        
+        profile_pic = request.files['profile_pic']
+        if profile_pic.filename == '':
+            return render_template('imaro-generator.html', error="Geçerli bir fotoğraf seçin")
+
+        # Geçici dosyalar için yollar
+        profile_pic_path = "temp_profile.png"
+        fixed_image_path = "fixed_image.png"
+        result_path = "result.png"
+
+        try:
+            # Profil fotoğrafını kaydet
+            save_image(profile_pic, profile_pic_path)
+            # Sabit fotoğrafı indir ve kaydet
+            save_image(requests.get(FIXED_IMAGE_URL, stream=True).raw, fixed_image_path)
+
+            # DeepFace ile yüz analizi
+            try:
+                DeepFace.verify(
+                    img1_path=fixed_image_path,
+                    img2_path=profile_pic_path,
+                    model_name="Facenet",
+                    enforce_detection=False
+                )
+            except Exception as deepface_error:
+                print(f"DeepFace hatası, devam ediliyor: {str(deepface_error)}")
+
+            # Görüntüleri harmanla
+            img1 = cv2.imread(fixed_image_path)
+            img2 = cv2.imread(profile_pic_path)
+            if img1 is None or img2 is None:
+                raise Exception("Görüntüler okunamadı")
+            if img1.shape != img2.shape:
+                img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
+            blended = cv2.addWeighted(img1, 0.5, img2, 0.5, 0.0)
+            cv2.imwrite(result_path, blended)
+
+            # Sonucu base64'e çevir
+            result_base64 = image_to_base64(result_path)
+
+            # Geçici dosyaları sil
+            for path in [profile_pic_path, fixed_image_path, result_path]:
+                if os.path.exists(path):
+                    os.remove(path)
+
+            return render_template('imaro-generator.html', image=f"data:image/png;base64,{result_base64}")
+
+        except Exception as e:
+            # Hata durumunda dosyaları sil
+            for path in [profile_pic_path, fixed_image_path, result_path]:
+                if os.path.exists(path):
+                    os.remove(path)
+            return render_template('imaro-generator.html', error=f"Hata oluştu: {str(e)}")
+
+    return render_template('imaro-generator.html')
+
+# --- Mevcut Kodun Sonu ---
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
