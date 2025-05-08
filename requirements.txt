@@ -3,3 +3,6 @@ requests
 beautifulsoup4
 lxml
 gunicorn
+deepface
+opencv-python-headless
+pillow
