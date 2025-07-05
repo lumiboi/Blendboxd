@@ -41,7 +41,7 @@ def follow_index():
     return render_template("followerboxd.html")
 
 def get_follow_data(username):
-    following, followers = [], []
+    following, followers = set(), set()
 
     def get_users(page_name):
         page_num = 1
@@ -49,13 +49,16 @@ def get_follow_data(username):
             url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
             resp = requests.get(url, headers=HEADERS)
             soup = BeautifulSoup(resp.content, "lxml")
-            for person in soup.select("div.person-summary h3 a"):
-                username_clean = person.text.strip()  # HREF değil, görünen metin!
+            persons = soup.select("div.person-summary h3 a")
+            if not persons:
+                break
+            for person in persons:
+                username_clean = person.text.strip()
                 if username_clean:
                     if page_name == "following":
-                        following.append(username_clean)
+                        following.add(username_clean)
                     else:
-                        followers.append(username_clean)
+                        followers.add(username_clean)
             if soup.find("a", class_="next"):
                 page_num += 1
             else:
@@ -63,7 +66,7 @@ def get_follow_data(username):
 
     get_users("following")
     get_users("followers")
-    return following, followers
+    return list(following), list(followers)
 
 
 
