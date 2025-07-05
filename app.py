@@ -53,7 +53,7 @@ def get_follow_data(username):
             if not persons:
                 break
             for person in persons:
-                username_clean = person.text.strip()
+                username_clean = person.text.strip()  # Sadece strip() kullanın
                 if username_clean:
                     if page_name == "following":
                         following.add(username_clean)
