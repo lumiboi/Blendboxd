@@ -31,17 +31,6 @@ def index():
         )
     return render_template("index.html")
 
-@app.route("/follow", methods=["GET", "POST"])
-def follow_index():
-    if request.method == "POST":
-        username = request.form["username"].lower()
-        following, followers = get_follow_data(username)
-        difference_list = set(following) - set(followers)
-        return render_template("follow-result.html", username=username, difference_list=difference_list)
-    return render_template("followerboxd.html")
-
-HEADERS = {"User-Agent": "Mozilla/5.0"}
-
 def get_follow_data(username):
     following, followers = set(), set()
 
@@ -61,17 +50,25 @@ def get_follow_data(username):
                         following.add(username_clean)
                     else:
                         followers.add(username_clean)
-            if soup.find("a", class_="next"):
+            next_button = soup.find("a", class_="next")
+            if next_button:
                 page_num += 1
             else:
                 break
 
     get_users("following")
     get_users("followers")
+
     return list(following), list(followers)
 
-
-
+@app.route("/follow", methods=["GET", "POST"])
+def follow_index():
+    if request.method == "POST":
+        username = request.form["username"].lower()
+        following, followers = get_follow_data(username)
+        difference_list = sorted(set(following) - set(followers))
+        return render_template("follow-result.html", username=username, difference_list=difference_list)
+    return render_template("followerboxd.html")
 
 def get_watched_movies(username):
     watched_movies = []
