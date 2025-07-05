@@ -40,6 +40,8 @@ def follow_index():
         return render_template("follow-result.html", username=username, difference_list=difference_list)
     return render_template("followerboxd.html")
 
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
 def get_follow_data(username):
     following, followers = set(), set()
 
@@ -49,21 +51,16 @@ def get_follow_data(username):
             url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
             resp = requests.get(url, headers=HEADERS)
             soup = BeautifulSoup(resp.content, "lxml")
-            
-            # Yeni selektör:
-            persons = soup.select("li.person div.avatar")
-            
+            persons = soup.select("div.person-summary h3 a")
             if not persons:
                 break
-                
             for person in persons:
-                username_clean = person["data-alt"].strip()
+                username_clean = person.text.strip()
                 if username_clean:
                     if page_name == "following":
                         following.add(username_clean)
                     else:
                         followers.add(username_clean)
-                        
             if soup.find("a", class_="next"):
                 page_num += 1
             else:
@@ -72,6 +69,7 @@ def get_follow_data(username):
     get_users("following")
     get_users("followers")
     return list(following), list(followers)
+
 
 
 
