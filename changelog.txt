@@ -1,0 +1,37 @@
+## Changelog - Letterboxd Uyumluluk ve Tavsiye Uygulaması
+
+### [v1.1.0] - 2025-07-05
+
+#### 🔧 Genel Güncellemeler:
+- Uygulama, Letterboxd'ın güncel HTML yapısına göre tamamen yeniden düzenlendi.
+- Tüm `requests.get()` işlemlerine `User-Agent` eklendi (bot koruması nedeniyle).
+
+#### 🧩 get_watched_movies():
+- `class_="poster-container"` yerine `ul.poster-list li` kullanıldı.
+- Film isimleri `.strip().title()` ile normalize edildi.
+
+#### 🧩 get_watchlist():
+- Yeni DOM yapısına göre film posteri alt başlıkları çekilecek şekilde değiştirildi.
+
+#### 🧩 get_follow_data():
+- Takipçi ve takip edilen sayfaları için `div.person-summary h3 a` seçicisi eklendi.
+- Kullanıcı adı `href`'den temiz biçimde çıkarılıyor (başındaki `/` işaretleri kaldırıldı).
+
+#### 🔍 get_recommendations():
+- TMDB aramalarında öneri alınırken daha fazla film çekilecek şekilde optimize edildi.
+
+#### ✅ Güvenlik ve Stabilite:
+- Bot olarak algılanmayı engelleyen HTTP başlığı: `User-Agent: Mozilla/5.0` eklendi.
+- Sayfa sonu kontrolü `soup.find("a", class_="next")` ile yapılarak döngü stabil hale getirildi.
+
+---
+
+### Notlar:
+- Bu sürüm, önceki v1.0.0 sürümüne göre büyük bir uyumluluk güncellemesidir.
+- Uygulama, Temmuz 2025 itibarıyla Letterboxd’ın yeni HTML yapısıyla %100 uyumludur.
+
+### Geliştirici:
+Mert İsmail Ergün (@lumiboi)
+
+---
+Son güncelleme: 05.07.2025
