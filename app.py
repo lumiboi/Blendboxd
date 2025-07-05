@@ -50,12 +50,15 @@ def get_follow_data(username):
             resp = requests.get(url, headers=HEADERS)
             soup = BeautifulSoup(resp.content, "lxml")
             for person in soup.select("div.person-summary h3 a"):
-                href = person["href"]
-                username_clean = href.split('/')[1]  # Güvenli şekilde kullanıcı adını al
-                if page_name == "following":
-                    following.append(username_clean)
-                else:
-                    followers.append(username_clean)
+                href = person.get("href", "").strip("/")
+                if href.startswith("https://letterboxd.com/"):
+                    href = href.replace("https://letterboxd.com/", "")
+                username_clean = href.split('/')[0]  # sadece ilk kısmı al
+                if username_clean:
+                    if page_name == "following":
+                        following.append(username_clean)
+                    else:
+                        followers.append(username_clean)
             if soup.find("a", class_="next"):
                 page_num += 1
             else:
