@@ -49,16 +49,21 @@ def get_follow_data(username):
             url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
             resp = requests.get(url, headers=HEADERS)
             soup = BeautifulSoup(resp.content, "lxml")
-            persons = soup.select("div.person-summary h3 a")
+            
+            # Yeni selektör:
+            persons = soup.select("li.person div.avatar")
+            
             if not persons:
                 break
+                
             for person in persons:
-                username_clean = person.text.strip()  # Sadece strip() kullanın
+                username_clean = person["data-alt"].strip()
                 if username_clean:
                     if page_name == "following":
                         following.add(username_clean)
                     else:
                         followers.add(username_clean)
+                        
             if soup.find("a", class_="next"):
                 page_num += 1
             else:
