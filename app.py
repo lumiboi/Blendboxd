@@ -50,11 +50,12 @@ def get_follow_data(username):
             resp = requests.get(url, headers=HEADERS)
             soup = BeautifulSoup(resp.content, "lxml")
             for person in soup.select("div.person-summary h3 a"):
-                href = person["href"].strip("/")
+                href = person["href"]
+                username_clean = href.split('/')[1]  # Güvenli şekilde kullanıcı adını al
                 if page_name == "following":
-                    following.append(href)
+                    following.append(username_clean)
                 else:
-                    followers.append(href)
+                    followers.append(username_clean)
             if soup.find("a", class_="next"):
                 page_num += 1
             else:
@@ -63,6 +64,7 @@ def get_follow_data(username):
     get_users("following")
     get_users("followers")
     return following, followers
+
 
 def get_watched_movies(username):
     watched_movies = []
