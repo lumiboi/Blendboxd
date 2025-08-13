@@ -1,15 +1,342 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Film Tadım Arkadaşı</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Tadım Arkadaşı | Buluşma Noktası</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --accent: #ff6b6b;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--dark), #16213e);
+            color: var(--light);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.8s forwards 0.3s;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 2px var(--secondary);
+        }
+        
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(106, 17, 203, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        .film-reel {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            opacity: 0.1;
+            z-index: -1;
+            animation: rotate 20s linear infinite;
+        }
+        
+        .film-reel:nth-child(1) {
+            top: -50px;
+            left: -50px;
+        }
+        
+        .film-reel:nth-child(2) {
+            bottom: -50px;
+            right: -50px;
+            animation-direction: reverse;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .loading-subtext {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 10px;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .floating-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-icon {
+            position: absolute;
+            opacity: 0.1;
+            font-size: 1.5rem;
+            animation: float 10s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Film Tadım Arkadaşı</h1>
-    <form action="{{ url_for('matched') }}" method="POST">
-        <label for="username">Letterboxd Kullanıcı Adınız:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">En Uyumlu Arkadaşı Bul</button>
-    </form>
+    <div class="container">
+        <svg class="film-reel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm0-104c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z"/>
+        </svg>
+        <svg class="film-reel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm0-104c-53 0-96-43-96-96s43-96 96-96 96 43 96 96-43 96-96 96z"/>
+        </svg>
+        
+        <h1>Film Tadım Arkadaşı</h1>
+        
+        <form id="matchForm" action="{{ url_for('matched') }}" method="POST">
+            <div class="form-group">
+                <label for="username">Letterboxd Kullanıcı Adınız:</label>
+                <input type="text" id="username" name="username" required placeholder="örneğin: busiteyiyapankisicokzeki06">
+            </div>
+            <button type="submit" id="submitBtn">
+                <span>En Uyumlu Arkadaşı Bul</span>
+            </button>
+        </form>
+        
+        <div class="floating-icons" id="floatingIcons"></div>
+    </div>
+    
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <div class="loading-text">Film arşivlerini tarıyoruz...</div>
+        <div class="loading-subtext" id="loadingSubtext"></div>
+    </div>
+    
+    <script>
+        // Floating film icons
+        const icons = ['🎬', '🎥', '🍿', '📽️', '🎞️', '🏆', '✨', '🌟'];
+        const floatingIcons = document.getElementById('floatingIcons');
+        
+        for (let i = 0; i < 15; i++) {
+            const icon = document.createElement('div');
+            icon.className = 'floating-icon';
+            icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+            icon.style.left = `${Math.random() * 100}%`;
+            icon.style.top = `${Math.random() * 100}%`;
+            icon.style.animationDelay = `${Math.random() * 10}s`;
+            icon.style.animationDuration = `${5 + Math.random() * 10}s`;
+            floatingIcons.appendChild(icon);
+        }
+        
+        // Form submission with loading screen
+        const form = document.getElementById('matchForm');
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingSubtext = document.getElementById('loadingSubtext');
+        const funnyMessages = [
+            "Kullanıcının izlediği tüm Marvel filmlerini sayıyoruz...",
+            "Bu kadar çok romantik komedi izlemesi normal mi acaba?",
+            "Tarantino hayranı mı yoksa Nolan takımından mı?",
+            "Bu kullanıcı gerçekten tüm Godzilla filmlerini izlemiş!",
+            "IMDb top 250'yi tamamlamış mı diye kontrol ediyoruz...",
+            "Film zevkinizi analiz ederken biraz abur cubur alabilirsiniz.",
+            "Bu kadar çok film izlemesine rağmen hala sosyal hayatı var mı acaba?",
+            "Filmlerin %80'ini gece yarısı izlemiş... Bizden birisi!",
+            "Kullanıcının favori filmi 'The Room' çıkarsa şaşırmayın.",
+            "Bu kadar çok belgesel izleyen biriyle nasıl anlaşacaksınız?"
+        ];
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading screen
+            loadingScreen.classList.add('active');
+            
+            // Change funny message every 3 seconds
+            let counter = 0;
+            const messageInterval = setInterval(() => {
+                loadingSubtext.textContent = funnyMessages[counter % funnyMessages.length];
+                counter++;
+            }, 3000);
+            
+            // First message immediately
+            loadingSubtext.textContent = funnyMessages[0];
+            
+            // Simulate longer processing time (for demo purposes)
+            setTimeout(() => {
+                clearInterval(messageInterval);
+                form.submit();
+            }, 5000); // In production, remove this timeout and just submit the form
+        });
+        
+        // Animation on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.body.style.overflow = 'auto';
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
