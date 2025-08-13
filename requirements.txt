@@ -3,4 +3,8 @@ requests
 beautifulsoup4
 lxml
 gunicorn
+aiohttp 
+asyncio 
+nest_asyncio
+
 
