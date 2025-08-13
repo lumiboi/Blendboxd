@@ -183,6 +183,32 @@ def duo_picker():
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
     return render_template('duo_picker.html', lang=lang)
 
+HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+# --- ASYNC GET WATCHED MOVIES ---
+async def fetch_page(session, url):
+    async with session.get(url, headers=HEADERS) as resp:
+        return await resp.text()
+
+async def get_watched_movies_async(username):
+    watched_movies = []
+    async with aiohttp.ClientSession() as session:
+        page = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/films/page/{page}/"
+            html = await fetch_page(session, url)
+            soup = BeautifulSoup(html, "lxml")
+            movies_on_page = [img["alt"].strip().title() for li in soup.select("ul.poster-list li")
+                              if (img := li.find("img")) and img.has_attr("alt")]
+            if not movies_on_page:
+                break
+            watched_movies.extend(movies_on_page)
+            if not soup.find("a", class_="next"):
+                break
+            page += 1
+    return watched_movies
+
+
 # --- FILM TADIM ARKADAŞI ---  
 @app.route("/match", methods=["GET"])
 def match():
