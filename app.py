@@ -189,8 +189,7 @@ def matched():
     username = request.form.get("username").strip()
     user_movies = get_watched_movies(username)
 
-    # Letterboxd'dan rastgele veya sistemdeki kullanıcıları çekmek yerine
-    # Örneğin, username'nin followers ve following listesinden potansiyel buddy'ler
+    # Potansiyel buddy kullanıcıları (takipçiler + following)
     following, followers = get_follow_data(username)
     potential_users = list(set(following + followers))
 
@@ -210,7 +209,9 @@ def matched():
         except:
             continue  # bazı kullanıcılar gizli olabilir veya veri çekilemeyebilir
 
-    buddy_recommendations = get_recommendations(common_movies_for_best) if common_movies_for_best else []
+    # --- DÜZELTME: Listeyi sınırlıyoruz ---
+    common_movies_for_best = common_movies_for_best[:100]  # sadece ilk 100 ortak film
+    buddy_recommendations = get_recommendations(common_movies_for_best)[:50]  # sadece ilk 50 öneri
 
     return render_template(
         "matched.html",
@@ -219,6 +220,7 @@ def matched():
         common_movies=common_movies_for_best,
         buddy_recommendations=buddy_recommendations
     )
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
