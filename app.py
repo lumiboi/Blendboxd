@@ -208,40 +208,6 @@ async def get_watched_movies_async(username):
             page += 1
     return watched_movies
 
-# --- ASYNC GET WATCHED MOVIES + PROFILE AVATAR ---
-async def fetch_page(session, url):
-    async with session.get(url, headers=HEADERS) as resp:
-        return await resp.text()
-
-async def get_watched_movies_and_avatar(username):
-    watched_movies = []
-    avatar_url = None
-    async with aiohttp.ClientSession() as session:
-        page = 1
-        while True:
-            url = f"https://letterboxd.com/{username}/films/page/{page}/"
-            html = await fetch_page(session, url)
-            soup = BeautifulSoup(html, "lxml")
-
-            # Filmler
-            movies_on_page = [img["alt"].strip().title() for li in soup.select("ul.poster-list li")
-                              if (img := li.find("img")) and img.has_attr("alt")]
-            if not movies_on_page and page == 1:
-                break
-            watched_movies.extend(movies_on_page)
-
-            # Avatar (sadece ilk sayfada çek)
-            if page == 1 and not avatar_url:
-                avatar_img = soup.find("img", class_="avatar")
-                if avatar_img and avatar_img.has_attr("src"):
-                    avatar_url = avatar_img["src"]
-
-            if not soup.find("a", class_="next"):
-                break
-            page += 1
-
-    return watched_movies, avatar_url
-
 
 # --- FILM TADIM ARKADAŞI ---  
 @app.route("/match", methods=["GET"])
