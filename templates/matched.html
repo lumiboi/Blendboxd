@@ -332,10 +332,19 @@
     <div class="container animate__animated animate__fadeIn">
         <h1>🎉 Eşleşme Sonuçları 🎉</h1>
         
+
+
+
         <div class="result-header">
             <div class="buddy-card">
-                <div class="buddy-avatar">{{ buddy_username[0]|upper }}</div>
-                <div class="buddy-info">
+                <div class="buddy-avatar">
+    {% if buddy_avatar %}
+        <img src="{{ buddy_avatar }}" alt="{{ buddy_username }}" style="width:100%;height:100%;border-radius:50%;">
+    {% else %}
+        {{ buddy_username[0]|upper }}
+    {% endif %}
+</div>
+            <div class="buddy-info">
                     <h3 class="buddy-name">{{ buddy_username }}</h3>
                     <div class="compatibility">
                         <span class="percentage">{{ compatibility_percentage }}%</span>
@@ -491,4 +500,5 @@
     </script>
 </body>
 </html>
+
 
