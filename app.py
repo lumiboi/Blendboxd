@@ -3,6 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import random
+import aiohttp
+import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 app = Flask(__name__)
 
@@ -179,15 +183,35 @@ def duo_picker():
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
     return render_template('duo_picker.html', lang=lang)
 
-# --- FILM TADIM ARKADAŞI ---
-@app.route("/match", methods=["GET"])
-def match():
-    return render_template("match.html")
+# --- ASYNC GET WATCHED MOVIES ---
+async def fetch_page(session, url):
+    async with session.get(url, headers=HEADERS) as resp:
+        return await resp.text()
 
+async def get_watched_movies_async(username):
+    watched_movies = []
+    async with aiohttp.ClientSession() as session:
+        page = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/films/page/{page}/"
+            html = await fetch_page(session, url)
+            soup = BeautifulSoup(html, "lxml")
+            movies_on_page = [img["alt"].strip().title() for li in soup.select("ul.poster-list li")
+                              if (img := li.find("img")) and img.has_attr("alt")]
+            if not movies_on_page:
+                break
+            watched_movies.extend(movies_on_page)
+            if not soup.find("a", class_="next"):
+                break
+            page += 1
+    return watched_movies
+
+# --- FILM TADIM ARKADAŞI ---
 @app.route("/matched", methods=["POST"])
 def matched():
     username = request.form.get("username").strip()
-    user_movies = get_watched_movies(username)
+    # Kullanıcının izlediği filmler
+    user_movies = asyncio.run(get_watched_movies_async(username))
 
     # Potansiyel buddy kullanıcıları (takipçiler + following)
     following, followers = get_follow_data(username)
@@ -197,19 +221,28 @@ def matched():
     best_score = 0
     common_movies_for_best = []
 
-    for other in potential_users:
+    async def process_other(other):
         try:
-            other_movies = get_watched_movies(other)
+            other_movies = await get_watched_movies_async(other)
             common = list(set(user_movies) & set(other_movies))
             score = calculate_compatibility(user_movies, other_movies, common)
+            return other, score, common
+        except:
+            return None
+
+    # Tüm kullanıcıları asenkron olarak işliyoruz
+    tasks = [process_other(u) for u in potential_users]
+    results = asyncio.run(asyncio.gather(*tasks))
+
+    for result in results:
+        if result:
+            other, score, common = result
             if score > best_score:
                 best_score = score
                 best_match = other
                 common_movies_for_best = common
-        except:
-            continue  # bazı kullanıcılar gizli olabilir veya veri çekilemeyebilir
 
-    # --- DÜZELTME: Listeyi sınırlıyoruz ---
+    # Ortak filmleri ve önerileri sınırlama
     common_movies_for_best = common_movies_for_best[:100]  # sadece ilk 100 ortak film
     buddy_recommendations = get_recommendations(common_movies_for_best)[:50]  # sadece ilk 50 öneri
 
