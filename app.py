@@ -179,5 +179,46 @@ def duo_picker():
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
     return render_template('duo_picker.html', lang=lang)
 
+# --- FILM TADIM ARKADAŞI ---
+@app.route("/match", methods=["GET"])
+def match():
+    return render_template("match.html")
+
+@app.route("/matched", methods=["POST"])
+def matched():
+    username = request.form.get("username").strip()
+    user_movies = get_watched_movies(username)
+
+    # Letterboxd'dan rastgele veya sistemdeki kullanıcıları çekmek yerine
+    # Örneğin, username'nin followers ve following listesinden potansiyel buddy'ler
+    following, followers = get_follow_data(username)
+    potential_users = list(set(following + followers))
+
+    best_match = None
+    best_score = 0
+    common_movies_for_best = []
+
+    for other in potential_users:
+        try:
+            other_movies = get_watched_movies(other)
+            common = list(set(user_movies) & set(other_movies))
+            score = calculate_compatibility(user_movies, other_movies, common)
+            if score > best_score:
+                best_score = score
+                best_match = other
+                common_movies_for_best = common
+        except:
+            continue  # bazı kullanıcılar gizli olabilir veya veri çekilemeyebilir
+
+    buddy_recommendations = get_recommendations(common_movies_for_best) if common_movies_for_best else []
+
+    return render_template(
+        "matched.html",
+        buddy_username=best_match or "Bulunamadı",
+        compatibility_percentage=int(best_score),
+        common_movies=common_movies_for_best,
+        buddy_recommendations=buddy_recommendations
+    )
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
