@@ -185,88 +185,83 @@ def duo_picker():
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
-# --- ASYNC GET WATCHED MOVIES + PROFILE AVATAR ---
+# --- ASYNC GET WATCHED MOVIES ---
 async def fetch_page(session, url):
     async with session.get(url, headers=HEADERS) as resp:
         return await resp.text()
 
-async def get_watched_movies_and_avatar(username):
+async def get_watched_movies_async(username):
     watched_movies = []
-    avatar_url = None
     async with aiohttp.ClientSession() as session:
         page = 1
         while True:
             url = f"https://letterboxd.com/{username}/films/page/{page}/"
             html = await fetch_page(session, url)
             soup = BeautifulSoup(html, "lxml")
-
-            # Filmler
             movies_on_page = [img["alt"].strip().title() for li in soup.select("ul.poster-list li")
                               if (img := li.find("img")) and img.has_attr("alt")]
-            if not movies_on_page and page == 1:
+            if not movies_on_page:
                 break
             watched_movies.extend(movies_on_page)
-
-            # Avatar (sadece ilk sayfada çek)
-            if page == 1 and not avatar_url:
-                avatar_img = soup.find("img", class_="avatar")
-                if avatar_img and avatar_img.has_attr("src"):
-                    avatar_url = avatar_img["src"]
-
             if not soup.find("a", class_="next"):
                 break
             page += 1
+    return watched_movies
 
-    return watched_movies, avatar_url
 
-# --- FILM TADIM ARKADAŞI ---
+# --- FILM TADIM ARKADAŞI ---  
+@app.route("/match", methods=["GET"])
+def match():
+    # Kullanıcıdan Letterboxd username isteyecek formu gösterir
+    return render_template("match.html")
+
 @app.route("/matched", methods=["POST"])
 def matched():
     username = request.form.get("username").strip()
-    # Kullanıcının izlediği filmler + avatar
-    user_movies, user_avatar = asyncio.run(get_watched_movies_and_avatar(username))
+    # Kullanıcının izlediği filmler
+    user_movies = asyncio.run(get_watched_movies_async(username))
 
+    # Potansiyel buddy kullanıcıları (takipçiler + following)
     following, followers = get_follow_data(username)
     potential_users = list(set(following + followers))
 
     best_match = None
     best_score = 0
     common_movies_for_best = []
-    buddy_avatar = None
 
     async def process_other(other):
         try:
-            other_movies, other_avatar = await get_watched_movies_and_avatar(other)
+            other_movies = await get_watched_movies_async(other)
             common = list(set(user_movies) & set(other_movies))
             score = calculate_compatibility(user_movies, other_movies, common)
-            return other, score, common, other_avatar
+            return other, score, common
         except:
             return None
 
+    # Tüm kullanıcıları asenkron olarak işliyoruz
     tasks = [process_other(u) for u in potential_users]
     results = asyncio.run(asyncio.gather(*tasks))
 
     for result in results:
         if result:
-            other, score, common, other_avatar = result
+            other, score, common = result
             if score > best_score:
                 best_score = score
                 best_match = other
                 common_movies_for_best = common
-                buddy_avatar = other_avatar
 
     # Ortak filmleri ve önerileri sınırlama
-    common_movies_for_best = common_movies_for_best[:100]
-    buddy_recommendations = get_recommendations(common_movies_for_best)[:50]
+    common_movies_for_best = common_movies_for_best[:100]  # sadece ilk 100 ortak film
+    buddy_recommendations = get_recommendations(common_movies_for_best)[:50]  # sadece ilk 50 öneri
 
     return render_template(
         "matched.html",
         buddy_username=best_match or "Bulunamadı",
         compatibility_percentage=int(best_score),
         common_movies=common_movies_for_best,
-        buddy_recommendations=buddy_recommendations,
-        buddy_avatar=buddy_avatar  # template'te kullan
+        buddy_recommendations=buddy_recommendations
     )
+
 
 
 if __name__ == "__main__":
