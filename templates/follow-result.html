@@ -112,7 +112,7 @@
         <ul>
             {% if difference_list %}
                 {% for user in difference_list %}
-                    <li>{{ user[1:-1] }}</li>
+                    <li>{{ user | trim }}</li>
                 {% endfor %}
             {% else %}
                 <li data-tr="0 kişi" data-en="0 people"></li>
