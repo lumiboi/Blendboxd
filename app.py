@@ -13,7 +13,12 @@ except Exception:
 
 app = Flask(__name__)
 
-TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658"
+# TMDb API Key'i environment variable'dan al
+TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
+
+if not TMDB_API_KEY:
+    raise ValueError("TMDB_API_KEY environment variable is not set!")
+    
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
