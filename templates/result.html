@@ -14,6 +14,15 @@
         gtag('config', 'G-2Q77KLT449');
     </script>
     <style>
+        :root {
+            --teal: #00b7a4;
+            --orange: #ff8000;
+            --blue: #40bcf4;
+            --green: #00e054;
+            --card-bg: rgba(10, 14, 20, 0.55);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+        }
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
@@ -23,93 +32,28 @@
             background: url('https://i.ibb.co/VNSHSXD/EWS-ezgif-com-optimize.gif') no-repeat center center fixed;
             background-size: cover;
         }
-        .container {
-            background-color: rgba(20, 24, 28, 0.9);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            width: 350px;
-            text-align: center;
-            color: white;
-            margin: 20px auto;
-            overflow-y: auto;
-            max-height: 90vh;
+        .gradient-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(1200px 800px at 10% 20%, rgba(255,128,0,0.18), transparent 60%),
+                radial-gradient(1000px 700px at 90% 30%, rgba(64,188,244,0.18), transparent 60%),
+                radial-gradient(900px 600px at 50% 80%, rgba(0,224,84,0.14), transparent 60%);
+            animation: glow 20s ease-in-out infinite alternate;
         }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #00b7a4;
-        }
-        h2 {
-            margin-bottom: 10px;
-            color: #ff8000;
-        }
-
-        #tavsiye {
-            margin-bottom: 10px;
-            color: #00e054;
-        }
-       
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 50vh;
-            overflow-y: auto;
-            text-align: center;
-        }
-        li {
-            background: #1e272e;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 6px;
-            color: #fff;
-        }
-        .button {
-            margin-top: 20px;
-            background-color: #00b7a4;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .button:hover {
-            background-color: #008a7a;
-        }
-        .link {
-            display: block;
-            margin-top: 10px;
-            text-decoration: none;
-            color: #00b7a4;
-            font-weight: bold;
-        }
-        .link:hover {
-            text-decoration: underline;
-        }
-
-          .language-selector {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 6px;
-            color: white;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .language-selector i {
-            margin-right: 5px;
-        }
-        
-        #compatibility {
-            color: #ff8000;
-            font-size: 24px;
-            margin-top: 20px;
-        }
+        @keyframes glow { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(25deg) saturate(1.2)} }
+        .stage { position: relative; min-height: 100vh; display:flex; align-items:center; justify-content:center; z-index:1; padding: 40px 16px; }
+        .container { width: min(880px, 92vw); padding: 40px; border-radius: 18px; background: var(--card-bg); border: 1px solid var(--card-border); box-shadow: var(--shadow); backdrop-filter: blur(14px) saturate(120%); -webkit-backdrop-filter: blur(14px) saturate(120%); text-align: center; }
+        h1 { margin: 0 0 8px; font-weight: 800; letter-spacing: .3px; background: linear-gradient(90deg, var(--orange), var(--green), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(24px, 3.5vw, 36px); }
+        h2 { margin: 18px 0 8px; color: var(--orange); }
+        #tavsiye { color: var(--green); }
+        .lists { display:grid; grid-template-columns: 1fr; gap: 14px; }
+        ul { list-style:none; padding:0; margin:0; max-height: 42vh; overflow:auto; text-align:left; }
+        li { background: rgba(255,255,255,0.06); margin:6px 0; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12); }
+        .button { margin-top: 16px; background: linear-gradient(135deg, rgba(0,183,164,.85), rgba(0,224,84,.85)); color:#fff; border:1px solid rgba(255,255,255,.12); padding:12px 18px; border-radius:12px; cursor:pointer; font-size:14px; box-shadow: 0 10px 24px rgba(0,183,164,.35); }
+        .button:hover { filter:brightness(1.05); transform: translateY(-1px); }
+        .link { display:block; margin-top:10px; text-decoration:none; color:var(--teal); font-weight:bold; }
+        .language-selector { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,.55); padding:6px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); color:#fff; display:flex; align-items:center; cursor:pointer; z-index:10; backdrop-filter: blur(6px); }
+        .language-selector i { margin-right: 6px; }
+        #compatibility { color: var(--orange); font-size: 22px; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -117,10 +61,12 @@
         <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
     </div>
 
-    <!-- Ana İçerik -->
+    <div class="gradient-overlay"></div>
+    <div class="stage">
     <div class="container">
         <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
         <h2>WATCHBOX:</h2>
+        <div class="lists">
         <ul id="movieList">
             {% if common_movies %}
                 {% for movie in common_movies %}
@@ -130,6 +76,7 @@
                 <li>Ortak film bulunamadı</li>
             {% endif %}
         </ul>
+        </div>
         <div id="compatibility">Uyum: {{ compatibility_percentage | round(2) }}%</div>
         <h3 id="tavsiye">Bu İkili İçin Film Önerileri:</h3>
         <ul id="recommendationList">
@@ -145,43 +92,20 @@
         <button class="button" id="downloadInstagramStoryBtn">Canvas olarak indir (Instagram Hikayesi)</button>
         <a href="/" class="link">Yeni kullanıcı adları girin</a>
     </div>
+    </div>
 
     <script>
-        // Dinamik dil çevirisi için fonksiyon
+        // Dinamik dil çevirisi
         function getTranslation(key) {
-            // Hem İngilizce hem de Türkçe çeviriler
             const translations = {
-                "en": {
-                    "header": "{{ username1 }} and {{ username2 }} Watchbox!",
-                    "watchbox": "WATCHBOX:",
-                    "no_common_movies": "No common movies found.",
-                    "compatibility": "Compatibility",
-                    "movie_recommendations": "Movie Recommendations for This Duo:",
-                    "no_recommendations": "No movie recommendations found.",
-                    "download_button": "Download as Canvas",
-                    "download_instagram_button": "Download as Canvas (Instagram Story)",
-                    "enter_usernames": "Enter new usernames"
-                },
-                "tr": {
-                    "header": "{{ username1 }} ve {{ username2 }} için Watchbox!",
-                    "watchbox": "WATCHBOX:",
-                    "no_common_movies": "Ortak film bulunamadı.",
-                    "compatibility": "Uyum",
-                    "movie_recommendations": "Bu İkili İçin Film Önerileri:",
-                    "no_recommendations": "Film önerisi bulunamadı.",
-                    "download_button": "Canvas olarak indir",
-                    "download_instagram_button": "Canvas olarak indir (Instagram Hikayesi)",
-                    "enter_usernames": "Yeni kullanıcı adları girin"
-                }
+                en: { header: "{{ username1 }} and {{ username2 }} Watchbox!", watchbox: "WATCHBOX:", no_common_movies: "No common movies found.", compatibility: "Compatibility", movie_recommendations: "Movie Recommendations for This Duo:", no_recommendations: "No movie recommendations found.", download_button: "Download as Canvas", download_instagram_button: "Download as Canvas (Instagram Story)", enter_usernames: "Enter new usernames" },
+                tr: { header: "{{ username1 }} ve {{ username2 }} için Watchbox!", watchbox: "WATCHBOX:", no_common_movies: "Ortak film bulunamadı.", compatibility: "Uyum", movie_recommendations: "Bu İkili İçin Film Önerileri:", no_recommendations: "Film önerisi bulunamadı.", download_button: "Canvas olarak indir", download_instagram_button: "Canvas olarak indir (Instagram Hikayesi)", enter_usernames: "Yeni kullanıcı adları girin" }
             };
-
-            // Sayfa dilini kontrol et ('en' ya da 'tr')
-           const currentLanguage = document.documentElement.lang || 'en'; // Varsayılan dil
-
+            const currentLanguage = document.documentElement.lang || 'en';
             return translations[currentLanguage][key] || key;
         }
 
-        // Language selector for dynamic content translation
+        // Language selector
         document.getElementById('languageSelector').addEventListener('click', function() {
             const currentLanguage = document.documentElement.lang || 'en';
             if (currentLanguage === 'en') {
@@ -191,7 +115,6 @@
                 document.documentElement.lang = 'en';
                 document.getElementById('languageText').textContent = 'Language: English';
             }
-            // Update all static text elements
             document.getElementById('header').textContent = getTranslation('header');
             document.querySelector('h2').textContent = getTranslation('watchbox');
             document.getElementById('tavsiye').textContent = getTranslation('movie_recommendations');
@@ -201,164 +124,84 @@
             document.querySelector('.link').textContent = getTranslation('enter_usernames');
         });
 
-        // Canvas olarak indirme butonuna tıklama işlemi
+        // Unified poster drawer
+        function drawPoster(ctx, width, height, usernames, movies, compatibility, columns, rows, isStory=false) {
+            // Background
+            const bg = ctx.createLinearGradient(0, 0, width, height);
+            bg.addColorStop(0, '#0b0f14');
+            bg.addColorStop(1, '#12181f');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, width, height);
+
+            // Title gradient
+            const tGrad = ctx.createLinearGradient(0, 0, width, 0);
+            tGrad.addColorStop(0, '#ff8000');
+            tGrad.addColorStop(0.5, '#00e054');
+            tGrad.addColorStop(1, '#40bcf4');
+            ctx.fillStyle = tGrad;
+            ctx.textAlign = 'center';
+            ctx.font = isStory ? 'bold 64px "Helvetica Neue", Arial, sans-serif' : 'bold 56px "Helvetica Neue", Arial, sans-serif';
+            ctx.fillText(`${usernames[0]} × ${usernames[1]}`, width/2, isStory ? 120 : 96);
+            ctx.font = isStory ? 'bold 32px "Helvetica Neue", Arial, sans-serif' : 'bold 28px "Helvetica Neue", Arial, sans-serif';
+            ctx.fillText(`${getTranslation('compatibility')}: ${compatibility}`, width/2, isStory ? 170 : 140);
+
+            // Columns
+            const pad = isStory ? 60 : 64;
+            const gap = isStory ? 26 : 32;
+            const usable = width - pad*2 - gap*(columns-1);
+            const colW = Math.floor(usable/columns);
+            const startY = isStory ? 230 : 200;
+            const rowH = isStory ? 44 : 36;
+            ctx.textAlign = 'left';
+            ctx.font = isStory ? '28px "Helvetica Neue", Arial, sans-serif' : '22px "Helvetica Neue", Arial, sans-serif';
+            movies.forEach((movie, i) => {
+                if (i >= columns*rows) return;
+                const col = Math.floor(i / rows);
+                const row = i % rows;
+                const x = pad + col*(colW + gap);
+                const y = startY + row*rowH;
+                ctx.fillStyle = 'rgba(255,255,255,0.75)';
+                const indexText = `${(i+1).toString().padStart(2,'0')}. `;
+                ctx.fillText(indexText, x, y);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(movie, x + (isStory ? 58 : 48), y);
+            });
+
+            // Footer
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.font = isStory ? 'italic 26px "Helvetica Neue", Arial, sans-serif' : 'italic 22px "Helvetica Neue", Arial, sans-serif';
+            ctx.fillText('blendboxd.up.railway.app', width/2, height - (isStory ? 32 : 28));
+        }
+
+        // 16:9 Poster
         document.getElementById('downloadBtn').addEventListener('click', function () {
             const username1 = "{{ username1 }}";
             const username2 = "{{ username2 }}";
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Dinamik Canvas Boyutu
-            const canvasWidth = 1920;
-            const canvasHeight = 1080;
-            const itemsPerColumn = 5; // Her sütunda 5 film
-            const columnWidth = 350; // Geniş sütun
-            const rowHeight = 40; // Yüksek satır
-
             const canvas = document.createElement('canvas');
+            canvas.width = 1920; canvas.height = 1080;
             const ctx = canvas.getContext('2d');
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-
-            // Arka plan - Letterboxd Teması
-            const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#121212'); // Koyu gri
-            gradient.addColorStop(0.5, '#333333'); // Daha koyu gri
-            gradient.addColorStop(1, '#121212'); // Koyu gri
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            // Başlık - Gradyan Renk
-            const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            titleGradient.addColorStop(0, '#ff8000');
-            titleGradient.addColorStop(0.5, '#00e054');
-            titleGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = titleGradient;
-            ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(getTranslation('header'), canvasWidth / 2, 80);
-
-            // Filmler - Yeni Gradyan Renk
-            const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            movieGradient.addColorStop(0, '#40bcf4');
-            movieGradient.addColorStop(0.5, '#ff8000');
-            movieGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = movieGradient;
-            ctx.font = '22px "Helvetica Neue", sans-serif';
-            let x = 100;
-            let y = 120;
-
-            movies.slice(0, 100).forEach((movie, index) => {
-                if (y + rowHeight > canvasHeight - 150) {
-                    x += columnWidth;
-                    y = 120;
-                }
-                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Ortalanmış yazı
-                y += rowHeight;
-            });
-
-            // Uyumluluk - Yeni Gradyan Renk
-            const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            compatibilityGradient.addColorStop(0, '#40bcf4');
-            compatibilityGradient.addColorStop(0.5, '#ff8000');
-            compatibilityGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = compatibilityGradient;
-            ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText(`${getTranslation('compatibility')}: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Ortalanmış uyum
-
-            // blendboxd.up.railway.app metni
-            const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
-            linkGradient.addColorStop(0, '#ff8000');
-            linkGradient.addColorStop(0.5, '#00e054');
-            linkGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = linkGradient;
-            ctx.font = 'italic 24px "Helvetica Neue", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('blendboxd.up.railway.app', canvasWidth / 2, canvasHeight - 20);
-
-            // Görseli İndir
+            drawPoster(ctx, 1920, 1080, [username1, username2], movies.slice(0, 90), compatibility, 3, 30, false);
             const link = document.createElement('a');
             link.download = 'watchbox.jpg';
             link.href = canvas.toDataURL('image/jpeg');
             link.click();
         });
 
-        // Instagram Hikayesi olarak indirme butonuna tıklama işlemi
+        // Story Poster
         document.getElementById('downloadInstagramStoryBtn').addEventListener('click', function () {
             const username1 = "{{ username1 }}";
             const username2 = "{{ username2 }}";
             const movies = Array.from(document.querySelectorAll('#movieList li')).map(li => li.textContent);
             const compatibility = "{{ compatibility_percentage | round(2) }}%";
 
-            // Instagram Hikayesi Boyutu
-            const canvasWidth = 1080;
-            const canvasHeight = 1920;
-            const itemsPerColumn = 5; // Her sütunda 5 film
-            const columnWidth = 350; // Geniş sütun
-            const rowHeight = 80; // Yüksek satır (50 film sonrası alan azaltıldı)
-
             const canvas = document.createElement('canvas');
+            canvas.width = 1080; canvas.height = 1920;
             const ctx = canvas.getContext('2d');
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-
-            // Arka plan - Letterboxd Teması
-            const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-            gradient.addColorStop(0, '#121212'); // Koyu gri
-            gradient.addColorStop(0.5, '#333333'); // Daha koyu gri
-            gradient.addColorStop(1, '#121212'); // Koyu gri
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-            // Başlık - Gradyan Renk
-            const titleGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            titleGradient.addColorStop(0, '#ff8000');
-            titleGradient.addColorStop(0.5, '#00e054');
-            titleGradient.addColorStop(1, '#40bcf4');
-            ctx.fillStyle = titleGradient;
-            ctx.font = 'bold 48px "Helvetica Neue", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(getTranslation('header'), canvasWidth / 2, 80);
-
-            // Filmler - Yeni Gradyan Renk
-            const movieGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            movieGradient.addColorStop(0, '#40bcf4');
-            movieGradient.addColorStop(0.5, '#ff8000');
-            movieGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = movieGradient;
-            ctx.font = '22px "Helvetica Neue", sans-serif';
-            let x = 100;
-            let y = 120;
-
-            movies.slice(0, 50).forEach((movie, index) => {
-                if (y + rowHeight > canvasHeight - 150) {
-                    x += columnWidth;
-                    y = 120;
-                }
-                ctx.fillText(`${index + 1}. ${movie}`, x + (columnWidth / 2), y); // Ortalanmış yazı
-                y += rowHeight;
-            });
-
-            // Uyumluluk - Yeni Gradyan Renk
-            const compatibilityGradient = ctx.createLinearGradient(0, 0, canvasWidth, 0);
-            compatibilityGradient.addColorStop(0, '#40bcf4');
-            compatibilityGradient.addColorStop(0.5, '#ff8000');
-            compatibilityGradient.addColorStop(1, '#00e054');
-            ctx.fillStyle = compatibilityGradient;
-            ctx.font = 'bold 36px "Helvetica Neue", sans-serif';
-            ctx.fillText(`${getTranslation('compatibility')}: ${compatibility}`, canvasWidth / 2, canvasHeight - 80); // Ortalanmış uyum
-
-            // blendboxd.up.railway.app metni
-            const linkGradient = ctx.createLinearGradient(0, canvasHeight - 20, canvasWidth, canvasHeight);
-linkGradient.addColorStop(0, '#ff8000');
-linkGradient.addColorStop(0.5, '#00e054');
-linkGradient.addColorStop(1, '#40bcf4');
-ctx.fillStyle = linkGradient;
-ctx.font = 'italic 24px "Helvetica Neue", sans-serif';
-ctx.textAlign = 'center';
-ctx.fillText('blendboxd.up.railway.app', canvasWidth / 2, canvasHeight - 20);
-
-            // Görseli İndir
+            drawPoster(ctx, 1080, 1920, [username1, username2], movies.slice(0, 50), compatibility, 2, 25, true);
             const link = document.createElement('a');
             link.download = 'watchbox_instagram_story.jpg';
             link.href = canvas.toDataURL('image/jpeg');
