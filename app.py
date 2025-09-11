@@ -83,10 +83,22 @@ def get_watched_movies(username):
     watched_movies = []
 
     def get_movies(soup):
+        # Prefer robust selectors: Letterboxd often stores film names on list items
+        # E.g., <li class="poster-container" data-film-name="...">
         for li in soup.select("ul.poster-list li"):
-            img = li.find("img")
-            if img and img.has_attr("alt"):
-                watched_movies.append(img["alt"].strip().title())
+            film_name = None
+            if li.has_attr("data-film-name"):
+                film_name = li.get("data-film-name")
+            elif li.has_attr("data-film-title"):
+                film_name = li.get("data-film-title")
+            elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
+                film_name = li.get('data-film-name')
+            else:
+                img = li.find("img")
+                if img and img.has_attr("alt"):
+                    film_name = img["alt"]
+            if film_name:
+                watched_movies.append(film_name.strip().title())
 
     page = 1
     while True:
@@ -203,8 +215,21 @@ async def get_watched_movies_async(username):
             url = f"https://letterboxd.com/{username}/films/page/{page}/"
             html = await fetch_page(session, url)
             soup = BeautifulSoup(html, "lxml")
-            movies_on_page = [img["alt"].strip().title() for li in soup.select("ul.poster-list li")
-                              if (img := li.find("img")) and img.has_attr("alt")]
+            movies_on_page = []
+            for li in soup.select("ul.poster-list li"):
+                film_name = None
+                if li.has_attr("data-film-name"):
+                    film_name = li.get("data-film-name")
+                elif li.has_attr("data-film-title"):
+                    film_name = li.get("data-film-title")
+                elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
+                    film_name = li.get('data-film-name')
+                else:
+                    img = li.find("img")
+                    if img and img.has_attr("alt"):
+                        film_name = img["alt"]
+                if film_name:
+                    movies_on_page.append(film_name.strip().title())
             if not movies_on_page:
                 break
             watched_movies.extend(movies_on_page)
