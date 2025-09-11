@@ -36,7 +36,8 @@ def index():
     return render_template("index.html")
 
 def get_follow_data(username):
-    following, followers = set(), set()
+    following_usernames, followers_usernames = set(), set()
+    display_name_by_username = {}
 
     def get_users(page_name):
         page_num = 1
@@ -48,12 +49,15 @@ def get_follow_data(username):
             if not persons:
                 break
             for person in persons:
-                username_clean = person.text.strip()
-                if username_clean:
+                href = person.get("href", "/").strip()
+                slug = href.strip("/").split("/")[0]
+                display_name = person.text.strip()
+                if slug:
+                    display_name_by_username[slug] = display_name or slug
                     if page_name == "following":
-                        following.add(username_clean)
+                        following_usernames.add(slug)
                     else:
-                        followers.add(username_clean)
+                        followers_usernames.add(slug)
             next_button = soup.find("a", class_="next")
             if next_button:
                 page_num += 1
@@ -63,14 +67,15 @@ def get_follow_data(username):
     get_users("following")
     get_users("followers")
 
-    return list(following), list(followers)
+    return list(following_usernames), list(followers_usernames), display_name_by_username
 
 @app.route("/follow", methods=["GET", "POST"])
 def follow_index():
     if request.method == "POST":
         username = request.form["username"].lower()
-        following, followers = get_follow_data(username)
-        difference_list = sorted(set(following) - set(followers))
+        following, followers, name_map = get_follow_data(username)
+        difference_usernames = sorted(set(following) - set(followers))
+        difference_list = [{"username": u, "display_name": name_map.get(u, u)} for u in difference_usernames]
         return render_template("follow-result.html", username=username, difference_list=difference_list)
     return render_template("followerboxd.html")
 
