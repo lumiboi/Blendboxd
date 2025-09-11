@@ -126,52 +126,157 @@
 
         // Unified poster drawer
         function drawPoster(ctx, width, height, usernames, movies, compatibility, columns, rows, isStory=false) {
-            // Background
+            // Helpers
+            function roundRect(ctx, x, y, w, h, r) {
+                const rr = Math.min(r, w/2, h/2);
+                ctx.beginPath();
+                ctx.moveTo(x+rr, y);
+                ctx.arcTo(x+w, y,   x+w, y+h, rr);
+                ctx.arcTo(x+w, y+h, x,   y+h, rr);
+                ctx.arcTo(x,   y+h, x,   y,   rr);
+                ctx.arcTo(x,   y,   x+w, y,   rr);
+                ctx.closePath();
+            }
+            function drawTextEllipsis(text, x, y, maxW) {
+                let t = text;
+                while (ctx.measureText(t).width > maxW && t.length > 3) {
+                    t = t.slice(0, -2);
+                }
+                if (t !== text) t = t.trim() + '…';
+                ctx.fillText(t, x, y);
+            }
+
+            // Background (gradient + vignette)
             const bg = ctx.createLinearGradient(0, 0, width, height);
             bg.addColorStop(0, '#0b0f14');
             bg.addColorStop(1, '#12181f');
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, width, height);
+            const vignette = ctx.createRadialGradient(width/2, height/2, Math.min(width,height)/6, width/2, height/2, Math.max(width,height)/1.2);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.55)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, width, height);
 
-            // Title gradient
+            // Central glass card
+            const cardPad = isStory ? 36 : 32;
+            const cardX = cardPad;
+            const cardY = isStory ? 80 : 60;
+            const cardW = width - cardPad*2;
+            const cardH = height - cardY - (isStory ? 60 : 48);
+            // shadow
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 10;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 28);
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.fill();
+            ctx.restore();
+            // gradient border
+            const stroke = ctx.createLinearGradient(cardX, cardY, cardX+cardW, cardY+cardH);
+            stroke.addColorStop(0, 'rgba(255,128,0,0.45)');
+            stroke.addColorStop(0.5, 'rgba(0,224,84,0.45)');
+            stroke.addColorStop(1, 'rgba(64,188,244,0.45)');
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = stroke;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 28);
+            ctx.stroke();
+
+            // Title and compatibility pill
             const tGrad = ctx.createLinearGradient(0, 0, width, 0);
             tGrad.addColorStop(0, '#ff8000');
             tGrad.addColorStop(0.5, '#00e054');
             tGrad.addColorStop(1, '#40bcf4');
             ctx.fillStyle = tGrad;
             ctx.textAlign = 'center';
-            ctx.font = isStory ? 'bold 64px "Helvetica Neue", Arial, sans-serif' : 'bold 56px "Helvetica Neue", Arial, sans-serif';
-            ctx.fillText(`${usernames[0]} × ${usernames[1]}`, width/2, isStory ? 120 : 96);
-            ctx.font = isStory ? 'bold 32px "Helvetica Neue", Arial, sans-serif' : 'bold 28px "Helvetica Neue", Arial, sans-serif';
-            ctx.fillText(`${getTranslation('compatibility')}: ${compatibility}`, width/2, isStory ? 170 : 140);
+            ctx.font = (isStory ? 'bold 66px' : 'bold 58px') + ' "Helvetica Neue", Arial, sans-serif';
+            ctx.fillText(`${usernames[0]} × ${usernames[1]}`, width/2, cardY + (isStory ? 70 : 60));
 
-            // Columns
-            const pad = isStory ? 60 : 64;
-            const gap = isStory ? 26 : 32;
-            const usable = width - pad*2 - gap*(columns-1);
+            // pill
+            const pillText = `${getTranslation('compatibility')}: ${compatibility}`;
+            ctx.font = (isStory ? 'bold 30px' : 'bold 26px') + ' "Helvetica Neue", Arial, sans-serif';
+            const pillPaddingX = 16, pillPaddingY = 10;
+            const pillW = ctx.measureText(pillText).width + pillPaddingX*2;
+            const pillH = (isStory ? 44 : 38);
+            const pillX = width/2 - pillW/2;
+            const pillY = cardY + (isStory ? 90 : 78);
+            const pillGrad = ctx.createLinearGradient(pillX, pillY, pillX+pillW, pillY+pillH);
+            pillGrad.addColorStop(0, 'rgba(64,188,244,0.3)');
+            pillGrad.addColorStop(1, 'rgba(255,128,0,0.3)');
+            ctx.fillStyle = pillGrad;
+            roundRect(ctx, pillX, pillY, pillW, pillH, pillH/2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, pillX, pillY, pillW, pillH, pillH/2);
+            ctx.stroke();
+            ctx.fillStyle = '#eafcff';
+            ctx.fillText(pillText, width/2, pillY + pillH/2 + 10);
+
+            // Columns content area
+            const contentTop = pillY + pillH + (isStory ? 24 : 18);
+            const innerPad = isStory ? 28 : 24;
+            const colGap = isStory ? 26 : 26;
+            const usable = cardW - innerPad*2 - colGap*(columns-1);
             const colW = Math.floor(usable/columns);
-            const startY = isStory ? 230 : 200;
-            const rowH = isStory ? 44 : 36;
+            const rowsPerCol = rows;
+            // column backgrounds
+            for (let c = 0; c < columns; c++) {
+                const x = cardX + innerPad + c*(colW + colGap);
+                const colBg = ctx.createLinearGradient(x, contentTop, x+colW, contentTop+cardH);
+                colBg.addColorStop(0, 'rgba(255,255,255,0.06)');
+                colBg.addColorStop(1, 'rgba(255,255,255,0.03)');
+                ctx.fillStyle = colBg;
+                roundRect(ctx, x, contentTop, colW, cardH - (contentTop-cardY) - innerPad, 16);
+                ctx.fill();
+            }
+
+            // Items
             ctx.textAlign = 'left';
-            ctx.font = isStory ? '28px "Helvetica Neue", Arial, sans-serif' : '22px "Helvetica Neue", Arial, sans-serif';
+            ctx.font = (isStory ? '28px' : '22px') + ' "Helvetica Neue", Arial, sans-serif';
+            const rowH = isStory ? 44 : 34;
+            const textOffsetY = isStory ? 30 : 24;
+            const chipW = isStory ? 56 : 46;
+            const chipH = isStory ? 28 : 22;
+
             movies.forEach((movie, i) => {
-                if (i >= columns*rows) return;
-                const col = Math.floor(i / rows);
-                const row = i % rows;
-                const x = pad + col*(colW + gap);
-                const y = startY + row*rowH;
-                ctx.fillStyle = 'rgba(255,255,255,0.75)';
-                const indexText = `${(i+1).toString().padStart(2,'0')}. `;
-                ctx.fillText(indexText, x, y);
+                if (i >= columns*rowsPerCol) return;
+                const col = Math.floor(i / rowsPerCol);
+                const row = i % rowsPerCol;
+                const x = cardX + innerPad + col*(colW + colGap);
+                const y = contentTop + row*rowH + 10;
+
+                // Alternating row tint
+                if (row % 2 === 0) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+                    roundRect(ctx, x + 8, y - 8, colW - 16, rowH - 6, 10);
+                    ctx.fill();
+                }
+                // Number chip
+                const chipGrad = ctx.createLinearGradient(x, y, x+chipW, y+chipH);
+                chipGrad.addColorStop(0, 'rgba(64,188,244,0.6)');
+                chipGrad.addColorStop(1, 'rgba(0,224,84,0.6)');
+                ctx.fillStyle = chipGrad;
+                roundRect(ctx, x + 14, y - 4, chipW, chipH, chipH/2);
+                ctx.fill();
+                ctx.fillStyle = '#091015';
+                ctx.font = (isStory ? '700 20px' : '700 16px') + ' "Helvetica Neue", Arial, sans-serif';
+                const idx = (i+1).toString().padStart(2,'0');
+                ctx.fillText(idx, x + 14 + 12, y + (isStory ? 14 : 12));
+
+                // Movie text
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(movie, x + (isStory ? 58 : 48), y);
+                ctx.font = (isStory ? '28px' : '22px') + ' "Helvetica Neue", Arial, sans-serif';
+                const textX = x + 14 + chipW + 12;
+                drawTextEllipsis(movie, textX, y + textOffsetY - (isStory ? 6 : 4), colW - (textX - x) - 16);
             });
 
-            // Footer
+            // Footer watermark
             ctx.textAlign = 'center';
             ctx.fillStyle = 'rgba(255,255,255,0.65)';
-            ctx.font = isStory ? 'italic 26px "Helvetica Neue", Arial, sans-serif' : 'italic 22px "Helvetica Neue", Arial, sans-serif';
-            ctx.fillText('blendboxd.up.railway.app', width/2, height - (isStory ? 32 : 28));
+            ctx.font = (isStory ? 'italic 26px' : 'italic 22px') + ' "Helvetica Neue", Arial, sans-serif';
+            ctx.fillText('blendboxd.up.railway.app', width/2, height - (isStory ? 24 : 20));
         }
 
         // 16:9 Poster
