@@ -232,13 +232,17 @@
                 ctx.fill();
             }
 
-            // Items
+            // Dynamic row sizing to prevent overflow
+            const safeHeight = cardH - (contentTop - cardY) - innerPad;
+            const baseRowH = isStory ? 44 : 34;
+            const rowH = Math.max(26, Math.min(baseRowH, Math.floor(safeHeight / rowsPerCol) - 2));
+            const scale = rowH / baseRowH; // scale related UI
+            const textOffsetY = (isStory ? 30 : 24) * scale;
+            const chipW = (isStory ? 56 : 46) * scale;
+            const chipH = (isStory ? 28 : 22) * scale;
+
             ctx.textAlign = 'left';
-            ctx.font = (isStory ? '28px' : '22px') + ' "Helvetica Neue", Arial, sans-serif';
-            const rowH = isStory ? 44 : 34;
-            const textOffsetY = isStory ? 30 : 24;
-            const chipW = isStory ? 56 : 46;
-            const chipH = isStory ? 28 : 22;
+            ctx.font = ((isStory ? 28 : 22) * scale) + 'px "Helvetica Neue", Arial, sans-serif';
 
             movies.forEach((movie, i) => {
                 if (i >= columns*rowsPerCol) return;
@@ -250,7 +254,7 @@
                 // Alternating row tint
                 if (row % 2 === 0) {
                     ctx.fillStyle = 'rgba(255,255,255,0.04)';
-                    roundRect(ctx, x + 8, y - 8, colW - 16, rowH - 6, 10);
+                    roundRect(ctx, x + 8, y - 8, colW - 16, rowH - 6, 10 * scale);
                     ctx.fill();
                 }
                 // Number chip
@@ -261,15 +265,15 @@
                 roundRect(ctx, x + 14, y - 4, chipW, chipH, chipH/2);
                 ctx.fill();
                 ctx.fillStyle = '#091015';
-                ctx.font = (isStory ? '700 20px' : '700 16px') + ' "Helvetica Neue", Arial, sans-serif';
+                ctx.font = (700 * scale) + ' ' + (16 * scale) + 'px "Helvetica Neue", Arial, sans-serif';
                 const idx = (i+1).toString().padStart(2,'0');
-                ctx.fillText(idx, x + 14 + 12, y + (isStory ? 14 : 12));
+                ctx.fillText(idx, x + 14 + 12*scale, y + (12 * scale));
 
                 // Movie text
                 ctx.fillStyle = '#ffffff';
-                ctx.font = (isStory ? '28px' : '22px') + ' "Helvetica Neue", Arial, sans-serif';
-                const textX = x + 14 + chipW + 12;
-                drawTextEllipsis(movie, textX, y + textOffsetY - (isStory ? 6 : 4), colW - (textX - x) - 16);
+                ctx.font = ((isStory ? 28 : 22) * scale) + 'px "Helvetica Neue", Arial, sans-serif';
+                const textX = x + 14 + chipW + 12*scale;
+                drawTextEllipsis(movie, textX, y + textOffsetY - (isStory ? 6*scale : 4*scale), colW - (textX - x) - 16);
             });
 
             // Footer watermark
