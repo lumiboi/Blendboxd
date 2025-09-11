@@ -165,6 +165,9 @@
             color: #fff;
             outline: none;
             transition: border .2s, box-shadow .2s, transform .15s ease;
+            box-sizing: border-box; /* prevent overflow */
+            min-width: 0; /* allow grid shrink, avoids overlap */
+            display: block;
         }
         .input:focus {
             border-color: rgba(64,188,244,0.7);
