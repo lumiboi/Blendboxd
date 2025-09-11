@@ -36,6 +36,36 @@
             overflow-x: hidden;
         }
 
+        /* Futuristic top nav */
+        .nav {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(10px);
+            z-index: 20;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+        .nav .dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--blue), transparent);
+            box-shadow: 0 0 12px var(--blue);
+        }
+        .nav .brand { font-weight: 800; letter-spacing: .5px; opacity: .9; }
+        .nav .pill {
+            padding: 6px 10px; border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            font-size: 12px; cursor: pointer;
+        }
+
         /* Animated radial gradient and subtle grid overlay */
         .gradient-overlay {
             position: fixed;
@@ -79,9 +109,14 @@
             z-index: 1;
         }
 
+        /* 3D holographic card */
+        .card3d {
+            perspective: 1200px;
+            width: min(880px, 92vw);
+        }
         .container {
-            width: 420px;
-            padding: 36px 34px;
+            width: 100%;
+            padding: 40px 40px 34px 40px;
             border-radius: 18px;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -89,15 +124,19 @@
             backdrop-filter: blur(14px) saturate(120%);
             -webkit-backdrop-filter: blur(14px) saturate(120%);
             text-align: center;
+            transform-style: preserve-3d;
+            transform: rotateX(0) rotateY(0);
+            transition: transform .2s ease;
         }
 
         h1 {
-            margin: 0 0 12px 0;
+            margin: 0 0 10px 0;
             font-weight: 800;
             letter-spacing: 0.3px;
             background: linear-gradient(90deg, var(--orange), var(--green), var(--blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-size: clamp(28px, 4vw, 44px);
         }
 
         h2 {
@@ -106,10 +145,16 @@
             -webkit-text-fill-color: transparent;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             text-align: center;
-            margin-top: 30px;
+            margin-top: 26px;
         }
 
-        form { margin-top: 6px; }
+        .subtitle {
+            opacity: .85;
+            margin-bottom: 18px;
+        }
+
+        form { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
 
         .input {
             width: 100%;
@@ -141,6 +186,19 @@
         }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .btn:active { transform: translateY(0); }
+
+        /* Action grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+        .ghost {
+            background: linear-gradient(135deg, rgba(64,188,244,0.18), rgba(255,128,0,0.18));
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+        }
 
         .link {
             display: block;
@@ -197,23 +255,34 @@
         <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
     </div>
 
+    <div class="nav">
+        <div class="dot"></div>
+        <div class="brand">Blendboxd</div>
+        <div class="pill" onclick="location.href='/follow'">Followboxd</div>
+        <div class="pill" onclick="location.href='/picker'">Randomboxd</div>
+        <div class="pill" onclick="location.href='/duo_picker'">Squadboxd</div>
+    </div>
+
     <div class="gradient-overlay"></div>
     <div class="orb o1"></div>
     <div class="orb o2"></div>
 
     <div class="stage">
-    <div class="container">
+    <div class="card3d">
+    <div class="container" id="card">
         <h1>Blendboxd</h1>
-        <h3 id="description">Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</h3>
+        <div class="subtitle" id="description">Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</div>
         <form id="userForm" method="POST">
             <input class="input" type="text" name="username1" id="username1" placeholder="Kullanıcı Adı 1" required>
             <input class="input" type="text" name="username2" id="username2" placeholder="Kullanıcı Adı 2" required>
-            <button class="btn" type="submit">Blender!</button> 
-            <br> 
-            <h2>Extra</h2>
-         <button class="btn" type="button" onclick="location.href='/picker'">Randomboxd</button> <br> 
-            <br> <button class="btn" type="button" onclick="location.href='/duo_picker'">Squadboxd</button> <br>
-           <br> <button class="btn" type="button" onclick="location.href='/follow'">Followboxd</button> <br>
+            <button class="btn" type="submit" style="grid-column: 1 / -1">Blender!</button>
+        </form>
+        <h2>Extra</h2>
+        <div class="grid">
+            <button class="btn ghost" type="button" onclick="location.href='/picker'">Randomboxd</button>
+            <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">Squadboxd</button>
+            <button class="btn ghost" type="button" onclick="location.href='/follow'">Followboxd</button>
+        </div>
             
             <h6 id="copyright">© Tüm Hakları Mert Ergün'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.</h6> 
             <p5><a href="mailto:070lumi@gmail.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Sponsorluk saire vesaire blabla</a></p5> 
@@ -221,6 +290,7 @@
             <br> 
             <a href="https://letterboxd.com/lumiboi/" class="link" id="letterboxdLink">Bu da benim letırbaks linkim.</a>
         </form>
+    </div>
     </div>
     </div>
 
@@ -279,7 +349,7 @@ Klink! (filmler birbirine çarpıyor)</p>
             }
         });
 
-        // Simple parallax for orbs
+        // 3D tilt card + parallax for orbs
         const orbs = document.querySelectorAll('.orb');
         let mouseX = 0, mouseY = 0;
         window.addEventListener('mousemove', (e) => {
@@ -291,6 +361,10 @@ Klink! (filmler birbirine çarpıyor)</p>
                 const depth = (i + 1) * 10;
                 o.style.transform = `translate3d(${mouseX * depth}px, ${mouseY * depth}px, 0)`;
             });
+            const card = document.getElementById('card');
+            const rotateY = mouseX * 6; // -6 to 6
+            const rotateX = -mouseY * 6; // -6 to 6
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         });
     </script>
 </body>
