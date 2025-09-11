@@ -1,4 +1,3 @@
-# app.py
 import os
 import re
 import random
@@ -6,427 +5,197 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify
 
-# try cloudscraper (better for Cloudflare). if yok fallback to requests
 try:
     import cloudscraper
     SCRAPER = cloudscraper.create_scraper()
-    _SCRAPER_TYPE = "cloudscraper"
 except Exception:
     SCRAPER = None
-    _SCRAPER_TYPE = "requests"
 
 app = Flask(__name__)
 
-# Read TMDB key from environment. Do NOT hardcode secrets in code.
-TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
-
+TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
     "Referer": "https://letterboxd.com/",
 }
-
-# turn this on to see debug prints in terminal
 DEBUG = True
 
+# ---------------- Helpers ----------------
 def fetch_html(url, timeout=20):
-    """Return (status_code, text) or (None, None) on error."""
     try:
-        if SCRAPER:
-            r = SCRAPER.get(url, headers=HEADERS, timeout=timeout)
-            return r.status_code, r.text
-        else:
-            r = requests.get(url, headers=HEADERS, timeout=timeout)
-            return r.status_code, r.text
+        r = SCRAPER.get(url, headers=HEADERS, timeout=timeout) if SCRAPER else requests.get(url, headers=HEADERS, timeout=timeout)
+        return r.status_code, r.text
     except Exception as e:
-        if DEBUG:
-            print(f"[fetch_html] error fetching {url}: {e}")
+        if DEBUG: print(f"[fetch_html] {url} err: {e}")
         return None, None
 
 def clean_title(raw):
-    """Keep original case; remove leading 'Poster for ' and trailing (YYYY)."""
-    if not raw:
-        return None
+    if not raw: return None
     s = raw.strip()
     s = re.sub(r'^\s*Poster for\s+', '', s, flags=re.I)
     s = re.sub(r'\s*\(\d{4}\)\s*$', '', s).strip()
-    # normalize whitespace
-    s = re.sub(r'\s+', ' ', s)
-    return s if s else None
+    return re.sub(r'\s+', ' ', s)
 
 def extract_movies_from_soup(soup):
-    """Robustly extract movie titles from a BeautifulSoup page."""
-    titles = []
-    seen = set()
-
-    # 1) data-item-name / data-item-full-display-name (react lazy posters)
+    titles, seen = [], set()
     for tag in soup.select('[data-item-name], [data-item-full-display-name], [data-item-slug]'):
-        name = tag.get('data-item-name') or tag.get('data-item-full-display-name') or tag.get('data-item-slug')
-        t = clean_title(name)
-        if t and t not in seen:
-            seen.add(t)
-            titles.append(t)
-
-    # 2) li elements with data-film-name or data-film-slug
+        t = clean_title(tag.get('data-item-name') or tag.get('data-item-full-display-name') or tag.get('data-item-slug'))
+        if t and t not in seen: seen.add(t); titles.append(t)
     for li in soup.find_all(attrs={"data-film-name": True}):
-        name = li.get('data-film-name') or li.get('data-film-slug')
-        t = clean_title(name)
-        if t and t not in seen:
-            seen.add(t); titles.append(t)
-
-    # 3) span.frame-title or .frame-title texts
+        t = clean_title(li.get('data-film-name') or li.get('data-film-slug'))
+        if t and t not in seen: seen.add(t); titles.append(t)
     for ft in soup.select('.frame-title'):
-        text = ft.get_text(strip=True)
-        t = clean_title(text)
-        if t and t not in seen:
-            seen.add(t); titles.append(t)
-
-    # 4) img alt attributes (Poster for X (YYYY))
+        t = clean_title(ft.get_text(strip=True))
+        if t and t not in seen: seen.add(t); titles.append(t)
     for img in soup.find_all('img', alt=True):
-        alt = img.get('alt')
-        t = clean_title(alt)
-        if t and t not in seen:
-            seen.add(t); titles.append(t)
-
-    # 5) anchors with /film/ in href
+        t = clean_title(img['alt'])
+        if t and t not in seen: seen.add(t); titles.append(t)
     for a in soup.find_all('a', href=True):
-        href = a['href']
-        if '/film/' in href:
-            # prefer visible text
-            text = a.get_text(strip=True)
-            t = clean_title(text) if text else None
-            if t and t not in seen:
-                seen.add(t); titles.append(t)
-            else:
-                # parse slug
-                try:
-                    slug = href.split('/film/')[1].split('/')[0]
-                    slug_name = slug.replace('-', ' ')
-                    t2 = clean_title(slug_name)
-                    if t2 and t2 not in seen:
-                        seen.add(t2); titles.append(t2)
-                except Exception:
-                    pass
-
+        if '/film/' in a['href']:
+            t = clean_title(a.get_text(strip=True))
+            if t and t not in seen: seen.add(t); titles.append(t)
     return titles
 
-def get_films_from_rss(username: str, section: str) -> list:
-    """Fallback: try RSS (may be limited / hidden)."""
-    if not username:
-        return []
+def get_watched_movies(username):
     username = username.strip().lower()
-    url = f"https://letterboxd.com/{username}/{section}/rss/"
-    status, html = fetch_html(url)
-    if status != 200 or not html:
-        if DEBUG:
-            print(f"[RSS] {url} returned {status}")
-        return []
-    try:
-        soup = BeautifulSoup(html, "xml")
-        items = []
-        for item in soup.find_all('item'):
-            title_tag = item.find('title')
-            if title_tag:
-                t = clean_title(title_tag.get_text(strip=True))
-                if t:
-                    items.append(t)
-        # dedupe preserve order
-        return list(dict.fromkeys(items))
-    except Exception as e:
-        if DEBUG:
-            print("[RSS] parse error:", e)
-        return []
-
-def get_watched_movies(username: str) -> list:
-    """Scrape /films/ pages; fallback to RSS if nothing found."""
-    if not username:
-        return []
-    username = username.strip().lower()
-    collected = []
-    collected_set = set()
+    collected, seen = [], set()
     page = 1
-
-        while True:
+    while True:
         url = f"https://letterboxd.com/{username}/films/page/{page}/"
         status, html = fetch_html(url)
-        # if page URL returns non-200 on page>1, try stop; on page==1 try /films/ without /page/
-        if status is None:
-                break
-        if status != 200:
-            if page == 1:
-                url2 = f"https://letterboxd.com/{username}/films/"
-                status2, html2 = fetch_html(url2)
-                if status2 == 200 and html2:
-                    status, html = status2, html2
-                    else:
-                    if DEBUG:
-                        print(f"[get_watched_movies] {url} and {url2} failed: {status}/{status2}")
-                    break
-            else:
-                break
-
+        if status != 200 or not html: break
         soup = BeautifulSoup(html, "lxml")
-        titles = extract_movies_from_soup(soup)
-        new_count = 0
-        for t in titles:
-            if t not in collected_set:
-                collected_set.add(t)
-                collected.append(t)
-                new_count += 1
-        if DEBUG:
-            print(f"[get_watched_movies] {username} page {page} found {len(titles)} total new {new_count}")
-
-        # detect pagination
-        has_next = bool(soup.select_one('a.next') or soup.select_one('a[rel="next"]') or soup.select_one('nav.pagination a'))
-        if not has_next:
-            break
+        for t in extract_movies_from_soup(soup):
+            if t not in seen: seen.add(t); collected.append(t)
+        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
         page += 1
-        if page > 50:
-            if DEBUG:
-                print("[get_watched_movies] safety break at page 50")
-            break
-
-    if not collected:
-        if DEBUG:
-            print("[get_watched_movies] nothing scraped, trying RSS fallback")
-        return get_films_from_rss(username, 'films')
-
+        if page > 50: break
     return collected
 
-def get_watchlist(username: str) -> list:
-    """Scrape watchlist; fallback to RSS."""
-    if not username:
-        return []
+def get_watchlist(username):
     username = username.strip().lower()
-    collected = []
-    collected_set = set()
+    collected, seen = [], set()
     page = 1
-
     while True:
         url = f"https://letterboxd.com/{username}/watchlist/page/{page}/"
         status, html = fetch_html(url)
-        if status is None:
-            break
-        if status != 200:
-            if page == 1:
-                url2 = f"https://letterboxd.com/{username}/watchlist/"
-                status2, html2 = fetch_html(url2)
-                if status2 == 200:
-                    status, html = status2, html2
-                else:
-                    break
-            else:
-                break
-
+        if status != 200 or not html: break
         soup = BeautifulSoup(html, "lxml")
-        titles = extract_movies_from_soup(soup)
-        for t in titles:
-            if t not in collected_set:
-                collected_set.add(t)
-                collected.append(t)
-        if DEBUG:
-            print(f"[get_watchlist] {username} page {page} found {len(titles)}")
-
-        has_next = bool(soup.select_one('a.next') or soup.select_one('a[rel="next"]') or soup.select_one('nav.pagination a'))
-        if not has_next:
-            break
-            page += 1
-        if page > 50:
-            break
-
-    if not collected:
-        if DEBUG:
-            print("[get_watchlist] fallback to RSS")
-        return get_films_from_rss(username, 'watchlist')
-
+        for t in extract_movies_from_soup(soup):
+            if t not in seen: seen.add(t); collected.append(t)
+        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+        page += 1
+        if page > 50: break
     return collected
 
-def get_follow_data(username: str):
-    """Return (following_list, followers_list, display_name_map)."""
+def get_follow_data(username):
     username = username.strip().lower()
-    following = set()
-    followers = set()
-    name_map = {}
-
+    following, followers, name_map = set(), set(), {}
     def scrape_list(kind):
-        page = 1
-        results = set()
+        page, results = 1, set()
         while True:
             url = f"https://letterboxd.com/{username}/{kind}/page/{page}/"
             status, html = fetch_html(url)
-            if status is None or status != 200:
-                if page == 1:
-                    # try without page number
-                    url2 = f"https://letterboxd.com/{username}/{kind}/"
-                    s2, h2 = fetch_html(url2)
-                    if s2 != 200:
-                        break
-                    status, html = s2, h2
-                else:
-                    break
+            if status != 200 or not html: break
             soup = BeautifulSoup(html, "lxml")
             persons = soup.select("div.person-summary h3 a, li.person a, .person a")
-            if not persons:
-                break
+            if not persons: break
             for p in persons:
-                href = p.get("href", "").strip()
-                if not href:
-                    continue
-                slug = href.strip("/").split("/")[0]
-                if not slug:
-                    continue
-                display = p.get_text(strip=True) or slug
-                name_map[slug] = display
-                results.add(slug)
-            # pagination
-            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")):
-                break
+                slug = p.get("href","/").strip("/").split("/")[0]
+                if slug:
+                    name_map[slug] = p.get_text(strip=True) or slug
+                    results.add(slug)
+            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
             page += 1
             if page > 50: break
         return results
-
     following = scrape_list("following")
     followers = scrape_list("followers")
     return list(following), list(followers), name_map
 
-def calculate_compatibility(user1_movies, user2_movies, common_movies):
-    total_movies = len(user1_movies) + len(user2_movies)
-    if total_movies == 0 or not common_movies:
-        return 0
-    common_movie_count = len(common_movies)
-    if common_movie_count > 5:
-        compatibility_percentage = 50 + ((2 * common_movie_count / total_movies) * 100)
-    else:
-        compatibility_percentage = (2 * common_movie_count / total_movies) * 100
-    return min(compatibility_percentage, 100)
+def calculate_compatibility(u1, u2, common):
+    total = len(u1)+len(u2)
+    if total==0 or not common: return 0
+    c=len(common)
+    return min(100, (2*c/total)*100 if c<=5 else 50+(2*c/total)*100)
 
-def get_recommendations(common_movies):
-    recommendations = []
-    if not TMDB_API_KEY:
-        return recommendations
-    for movie in common_movies:
+def get_recommendations(common):
+    recs=[]
+    for m in common:
         try:
-            query = requests.utils.quote(movie)
-            search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}"
-            resp = requests.get(search_url, timeout=20).json()
-            if resp.get("results"):
-                movie_id = resp["results"][0]["id"]
-                rec_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
-                rec_resp = requests.get(rec_url, timeout=20).json()
-                if rec_resp.get("results"):
-                    for r in rec_resp["results"]:
-                        title = r.get("title")
-                        if title:
-                            recommendations.append(title)
-        except Exception:
-            pass
-    # dedupe
-    return list(dict.fromkeys(recommendations))
+            q = requests.utils.quote(m)
+            s_url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={q}"
+            r=requests.get(s_url,timeout=20).json()
+            if r.get("results"):
+                mid=r["results"][0]["id"]
+                rec_url=f"https://api.themoviedb.org/3/movie/{mid}/recommendations?api_key={TMDB_API_KEY}"
+                rr=requests.get(rec_url,timeout=20).json()
+                for x in rr.get("results",[]): recs.append(x["title"])
+        except: pass
+    return list(dict.fromkeys(recs))
 
 def get_movie_info(title):
-    if not TMDB_API_KEY:
-        return None
     try:
-        query = requests.utils.quote(title)
-        url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}"
-        resp = requests.get(url, timeout=20).json()
-        if resp.get("results"):
-            movie = resp["results"][0]
-            poster = movie.get("poster_path")
-            return {
-                "title": movie.get("title", title),
-                "poster": f"https://image.tmdb.org/t/p/w500{poster}" if poster else None
-            }
-    except Exception:
-        pass
+        q=requests.utils.quote(title)
+        url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={q}"
+        r=requests.get(url,timeout=20).json()
+        if r.get("results"):
+            m=r["results"][0]; p=m.get("poster_path")
+            return {"title":m.get("title",title),"poster":f"https://image.tmdb.org/t/p/w500{p}" if p else None}
+    except: pass
     return None
 
-# ---------- Flask routes ----------
-
-@app.route("/", methods=["GET", "POST"])
+# ---------------- Routes ----------------
+@app.route("/",methods=["GET","POST"])
 def index():
-    if request.method == "POST":
-        u1 = request.form.get("username1", "").strip().lower()
-        u2 = request.form.get("username2", "").strip().lower()
-        user1_movies = get_watched_movies(u1)
-        user2_movies = get_watched_movies(u2)
-        common = list(set(user1_movies) & set(user2_movies))
-        compatibility = calculate_compatibility(user1_movies, user2_movies, common)
-        recs = get_recommendations(common) if common else []
-        return render_template("result.html",
-                               username1=u1, username2=u2,
-                               common_movies=common,
-                               compatibility_percentage=int(compatibility),
-                               recommendations=recs)
+    if request.method=="POST":
+        u1,u2=request.form["username1"].lower(),request.form["username2"].lower()
+        m1,m2=get_watched_movies(u1),get_watched_movies(u2)
+        common=list(set(m1)&set(m2))
+        comp=calculate_compatibility(m1,m2,common)
+        recs=get_recommendations(common) if common else []
+        return render_template("result.html",username1=u1,username2=u2,common_movies=common,compatibility_percentage=int(comp),recommendations=recs)
     return render_template("index.html")
 
-@app.route("/picker", methods=["GET"])
-def picker():
-    return render_template("picker.html")
+@app.route("/picker")
+def picker(): return render_template("picker.html")
 
-@app.route("/pick_movies", methods=["POST"])
+@app.route("/pick_movies",methods=["POST"])
 def pick_movies():
-    username = request.form.get("username", "").strip().lower()
-    count = int(request.form.get("count", 1))
-    watchlist = get_watchlist(username)
-    if not watchlist:
-        return jsonify([])
-    selected = random.sample(watchlist, min(count, len(watchlist)))
-    movies_info = []
-    for t in selected:
-        info = get_movie_info(t)
-        if info:
-            movies_info.append(info)
-    return jsonify(movies_info)
+    u=request.form.get("username","").lower(); c=int(request.form.get("count",1))
+    wl=get_watchlist(u); sel=random.sample(wl,min(c,len(wl))) if wl else []
+    return jsonify([get_movie_info(t) for t in sel if get_movie_info(t)])
 
-@app.route("/follow", methods=["GET", "POST"])
+@app.route("/duo_picker",methods=["GET","POST"])
+def duo_picker():
+    lang=request.args.get("lang","tr")
+    if request.method=="POST":
+        try:
+            uc,fc=int(request.form.get("user_count",1)),int(request.form.get("film_count",1))
+            users=[request.form.get(f"username{i+1}","").lower() for i in range(uc)]
+            allm=[]
+            for u in users:
+                wl=get_watchlist(u)
+                sel=random.sample(wl,min(fc,len(wl))) if wl else []
+                for t in sel:
+                    info=get_movie_info(t)
+                    if info: allm.append(info)
+            return render_template("duo_picker_result.html",movies=allm,usernames=users,lang=lang)
+        except Exception as e:
+            return render_template("duo_picker_result.html",error=str(e),lang=lang)
+    return render_template("duo_picker.html",lang=lang)
+
+@app.route("/follow",methods=["GET","POST"])
 def follow_index():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip().lower()
-        following, followers, name_map = get_follow_data(username)
-        diff = sorted(set(following) - set(followers))
-        difference_list = [{"username": u, "display_name": name_map.get(u, u)} for u in diff]
-        return render_template("follow-result.html", username=username, difference_list=difference_list)
+    if request.method=="POST":
+        u=request.form["username"].lower()
+        following,followers,nmap=get_follow_data(u)
+        diff=sorted(set(following)-set(followers))
+        diff_list=[{"username":x,"display_name":nmap.get(x,x)} for x in diff]
+        return render_template("follow-result.html",username=u,difference_list=diff_list)
     return render_template("followerboxd.html")
 
-@app.route("/match", methods=["GET"])
-def match():
-    return render_template("match.html")
-
-@app.route("/matched", methods=["POST"])
-def matched():
-    username = request.form.get("username", "").strip().lower()
-    if not username:
-        return render_template("matched.html", buddy_username="Bulunamadı", compatibility_percentage=0, common_movies=[], buddy_recommendations=[])
-    user_movies = get_watched_movies(username)
-    following, followers, _ = get_follow_data(username)
-    potentials = list(set(following + followers))
-    # limit to avoid extreme runtime
-    LIMIT = 120
-    potentials = potentials[:LIMIT]
-    best_match = None
-    best_score = 0
-    best_common = []
-    for other in potentials:
-        try:
-            other_movies = get_watched_movies(other)
-            common = list(set(user_movies) & set(other_movies))
-            score = calculate_compatibility(user_movies, other_movies, common)
-            if score > best_score:
-                best_score = score
-                best_match = other
-                best_common = common
-        except Exception:
-            continue
-    buddy_recs = get_recommendations(best_common)[:50] if best_common else []
-    return render_template("matched.html",
-        buddy_username=best_match or "Bulunamadı",
-        compatibility_percentage=int(best_score),
-                           common_movies=best_common,
-                           buddy_recommendations=buddy_recs)
-
-if __name__ == "__main__":
-    if DEBUG:
-        print("Starting app.py with scraper:", _SCRAPER_TYPE)
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=DEBUG)
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=True)
