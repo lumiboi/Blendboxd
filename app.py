@@ -57,6 +57,23 @@ def extract_film_title_from_li(li):
                 pass
     return None
 
+def extract_film_slug_from_li(li):
+    a = li.find("a")
+    if not a:
+        a = li.find("a", href=True)
+    if a and a.get("href") and "/film/" in a.get("href"):
+        href = a.get("href").split("?")[0]
+        try:
+            slug = href.split("/film/")[1].split("/")[0]
+            return slug
+        except Exception:
+            return None
+    # Try on film-poster div
+    poster_div = li.find(class_="film-poster")
+    if poster_div and poster_div.get("data-film-slug"):
+        return poster_div.get("data-film-slug").strip("/")
+    return None
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -129,21 +146,13 @@ def get_watched_movies(username):
     def get_movies(soup):
         # Prefer robust selectors: Letterboxd often stores film names on list items
         # E.g., <li class="poster-container" data-film-name="...">
-        li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+        li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
         for li in li_nodes:
-            film_name = None
-            if li.has_attr("data-film-name"):
-                film_name = li.get("data-film-name")
-            elif li.has_attr("data-film-title"):
-                film_name = li.get("data-film-title")
-            elif li.has_attr("data-film-slug"):
-                film_name = li.get("data-film-slug").replace('-', ' ')
-            elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
-                film_name = li.get('data-film-name')
-            else:
-                img = li.find("img")
-                if img and img.has_attr("alt"):
-                    film_name = img["alt"]
+            film_name = extract_film_title_from_li(li)
+            if not film_name:
+                slug = extract_film_slug_from_li(li)
+                if slug:
+                    film_name = slug.replace('-', ' ')
             if film_name:
                 watched_movies.append(film_name.strip().title())
 
@@ -211,9 +220,13 @@ def get_watchlist(username):
     url = f"https://letterboxd.com/{username}/watchlist/"
     response = requests.get(url, headers=HEADERS, timeout=15)
     soup = BeautifulSoup(response.content, "lxml")
-    li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+    li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
     for li in li_nodes:
         film_name = extract_film_title_from_li(li)
+        if not film_name:
+            slug = extract_film_slug_from_li(li)
+            if slug:
+                film_name = slug.replace('-', ' ')
         if film_name:
             watchlist.append(film_name.strip().title())
     return watchlist
@@ -266,21 +279,13 @@ async def get_watched_movies_async(username):
             html = await fetch_page(session, url)
             soup = BeautifulSoup(html, "lxml")
             movies_on_page = []
-            li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+            li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
             for li in li_nodes:
-                film_name = None
-                if li.has_attr("data-film-name"):
-                    film_name = li.get("data-film-name")
-                elif li.has_attr("data-film-title"):
-                    film_name = li.get("data-film-title")
-                elif li.has_attr("data-film-slug"):
-                    film_name = li.get("data-film-slug").replace('-', ' ')
-                elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
-                    film_name = li.get('data-film-name')
-                else:
-                    img = li.find("img")
-                    if img and img.has_attr("alt"):
-                        film_name = img["alt"]
+                film_name = extract_film_title_from_li(li)
+                if not film_name:
+                    slug = extract_film_slug_from_li(li)
+                    if slug:
+                        film_name = slug.replace('-', ' ')
                 if film_name:
                     movies_on_page.append(film_name.strip().title())
             if not movies_on_page:
