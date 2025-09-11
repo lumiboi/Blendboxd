@@ -37,11 +37,24 @@ def extract_film_title_from_li(li):
             return poster_div.get("data-film-slug").replace('-', ' ')
     # Fallbacks
     img = li.find("img")
-    if img and img.has_attr("alt"):
-        return img["alt"]
+    if img:
+        for alt_attr in ("alt", "data-alt", "data-image-alt"):
+            if img.has_attr(alt_attr) and img.get(alt_attr):
+                return img.get(alt_attr)
+    # Try common anchor attributes
     a = li.find("a")
-    if a and a.has_attr("title"):
-        return a["title"]
+    if a:
+        for text_attr in ("aria-label", "title"):
+            if a.has_attr(text_attr) and a.get(text_attr):
+                return a.get(text_attr)
+        href = a.get("href", "")
+        if "/film/" in href:
+            try:
+                slug = href.split("/film/")[1].split("/")[0]
+                if slug:
+                    return slug.replace('-', ' ')
+            except Exception:
+                pass
     return None
 
 @app.route("/", methods=["GET", "POST"])
