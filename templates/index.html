@@ -15,112 +15,181 @@
         gtag('config', 'G-2Q77KLT449');
     </script>
     <style>
-        /* Genel stil ayarları */
+        /* Modern Parallax + Glass UI */
+        :root {
+            --teal: #00b7a4;
+            --orange: #ff8000;
+            --blue: #40bcf4;
+            --green: #00e054;
+            --card-bg: rgba(10, 14, 20, 0.55);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            position: relative;
-        }
-        .container {
-            background-color: rgba(20, 24, 28, 0.8);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            width: 350px;
-        }
-        h1 {
-            margin-bottom: 20px;
-            color: #00b7a4;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-          h2 {
-            background: linear-gradient(90deg, #ff8000 25%, #00e054 50%, #40bcf4 100%);
+        /* Animated radial gradient and subtle grid overlay */
+        .gradient-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(1200px 800px at 10% 20%, rgba(255,128,0,0.18), transparent 60%),
+                radial-gradient(1000px 700px at 90% 30%, rgba(64,188,244,0.18), transparent 60%),
+                radial-gradient(900px 600px at 50% 80%, rgba(0,224,84,0.14), transparent 60%);
+            animation: glowShift 20s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes glowShift {
+            0%   { filter: hue-rotate(0deg) saturate(1); }
+            100% { filter: hue-rotate(25deg) saturate(1.2); }
+        }
+
+        /* Parallax decorative orbs */
+        .orb {
+            position: fixed;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(64,188,244,0.35), rgba(0,0,0,0));
+            filter: blur(6px);
+            z-index: 0;
+            transform: translate3d(0,0,0);
+            will-change: transform;
+        }
+        .orb.o1 { top: 10%; left: -60px; }
+        .orb.o2 { bottom: 8%; right: -40px; background: radial-gradient(circle at 70% 60%, rgba(255,128,0,0.35), rgba(0,0,0,0)); }
+
+        /* Content wrapper */
+        .stage {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            z-index: 1;
+        }
+
+        .container {
+            width: 420px;
+            padding: 36px 34px;
+            border-radius: 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px) saturate(120%);
+            -webkit-backdrop-filter: blur(14px) saturate(120%);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 12px 0;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            background: linear-gradient(90deg, var(--orange), var(--green), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            background: linear-gradient(90deg, var(--orange) 25%, var(--green) 50%, var(--blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             text-align: center;
-            margin-top: 50px;
+            margin-top: 30px;
         }
 
-        
-        input {
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            margin: 5px 0;
+        form { margin-top: 6px; }
+
+        .input {
             width: 100%;
+            padding: 14px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            outline: none;
+            transition: border .2s, box-shadow .2s, transform .15s ease;
         }
-        button {
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            background-color: #00b7a4;
-            color: white;
+        .input:focus {
+            border-color: rgba(64,188,244,0.7);
+            box-shadow: 0 0 0 6px rgba(64,188,244,0.12);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 16px;
+            margin-top: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: linear-gradient(135deg, rgba(0,183,164,0.85), rgba(0,224,84,0.85));
+            color: #fff;
             cursor: pointer;
-            width: 100%;
-            box-sizing: border-box;
+            box-shadow: 0 10px 24px rgba(0,183,164,0.35);
+            transition: transform .15s ease, box-shadow .2s, filter .2s;
         }
-        button:hover {
-            background-color: #008a7a;
-        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .btn:active { transform: translateY(0); }
 
-          .link {
+        .link {
             display: block;
             margin-top: 10px;
             text-decoration: none;
-            color: #00b7a4;
+            color: var(--teal);
             font-weight: bold;
         }
-        .link:hover {
-            text-decoration: underline;
-        }
-        
+        .link:hover { text-decoration: underline; }
+
         .language-selector {
-            position: absolute;
+            position: fixed;
             top: 10px;
             left: 10px;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.55);
+            padding: 6px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
             color: white;
             display: flex;
             align-items: center;
             cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(6px);
         }
-        .language-selector i {
-            margin-right: 5px;
-        }
+        .language-selector i { margin-right: 6px; }
+
         .loading {
             display: none;
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 24px 26px;
+            border-radius: 14px;
             color: #fff;
             text-align: center;
-            z-index: 10;
+            z-index: 20;
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(8px);
         }
-        .loading .spinner {
-            margin-bottom: 10px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .loading .spinner { margin-bottom: 10px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container { width: 92%; padding: 28px 22px; }
+        }
     </style>
 </head>
 <body>
@@ -128,18 +197,23 @@
         <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
     </div>
 
+    <div class="gradient-overlay"></div>
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+
+    <div class="stage">
     <div class="container">
         <h1>Blendboxd</h1>
         <h3 id="description">Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</h3>
         <form id="userForm" method="POST">
-            <input type="text" name="username1" id="username1" placeholder="Kullanıcı Adı 1" required>
-            <input type="text" name="username2" id="username2" placeholder="Kullanıcı Adı 2" required>
-            <button type="submit">Blender!</button> 
+            <input class="input" type="text" name="username1" id="username1" placeholder="Kullanıcı Adı 1" required>
+            <input class="input" type="text" name="username2" id="username2" placeholder="Kullanıcı Adı 2" required>
+            <button class="btn" type="submit">Blender!</button> 
             <br> 
             <h2>Extra</h2>
-         <button onclick="location.href='/picker'">Randomboxd</button> <br> 
-            <br> <button onclick="location.href='/duo_picker'">Squadboxd</button> <br>
-           <br> <button onclick="location.href='/follow'">Followboxd</button> <br>
+         <button class="btn" type="button" onclick="location.href='/picker'">Randomboxd</button> <br> 
+            <br> <button class="btn" type="button" onclick="location.href='/duo_picker'">Squadboxd</button> <br>
+           <br> <button class="btn" type="button" onclick="location.href='/follow'">Followboxd</button> <br>
             
             <h6 id="copyright">© Tüm Hakları Mert Ergün'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.</h6> 
             <p5><a href="mailto:070lumi@gmail.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Sponsorluk saire vesaire blabla</a></p5> 
@@ -147,6 +221,7 @@
             <br> 
             <a href="https://letterboxd.com/lumiboi/" class="link" id="letterboxdLink">Bu da benim letırbaks linkim.</a>
         </form>
+    </div>
     </div>
 
     <div class="loading" id="loading">
@@ -202,6 +277,20 @@ Klink! (filmler birbirine çarpıyor)</p>
                 loadingText.textContent = 'Blender çalışıyor...';
                 loadingSounds.textContent = 'Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)\nTsshhh... (rüzgar sesi)\nWoop-woop... (filmler kayıyor)\nKlink! (filmler birbirine çarpıyor)';
             }
+        });
+
+        // Simple parallax for orbs
+        const orbs = document.querySelectorAll('.orb');
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            mouseX = (e.clientX - cx) / cx;
+            mouseY = (e.clientY - cy) / cy;
+            orbs.forEach((o, i) => {
+                const depth = (i + 1) * 10;
+                o.style.transform = `translate3d(${mouseX * depth}px, ${mouseY * depth}px, 0)`;
+            });
         });
     </script>
 </body>
