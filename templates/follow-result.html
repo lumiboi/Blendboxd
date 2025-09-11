@@ -113,7 +113,7 @@
             {% if difference_list %}
                 {% for user in difference_list %}
                     <li>
-                        <a href="https://letterboxd.com/{{ user | trim }}/" target="_blank" rel="noopener noreferrer">{{ user | trim }}</a>
+                        <a href="https://letterboxd.com/{{ user.username }}/" target="_blank" rel="noopener noreferrer">{{ user.display_name }} ({{ user.username }})</a>
                     </li>
                 {% endfor %}
             {% else %}
