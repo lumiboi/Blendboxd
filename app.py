@@ -11,13 +11,19 @@ nest_asyncio.apply()
 app = Flask(__name__)
 
 TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658"
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
+    "Referer": "https://letterboxd.com/",
+    "Cache-Control": "no-cache",
+}
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        username1 = request.form["username1"]
-        username2 = request.form["username2"]
+        username1 = request.form["username1"].strip().lower()
+        username2 = request.form["username2"].strip().lower()
         user1_movies = get_watched_movies(username1)
         user2_movies = get_watched_movies(username2)
 
@@ -43,7 +49,7 @@ def get_follow_data(username):
         page_num = 1
         while True:
             url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
-            resp = requests.get(url, headers=HEADERS)
+            resp = requests.get(url, headers=HEADERS, timeout=15)
             soup = BeautifulSoup(resp.content, "lxml")
             persons = soup.select("div.person-summary h3 a")
             if not persons:
@@ -85,12 +91,15 @@ def get_watched_movies(username):
     def get_movies(soup):
         # Prefer robust selectors: Letterboxd often stores film names on list items
         # E.g., <li class="poster-container" data-film-name="...">
-        for li in soup.select("ul.poster-list li"):
+        li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+        for li in li_nodes:
             film_name = None
             if li.has_attr("data-film-name"):
                 film_name = li.get("data-film-name")
             elif li.has_attr("data-film-title"):
                 film_name = li.get("data-film-title")
+            elif li.has_attr("data-film-slug"):
+                film_name = li.get("data-film-slug").replace('-', ' ')
             elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
                 film_name = li.get('data-film-name')
             else:
@@ -103,7 +112,7 @@ def get_watched_movies(username):
     page = 1
     while True:
         url = f"https://letterboxd.com/{username}/films/page/{page}/"
-        response = requests.get(url, headers=HEADERS)
+        response = requests.get(url, headers=HEADERS, timeout=15)
         soup = BeautifulSoup(response.content, "lxml")
         get_movies(soup)
         if soup.find("a", class_="next"):
@@ -130,11 +139,11 @@ def get_recommendations(common_movies):
     recommendations = []
     for movie in common_movies:
         search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie}"
-        search_response = requests.get(search_url).json()
+        search_response = requests.get(search_url, timeout=20).json()
         if search_response.get("results"):
             movie_id = search_response["results"][0]["id"]
             recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
-            rec_response = requests.get(recommendations_url).json()
+            rec_response = requests.get(recommendations_url, timeout=20).json()
             if rec_response.get("results"):
                 for rec_movie in rec_response["results"]:
                     recommendations.append(rec_movie["title"])
@@ -163,9 +172,19 @@ def get_watchlist(username):
     response = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(response.content, "lxml")
     for li in soup.select("ul.poster-list li"):
-        img = li.find("img")
-        if img and img.has_attr("alt"):
-            watchlist.append(img["alt"].strip().title())
+        film_name = None
+        if li.has_attr("data-film-name"):
+            film_name = li.get("data-film-name")
+        elif li.has_attr("data-film-title"):
+            film_name = li.get("data-film-title")
+        elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
+            film_name = li.get('data-film-name')
+        else:
+            img = li.find("img")
+            if img and img.has_attr("alt"):
+                film_name = img["alt"]
+        if film_name:
+            watchlist.append(film_name.strip().title())
     return watchlist
 
 def get_movie_info(title):
@@ -200,7 +219,7 @@ def duo_picker():
             return render_template("duo_picker_result.html", error=str(e), lang=lang)
     return render_template('duo_picker.html', lang=lang)
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+## duplicate HEADERS removed (consolidated above)
 
 # --- ASYNC GET WATCHED MOVIES ---
 async def fetch_page(session, url):
@@ -216,12 +235,15 @@ async def get_watched_movies_async(username):
             html = await fetch_page(session, url)
             soup = BeautifulSoup(html, "lxml")
             movies_on_page = []
-            for li in soup.select("ul.poster-list li"):
+            li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+            for li in li_nodes:
                 film_name = None
                 if li.has_attr("data-film-name"):
                     film_name = li.get("data-film-name")
                 elif li.has_attr("data-film-title"):
                     film_name = li.get("data-film-title")
+                elif li.has_attr("data-film-slug"):
+                    film_name = li.get("data-film-slug").replace('-', ' ')
                 elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
                     film_name = li.get('data-film-name')
                 else:
