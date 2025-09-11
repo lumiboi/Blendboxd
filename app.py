@@ -1,33 +1,35 @@
-from flask import Flask, render_template, request, jsonify
-import requests
-from bs4 import BeautifulSoup
 import os
 import random
-import aiohttp
-import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+import requests
+from flask import Flask, render_template, request, jsonify
+from bs4 import BeautifulSoup
+import cloudscraper
 
 app = Flask(__name__)
 
+# --- CONFIGURATION ---
 TMDB_API_KEY = "f3abc39a6d4fbdcc0b2a79906b528658"
+
+# Cloudflare korumasını atlatmak için cloudscraper nesnesi oluşturuyoruz.
+# Letterboxd'a yapılacak tüm istekler bu nesne üzerinden yapılacak.
+scraper = cloudscraper.create_scraper()
+
+# Global Headers (scraper tarafından otomatik yönetilse de, belirtmekte fayda var)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,tr;q=0.8",
     "Referer": "https://letterboxd.com/",
-    "Cache-Control": "no-cache",
 }
+
+# --- UTILITY FUNCTIONS ---
 
 def extract_film_title_from_li(li):
     """Extract best-guess film title from a Letterboxd poster <li>."""
-    # Attributes on the <li>
     for attr in ("data-film-name", "data-film-title"):
         if li.has_attr(attr) and li.get(attr):
             return li.get(attr)
     if li.has_attr("data-film-slug") and li.get("data-film-slug"):
         return li.get("data-film-slug").replace('-', ' ')
-    # Common child container
     poster_div = li.find(class_="film-poster") or li.find("div", attrs={"data-film-name": True})
     if poster_div:
         for attr in ("data-film-name", "data-film-title"):
@@ -35,18 +37,11 @@ def extract_film_title_from_li(li):
                 return poster_div.get(attr)
         if poster_div.has_attr("data-film-slug") and poster_div.get("data-film-slug"):
             return poster_div.get("data-film-slug").replace('-', ' ')
-    # Fallbacks
     img = li.find("img")
-    if img:
-        for alt_attr in ("alt", "data-alt", "data-image-alt"):
-            if img.has_attr(alt_attr) and img.get(alt_attr):
-                return img.get(alt_attr)
-    # Try common anchor attributes
+    if img and img.has_attr("alt") and img.get("alt"):
+        return img.get("alt")
     a = li.find("a")
     if a:
-        for text_attr in ("aria-label", "title"):
-            if a.has_attr(text_attr) and a.get(text_attr):
-                return a.get(text_attr)
         href = a.get("href", "")
         if "/film/" in href:
             try:
@@ -58,21 +53,179 @@ def extract_film_title_from_li(li):
     return None
 
 def extract_film_slug_from_li(li):
-    a = li.find("a")
-    if not a:
-        a = li.find("a", href=True)
-    if a and a.get("href") and "/film/" in a.get("href"):
-        href = a.get("href").split("?")[0]
+    """Extract film slug from a Letterboxd poster <li>."""
+    a = li.find("a", href=True)
+    if a and "/film/" in a.get("href", ""):
         try:
-            slug = href.split("/film/")[1].split("/")[0]
-            return slug
+            return a.get("href").split("/film/")[1].split("/")[0]
         except Exception:
-            return None
-    # Try on film-poster div
+            pass
     poster_div = li.find(class_="film-poster")
     if poster_div and poster_div.get("data-film-slug"):
         return poster_div.get("data-film-slug").strip("/")
     return None
+
+def get_films_from_rss(username: str, section: str) -> list:
+    """Fallback: fetch films from Letterboxd RSS (recent items only)."""
+    try:
+        url = f"https://letterboxd.com/{username}/{section}/rss/"
+        resp = scraper.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            return []
+        soup = BeautifulSoup(resp.content, "xml")
+        titles = [item.find('title').get_text(strip=True).split('(')[0].strip().title() for item in soup.find_all('item') if item.find('title')]
+        return list(dict.fromkeys(titles)) # Remove duplicates while preserving order
+    except Exception:
+        return []
+
+def get_watched_movies(username):
+    """Gets all watched movies for a user by scraping their films pages."""
+    watched_movies = []
+    page = 1
+    while True:
+        url = f"https://letterboxd.com/{username}/films/page/{page}/"
+        try:
+            response = scraper.get(url, headers=HEADERS, timeout=20)
+            if response.status_code != 200:
+                print(f"'{username}' için sayfa {page} yüklenemedi. Status: {response.status_code}")
+                break # Sayfa bulunamazsa veya hata verirse döngüyü kır.
+        except Exception as e:
+            print(f"Hata: {e}")
+            break
+
+        soup = BeautifulSoup(response.content, "lxml")
+        li_nodes = soup.select("li.poster-container, ul.poster-list li")
+        
+        movies_on_page = []
+        for li in li_nodes:
+            film_name = extract_film_title_from_li(li)
+            if film_name:
+                movies_on_page.append(film_name.strip().title())
+
+        if not movies_on_page:
+            # Eğer ilk sayfada hiç film bulunamazsa, RSS'i deneyip bitirelim.
+            if page == 1:
+                print(f"'{username}' için HTML'den film bulunamadı, RSS deneniyor.")
+                return get_films_from_rss(username, 'films')
+            break # Sonraki sayfalarda film yoksa döngüyü kır.
+
+        watched_movies.extend(movies_on_page)
+        
+        # "Next" butonu varsa devam et
+        if not soup.find("a", class_="next"):
+            break
+        page += 1
+        
+    return list(dict.fromkeys(watched_movies))
+
+def get_watchlist(username):
+    """Gets the watchlist for a user."""
+    watchlist = []
+    page = 1
+    while True:
+        url = f"https://letterboxd.com/{username}/watchlist/page/{page}/"
+        try:
+            response = scraper.get(url, headers=HEADERS, timeout=20)
+            if response.status_code != 200:
+                break
+        except Exception as e:
+            print(f"Hata: {e}")
+            break
+            
+        soup = BeautifulSoup(response.content, "lxml")
+        li_nodes = soup.select("li.poster-container, ul.poster-list li")
+
+        movies_on_page = [extract_film_title_from_li(li).strip().title() for li in li_nodes if extract_film_title_from_li(li)]
+        
+        if not movies_on_page:
+            if page == 1:
+                return get_films_from_rss(username, 'watchlist')
+            break
+            
+        watchlist.extend(movies_on_page)
+        if not soup.find("a", class_="next"):
+            break
+        page += 1
+        
+    return list(dict.fromkeys(watchlist))
+
+def get_follow_data(username):
+    """Gets following and followers for a user."""
+    users = set()
+    display_name_map = {}
+
+    for page_name in ["following", "followers"]:
+        page_num = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
+            try:
+                resp = scraper.get(url, headers=HEADERS, timeout=15)
+                if resp.status_code != 200: break
+            except Exception:
+                break
+
+            soup = BeautifulSoup(resp.content, "lxml")
+            persons = soup.select("div.person-summary h3 a")
+            if not persons: break
+
+            for person in persons:
+                slug = person.get("href", "/").strip().split('/')[1]
+                display_name = person.text.strip()
+                if slug:
+                    users.add((slug, page_name))
+                    display_name_map[slug] = display_name or slug
+            
+            if not soup.find("a", class_="next"): break
+            page_num += 1
+
+    following = [u for u, t in users if t == "following"]
+    followers = [u for u, t in users if t == "followers"]
+    return following, followers, display_name_map
+
+def calculate_compatibility(user1_movies, user2_movies, common_movies):
+    total_movies = len(user1_movies) + len(user2_movies)
+    if total_movies == 0 or not common_movies:
+        return 0
+    common_movie_count = len(common_movies)
+    compatibility_percentage = (2 * common_movie_count / total_movies) * 100
+    # Skalayı biraz daha anlamlı hale getirmek için basit bir ayarlama
+    return min(int(compatibility_percentage * 2.5), 100)
+
+def get_recommendations(common_movies):
+    """Gets movie recommendations from TMDB based on common movies."""
+    recommendations = set()
+    # Çok fazla istek yapmamak için ortak filmlerin bir kısmını alalım
+    for movie in random.sample(common_movies, min(len(common_movies), 10)):
+        try:
+            search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie}"
+            search_response = requests.get(search_url, timeout=10).json()
+            if search_response.get("results"):
+                movie_id = search_response["results"][0]["id"]
+                recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
+                rec_response = requests.get(recommendations_url, timeout=10).json()
+                if rec_response.get("results"):
+                    for rec_movie in rec_response["results"]:
+                        recommendations.add(rec_movie["title"])
+        except requests.RequestException:
+            continue # Bir filmde hata olursa atla ve devam et
+    return list(recommendations)
+
+def get_movie_info(title):
+    """Gets poster and title from TMDB."""
+    try:
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={requests.utils.quote(title)}"
+        response = requests.get(search_url, timeout=10).json()
+        if response.get("results"):
+            movie_data = response["results"][0]
+            return {
+                "title": movie_data.get("title", "Unknown Title"),
+                "poster": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path', '')}" if movie_data.get('poster_path') else None
+            }
+    except requests.RequestException:
+        return None
+    return None
+
+# --- FLASK ROUTES ---
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -96,133 +249,17 @@ def index():
         )
     return render_template("index.html")
 
-def get_follow_data(username):
-    following_usernames, followers_usernames = set(), set()
-    display_name_by_username = {}
-
-    def get_users(page_name):
-        page_num = 1
-        while True:
-            url = f"https://letterboxd.com/{username}/{page_name}/page/{page_num}/"
-            resp = requests.get(url, headers=HEADERS, timeout=15)
-            soup = BeautifulSoup(resp.content, "lxml")
-            persons = soup.select("div.person-summary h3 a")
-            if not persons:
-                break
-            for person in persons:
-                href = person.get("href", "/").strip()
-                slug = href.strip("/").split("/")[0]
-                display_name = person.text.strip()
-                if slug:
-                    display_name_by_username[slug] = display_name or slug
-                    if page_name == "following":
-                        following_usernames.add(slug)
-                    else:
-                        followers_usernames.add(slug)
-            next_button = soup.find("a", class_="next")
-            if next_button:
-                page_num += 1
-            else:
-                break
-
-    get_users("following")
-    get_users("followers")
-
-    return list(following_usernames), list(followers_usernames), display_name_by_username
-
 @app.route("/follow", methods=["GET", "POST"])
 def follow_index():
     if request.method == "POST":
         username = request.form["username"].lower()
         following, followers, name_map = get_follow_data(username)
-        difference_usernames = sorted(set(following) - set(followers))
+        difference_usernames = sorted(list(set(following) - set(followers)))
         difference_list = [{"username": u, "display_name": name_map.get(u, u)} for u in difference_usernames]
         return render_template("follow-result.html", username=username, difference_list=difference_list)
     return render_template("followerboxd.html")
 
-def get_watched_movies(username):
-    watched_movies = []
-
-    def get_movies(soup):
-        # Prefer robust selectors: Letterboxd often stores film names on list items
-        # E.g., <li class="poster-container" data-film-name="...">
-        li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
-        for li in li_nodes:
-            film_name = extract_film_title_from_li(li)
-            if not film_name:
-                slug = extract_film_slug_from_li(li)
-                if slug:
-                    film_name = slug.replace('-', ' ')
-            if film_name:
-                watched_movies.append(film_name.strip().title())
-
-    page = 1
-    while True:
-        url = f"https://letterboxd.com/{username}/films/page/{page}/"
-        response = requests.get(url, headers=HEADERS, timeout=15)
-        soup = BeautifulSoup(response.content, "lxml")
-        before = len(watched_movies)
-        get_movies(soup)
-        # If nothing parsed on first page, try RSS fallback and stop
-        if page == 1 and len(watched_movies) == before:
-            rss_titles = get_films_from_rss(username, 'films')
-            if rss_titles:
-                return rss_titles
-        # Some paginations use nav.pagination with rel="next"
-        has_next = soup.find("a", class_="next") or soup.select_one('nav.pagination a[rel="next"]')
-        if has_next:
-            page += 1
-        else:
-            break
-
-    return watched_movies
-
-def get_films_from_rss(username: str, section: str) -> list:
-    """Fallback: fetch films from Letterboxd RSS (recent items only)."""
-    try:
-        url = f"https://letterboxd.com/{username}/{section}/rss/"
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        soup = BeautifulSoup(resp.content, "xml")
-        titles = []
-        for item in soup.find_all('item'):
-            title = item.find('title').get_text(strip=True)
-            # Title examples: "Inception (2010)" → extract film name part
-            if title:
-                name = title.split('(')[0].strip()
-                if name:
-                    titles.append(name.title())
-        return list(dict.fromkeys(titles))
-    except Exception:
-        return []
-
-def calculate_compatibility(user1_movies, user2_movies, common_movies):
-    total_movies = len(user1_movies) + len(user2_movies)
-    if total_movies == 0 or not common_movies:
-        return 0
-
-    common_movie_count = len(common_movies)
-    if common_movie_count > 5:
-        compatibility_percentage = 50 + ((2 * common_movie_count / total_movies) * 100)
-    else:
-        compatibility_percentage = (2 * common_movie_count / total_movies) * 100
-
-    return min(compatibility_percentage, 100)
-
-def get_recommendations(common_movies):
-    recommendations = []
-    for movie in common_movies:
-        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie}"
-        search_response = requests.get(search_url, timeout=20).json()
-        if search_response.get("results"):
-            movie_id = search_response["results"][0]["id"]
-            recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}"
-            rec_response = requests.get(recommendations_url, timeout=20).json()
-            if rec_response.get("results"):
-                for rec_movie in rec_response["results"]:
-                    recommendations.append(rec_movie["title"])
-    return list(set(recommendations))
-
-@app.route('/picker', methods=['GET'])
+@app.route('/picker')
 def picker():
     return render_template("picker.html")
 
@@ -231,46 +268,15 @@ def pick_movies():
     username = request.form.get('username')
     count = int(request.form.get('count', 1))
     watchlist = get_watchlist(username)
-    selected_movies = random.sample(watchlist, min(count, len(watchlist)))
-    movies_info = []
-    for movie in selected_movies:
-        movie_info = get_movie_info(movie)
-        if movie_info:
-            movies_info.append(movie_info)
-    return jsonify(movies_info)
-
-def get_watchlist(username):
-    watchlist = []
-    url = f"https://letterboxd.com/{username}/watchlist/"
-    response = requests.get(url, headers=HEADERS, timeout=15)
-    soup = BeautifulSoup(response.content, "lxml")
-    li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
-    for li in li_nodes:
-        film_name = extract_film_title_from_li(li)
-        if not film_name:
-            slug = extract_film_slug_from_li(li)
-            if slug:
-                film_name = slug.replace('-', ' ')
-        if film_name:
-            watchlist.append(film_name.strip().title())
     if not watchlist:
-        watchlist = get_films_from_rss(username, 'watchlist')
-    return watchlist
-
-def get_movie_info(title):
-    search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={requests.utils.quote(title)}"
-    response = requests.get(search_url, timeout=20).json()
-    if response.get("results"):
-        movie_data = response["results"][0]
-        return {
-            "title": movie_data.get("title", "Unknown Title"),
-            "poster": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path', '')}"
-        }
-    return None
+        return jsonify({"error": f"'{username}' için izleme listesi bulunamadı veya profil gizli."}), 404
+    
+    selected_movies = random.sample(watchlist, min(count, len(watchlist)))
+    movies_info = [info for movie in selected_movies if (info := get_movie_info(movie))]
+    return jsonify(movies_info)
 
 @app.route('/duo_picker', methods=['GET', 'POST'])
 def duo_picker():
-    lang = request.args.get('lang', 'tr')
     if request.method == 'POST':
         try:
             user_count = int(request.form.get('user_count', 1))
@@ -284,100 +290,57 @@ def duo_picker():
                     movie_info = get_movie_info(movie)
                     if movie_info:
                         all_movies.append(movie_info)
-            return render_template("duo_picker_result.html", movies=all_movies, usernames=usernames, lang=lang)
+            return render_template("duo_picker_result.html", movies=all_movies, usernames=usernames)
         except Exception as e:
-            return render_template("duo_picker_result.html", error=str(e), lang=lang)
-    return render_template('duo_picker.html', lang=lang)
-
-## duplicate HEADERS removed (consolidated above)
-
-# --- ASYNC GET WATCHED MOVIES ---
-async def fetch_page(session, url):
-    async with session.get(url, headers=HEADERS) as resp:
-        return await resp.text()
-
-async def get_watched_movies_async(username):
-    watched_movies = []
-    async with aiohttp.ClientSession() as session:
-        page = 1
-        while True:
-            url = f"https://letterboxd.com/{username}/films/page/{page}/"
-            html = await fetch_page(session, url)
-            soup = BeautifulSoup(html, "lxml")
-            movies_on_page = []
-            li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li, ol.poster-list li")
-            for li in li_nodes:
-                film_name = extract_film_title_from_li(li)
-                if not film_name:
-                    slug = extract_film_slug_from_li(li)
-                    if slug:
-                        film_name = slug.replace('-', ' ')
-                if film_name:
-                    movies_on_page.append(film_name.strip().title())
-            if not movies_on_page:
-                break
-            watched_movies.extend(movies_on_page)
-            has_next = soup.find("a", class_="next") or soup.select_one('nav.pagination a[rel="next"]')
-            if not has_next:
-                break
-            page += 1
-    return watched_movies
-
-
-# --- FILM TADIM ARKADAŞI ---  
-@app.route("/match", methods=["GET"])
+            return render_template("duo_picker_result.html", error=str(e))
+    return render_template('duo_picker.html')
+    
+@app.route("/match")
 def match():
-    # Kullanıcıdan Letterboxd username isteyecek formu gösterir
     return render_template("match.html")
 
 @app.route("/matched", methods=["POST"])
 def matched():
     username = request.form.get("username").strip()
-    # Kullanıcının izlediği filmler
-    user_movies = asyncio.run(get_watched_movies_async(username))
+    user_movies = get_watched_movies(username)
+    
+    if not user_movies:
+         return render_template(
+            "matched.html",
+            error=f"'{username}' kullanıcısının izlediği filmler bulunamadı. Profil gizli veya kullanıcı adı yanlış olabilir."
+        )
 
-    # Potansiyel buddy kullanıcıları (takipçiler + following)
-    following, followers = get_follow_data(username)
+    following, followers, _ = get_follow_data(username)
     potential_users = list(set(following + followers))
-
+    
     best_match = None
-    best_score = 0
+    best_score = -1
     common_movies_for_best = []
 
-    async def process_other(other):
-        try:
-            other_movies = await get_watched_movies_async(other)
-            common = list(set(user_movies) & set(other_movies))
-            score = calculate_compatibility(user_movies, other_movies, common)
-            return other, score, common
-        except:
-            return None
-
-    # Tüm kullanıcıları asenkron olarak işliyoruz
-    tasks = [process_other(u) for u in potential_users]
-    results = asyncio.run(asyncio.gather(*tasks))
-
-    for result in results:
-        if result:
-            other, score, common = result
-            if score > best_score:
-                best_score = score
-                best_match = other
-                common_movies_for_best = common
-
-    # Ortak filmleri ve önerileri sınırlama
-    common_movies_for_best = common_movies_for_best[:100]  # sadece ilk 100 ortak film
-    buddy_recommendations = get_recommendations(common_movies_for_best)[:50]  # sadece ilk 50 öneri
+    # Asenkron yapı kaldırıldı, bunun yerine sırayla kontrol ediyoruz.
+    # Çok fazla takipçisi olan kullanıcılar için bu işlem biraz yavaş olabilir.
+    for other_user in potential_users:
+        other_movies = get_watched_movies(other_user)
+        if not other_movies:
+            continue
+        
+        common = list(set(user_movies) & set(other_movies))
+        score = calculate_compatibility(user_movies, other_movies, common)
+        
+        if score > best_score:
+            best_score = score
+            best_match = other_user
+            common_movies_for_best = common
+            
+    buddy_recommendations = get_recommendations(common_movies_for_best)
 
     return render_template(
         "matched.html",
-        buddy_username=best_match or "Bulunamadı",
+        buddy_username=best_match or "Uygun biri bulunamadı",
         compatibility_percentage=int(best_score),
-        common_movies=common_movies_for_best,
-        buddy_recommendations=buddy_recommendations
+        common_movies=common_movies_for_best[:100], # Limiting for display
+        buddy_recommendations=buddy_recommendations[:50] # Limiting for display
     )
-
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), debug=True)
