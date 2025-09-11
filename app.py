@@ -161,7 +161,13 @@ def get_watched_movies(username):
         url = f"https://letterboxd.com/{username}/films/page/{page}/"
         response = requests.get(url, headers=HEADERS, timeout=15)
         soup = BeautifulSoup(response.content, "lxml")
+        before = len(watched_movies)
         get_movies(soup)
+        # If nothing parsed on first page, try RSS fallback and stop
+        if page == 1 and len(watched_movies) == before:
+            rss_titles = get_films_from_rss(username, 'films')
+            if rss_titles:
+                return rss_titles
         # Some paginations use nav.pagination with rel="next"
         has_next = soup.find("a", class_="next") or soup.select_one('nav.pagination a[rel="next"]')
         if has_next:
@@ -170,6 +176,24 @@ def get_watched_movies(username):
             break
 
     return watched_movies
+
+def get_films_from_rss(username: str, section: str) -> list:
+    """Fallback: fetch films from Letterboxd RSS (recent items only)."""
+    try:
+        url = f"https://letterboxd.com/{username}/{section}/rss/"
+        resp = requests.get(url, headers=HEADERS, timeout=15)
+        soup = BeautifulSoup(resp.content, "xml")
+        titles = []
+        for item in soup.find_all('item'):
+            title = item.find('title').get_text(strip=True)
+            # Title examples: "Inception (2010)" → extract film name part
+            if title:
+                name = title.split('(')[0].strip()
+                if name:
+                    titles.append(name.title())
+        return list(dict.fromkeys(titles))
+    except Exception:
+        return []
 
 def calculate_compatibility(user1_movies, user2_movies, common_movies):
     total_movies = len(user1_movies) + len(user2_movies)
@@ -229,11 +253,13 @@ def get_watchlist(username):
                 film_name = slug.replace('-', ' ')
         if film_name:
             watchlist.append(film_name.strip().title())
+    if not watchlist:
+        watchlist = get_films_from_rss(username, 'watchlist')
     return watchlist
 
 def get_movie_info(title):
-    search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={title}"
-    response = requests.get(search_url).json()
+    search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={requests.utils.quote(title)}"
+    response = requests.get(search_url, timeout=20).json()
     if response.get("results"):
         movie_data = response["results"][0]
         return {
