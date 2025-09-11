@@ -19,6 +19,31 @@ HEADERS = {
     "Cache-Control": "no-cache",
 }
 
+def extract_film_title_from_li(li):
+    """Extract best-guess film title from a Letterboxd poster <li>."""
+    # Attributes on the <li>
+    for attr in ("data-film-name", "data-film-title"):
+        if li.has_attr(attr) and li.get(attr):
+            return li.get(attr)
+    if li.has_attr("data-film-slug") and li.get("data-film-slug"):
+        return li.get("data-film-slug").replace('-', ' ')
+    # Common child container
+    poster_div = li.find(class_="film-poster") or li.find("div", attrs={"data-film-name": True})
+    if poster_div:
+        for attr in ("data-film-name", "data-film-title"):
+            if poster_div.has_attr(attr) and poster_div.get(attr):
+                return poster_div.get(attr)
+        if poster_div.has_attr("data-film-slug") and poster_div.get("data-film-slug"):
+            return poster_div.get("data-film-slug").replace('-', ' ')
+    # Fallbacks
+    img = li.find("img")
+    if img and img.has_attr("alt"):
+        return img["alt"]
+    a = li.find("a")
+    if a and a.has_attr("title"):
+        return a["title"]
+    return None
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -115,7 +140,9 @@ def get_watched_movies(username):
         response = requests.get(url, headers=HEADERS, timeout=15)
         soup = BeautifulSoup(response.content, "lxml")
         get_movies(soup)
-        if soup.find("a", class_="next"):
+        # Some paginations use nav.pagination with rel="next"
+        has_next = soup.find("a", class_="next") or soup.select_one('nav.pagination a[rel="next"]')
+        if has_next:
             page += 1
         else:
             break
@@ -169,20 +196,11 @@ def pick_movies():
 def get_watchlist(username):
     watchlist = []
     url = f"https://letterboxd.com/{username}/watchlist/"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=15)
     soup = BeautifulSoup(response.content, "lxml")
-    for li in soup.select("ul.poster-list li"):
-        film_name = None
-        if li.has_attr("data-film-name"):
-            film_name = li.get("data-film-name")
-        elif li.has_attr("data-film-title"):
-            film_name = li.get("data-film-title")
-        elif 'poster-container' in (li.get('class') or []) and li.get('data-film-name'):
-            film_name = li.get('data-film-name')
-        else:
-            img = li.find("img")
-            if img and img.has_attr("alt"):
-                film_name = img["alt"]
+    li_nodes = soup.select("li.poster-container, ul.poster-list li, section.poster-list li")
+    for li in li_nodes:
+        film_name = extract_film_title_from_li(li)
         if film_name:
             watchlist.append(film_name.strip().title())
     return watchlist
@@ -255,7 +273,8 @@ async def get_watched_movies_async(username):
             if not movies_on_page:
                 break
             watched_movies.extend(movies_on_page)
-            if not soup.find("a", class_="next"):
+            has_next = soup.find("a", class_="next") or soup.select_one('nav.pagination a[rel="next"]')
+            if not has_next:
                 break
             page += 1
     return watched_movies
