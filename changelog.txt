@@ -1,5 +1,16 @@
 ## Changelog - Letterboxd Uyumluluk ve Tavsiye Uygulaması
 
+### 2025-09-11
+------------------------------
+- Followboxd: Sonuç listesinde görünen isim + (username) ve username linki eklendi.
+- Scraper güçlendirildi: data-film-name/title/slug, img alt, a[href*="/film/"] ve film-poster varyantları; `.next` + `nav.pagination a[rel="next"]` desteği.
+- Cloudflare uyumlu istek için opsiyonel cloudscraper eklendi; RSS fallback (films/watchlist) entegre edildi.
+- Watchlist ve watched movies çekimi birleştirildi, hata toleransı artırıldı.
+- Ana sayfa (index.html) yeni modern tasarım: glassmorphism, parallax, 3D tilt, gradient overlay.
+- Result sayfası (result.html) aynı modern stile taşındı.
+- Canvas üretimi tamamen yenilendi: premium kart, gradient border, compatibility pill, numara chip’leri, dönüşümlü satırlar, dinamik satır yüksekliği; 16:9 ve Story formatları.
+- Küçük UI düzeltmeleri: input grid taşmalarına karşı min-width/box-sizing.
+
 ### [v1.1.0] - 2025-07-05
 
 #### 🔧 Genel Güncellemeler:
