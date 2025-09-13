@@ -102,7 +102,10 @@ def get_translations():
             'pick_one_movie': 'Pick One Movie',
             'go_back': 'Go Back',
             'error': 'Error:',
-            'language': 'Language: English'
+            'language': 'Language: English',
+            'support_title': 'Support This Project',
+            'support_text': 'This Python-based project runs on Railway (paid hosting). Help us keep it alive!',
+            'support_button': 'Support on Patreon'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -155,7 +158,10 @@ def get_translations():
             'pick_one_movie': 'Tek Bir Film Seç',
             'go_back': 'Geri Dön',
             'error': 'Hata:',
-            'language': 'Dil: Türkçe'
+            'language': 'Dil: Türkçe',
+            'support_title': 'Bu Projeyi Destekle',
+            'support_text': 'Bu Python tabanlı proje Railway\'de (ücretli hosting) çalışıyor. Hayatta kalması için destek ol!',
+            'support_button': 'Patreon\'da Destekle'
         }
     }
     return translations[lang]
