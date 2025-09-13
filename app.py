@@ -3,7 +3,7 @@ import re
 import random
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 
 try:
     import cloudscraper
@@ -12,6 +12,7 @@ except Exception:
     SCRAPER = None
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 
 # TMDb API Key'i environment variable'dan al
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
@@ -26,6 +27,138 @@ HEADERS = {
     "Referer": "https://letterboxd.com/",
 }
 DEBUG = True
+
+# ---------------- Language Management ----------------
+def detect_browser_language():
+    """Detect browser language from Accept-Language header"""
+    accept_language = request.headers.get('Accept-Language', '')
+    if 'tr' in accept_language.lower():
+        return 'tr'
+    return 'en'
+
+def get_current_language():
+    """Get current language from session or detect from browser"""
+    if 'language' in session:
+        return session['language']
+    return detect_browser_language()
+
+def set_language(lang):
+    """Set language in session"""
+    if lang in ['en', 'tr']:
+        session['language'] = lang
+
+def get_translations():
+    """Get all translations for current language"""
+    lang = get_current_language()
+    translations = {
+        'en': {
+            'app_name': 'Blendboxd',
+            'main_title': 'Blendboxd',
+            'description': 'Let\'s enter the details of two users to run the blender and create the watchbox...',
+            'username1_placeholder': 'Username 1',
+            'username2_placeholder': 'Username 2',
+            'blend_button': 'Blend!',
+            'extra_title': 'Extra',
+            'randomboxd': 'Randomboxd',
+            'squadboxd': 'Squadboxd',
+            'followboxd': 'Followboxd',
+            'copyright': '© All Rights Reserved by Mert Ergün… Just kidding. I didn\'t get into those professional things, but there\'s effort.',
+            'sponsor_button': 'Sponsorship etc. blah blah',
+            'letterboxd_link': 'Here\'s my Letterboxd link.',
+            'loading_text': 'Blender is running...',
+            'loading_sounds': 'Bzzzzzt... Bzzz... Bzzzz... (spinning sound)\nTsshhh... (wind sound)\nWoop-woop... (movies sliding)\nKlink! (movies crashing)',
+            'watchbox_title': 'WATCHBOX:',
+            'no_common_movies': 'No common movies found.',
+            'compatibility': 'Compatibility',
+            'movie_recommendations': 'Movie Recommendations for This Duo:',
+            'no_recommendations': 'No movie recommendations found.',
+            'download_button': 'Download as Canvas',
+            'download_instagram_button': 'Download as Canvas (Instagram Story)',
+            'enter_usernames': 'Enter new usernames',
+            'group_movie_picker': 'Group Movie Picker',
+            'number_of_users': 'Number of Users',
+            'username': 'Username',
+            'number_of_films': 'Number of Films (From both users)',
+            'fetch_movies': 'Fetch Movies',
+            'main_page': 'Main Page',
+            'choose_language': 'Choose Language',
+            'random_film_picker': 'Random Film Picker!',
+            'random_film_description': 'Picks Random Films from Your Letterboxd Watchlist.',
+            'letterboxd_username': 'Letterboxd Username',
+            'select_films': 'Select Films',
+            'films': 'Films',
+            'back_to_main': 'Back to Main',
+            'enter_letterboxd_username': 'Enter Letterboxd Username',
+            'follower_description': 'Lists users who don\'t follow you.',
+            'submit': 'Submit',
+            'loading': 'Loading... (The process may take some time.)',
+            'follower_status': 'Follower Status',
+            'people_not_following': 'People Not Following You:',
+            'zero_people': '0 people',
+            'enter_new_username': 'Enter a new username',
+            'duo_picker_results': 'Duo Picker Results',
+            'selected_users': 'Selected Users:',
+            'randomly_selected_movies': 'Randomly Selected Movies:',
+            'pick_one_movie': 'Pick One Movie',
+            'go_back': 'Go Back',
+            'error': 'Error:',
+            'language': 'Language: English'
+        },
+        'tr': {
+            'app_name': 'Blendboxd',
+            'main_title': 'Blendboxd',
+            'description': 'Blender\'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...',
+            'username1_placeholder': 'Kullanıcı Adı 1',
+            'username2_placeholder': 'Kullanıcı Adı 2',
+            'blend_button': 'Blender!',
+            'extra_title': 'Extra',
+            'randomboxd': 'Randomboxd',
+            'squadboxd': 'Squadboxd',
+            'followboxd': 'Followboxd',
+            'copyright': '© Tüm Hakları Mert Ergün\'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.',
+            'sponsor_button': 'Sponsorluk saire vesaire blabla',
+            'letterboxd_link': 'Bu da benim letırbaks linkim.',
+            'loading_text': 'Blender çalışıyor...',
+            'loading_sounds': 'Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)\nTsshhh... (rüzgar sesi)\nWoop-woop... (filmler kayıyor)\nKlink! (filmler birbirine çarpıyor)',
+            'watchbox_title': 'WATCHBOX:',
+            'no_common_movies': 'Ortak film bulunamadı.',
+            'compatibility': 'Uyum',
+            'movie_recommendations': 'Bu İkili İçin Film Önerileri:',
+            'no_recommendations': 'Film önerisi bulunamadı.',
+            'download_button': 'Canvas olarak indir',
+            'download_instagram_button': 'Canvas olarak indir (Instagram Hikayesi)',
+            'enter_usernames': 'Yeni kullanıcı adları girin',
+            'group_movie_picker': 'Grup Film Seçici',
+            'number_of_users': 'Kullanıcı Sayısı',
+            'username': 'Kullanıcı Adı',
+            'number_of_films': 'Film Sayısı (Her iki kullanıcıdan)',
+            'fetch_movies': 'Film Getir',
+            'main_page': 'Ana Sayfa',
+            'choose_language': 'Dil Seç',
+            'random_film_picker': 'Random Film Seçici!',
+            'random_film_description': 'Letterboxd Watchlist\'inizden Rastgele Film Seçer.',
+            'letterboxd_username': 'Letterboxd Kullanıcı Adı',
+            'select_films': 'Film Seç',
+            'films': 'Film',
+            'back_to_main': 'Anasayfaya Dön',
+            'enter_letterboxd_username': 'Letterboxd Kullanıcı Adı Girin',
+            'follower_description': 'Sizi takip etmeyen kullanıcıları listeler.',
+            'submit': 'Gönder',
+            'loading': 'Yükleniyordur... (İşlem birazcık zaman alabilirdir.)',
+            'follower_status': 'Takipçi Durumu',
+            'people_not_following': 'Seni Takip Etmeyen Şeref Yoksunları:',
+            'zero_people': '0 kişi',
+            'enter_new_username': 'Yeni bir kullanıcı adı gir',
+            'duo_picker_results': 'Duo Picker Sonuçları',
+            'selected_users': 'Seçilen Kullanıcılar:',
+            'randomly_selected_movies': 'Rastgele Seçilen Filmler:',
+            'pick_one_movie': 'Tek Bir Film Seç',
+            'go_back': 'Geri Dön',
+            'error': 'Hata:',
+            'language': 'Dil: Türkçe'
+        }
+    }
+    return translations[lang]
 
 # ---------------- Helpers ----------------
 def fetch_html(url, timeout=20):
@@ -153,6 +286,12 @@ def get_movie_info(title):
     return None
 
 # ---------------- Routes ----------------
+@app.route("/set_language/<lang>")
+def set_language_route(lang):
+    """Set language and redirect back"""
+    set_language(lang)
+    return jsonify({"success": True, "language": lang})
+
 @app.route("/",methods=["GET","POST"])
 def index():
     if request.method=="POST":
@@ -161,11 +300,12 @@ def index():
         common=list(set(m1)&set(m2))
         comp=calculate_compatibility(m1,m2,common)
         recs=get_recommendations(common) if common else []
-        return render_template("result.html",username1=u1,username2=u2,common_movies=common,compatibility_percentage=int(comp),recommendations=recs)
-    return render_template("index.html")
+        return render_template("result.html",username1=u1,username2=u2,common_movies=common,compatibility_percentage=int(comp),recommendations=recs,translations=get_translations(),current_lang=get_current_language())
+    return render_template("index.html",translations=get_translations(),current_lang=get_current_language())
 
 @app.route("/picker")
-def picker(): return render_template("picker.html")
+def picker(): 
+    return render_template("picker.html",translations=get_translations(),current_lang=get_current_language())
 
 @app.route("/pick_movies",methods=["POST"])
 def pick_movies():
@@ -175,7 +315,6 @@ def pick_movies():
 
 @app.route("/duo_picker",methods=["GET","POST"])
 def duo_picker():
-    lang=request.args.get("lang","tr")
     if request.method=="POST":
         try:
             uc,fc=int(request.form.get("user_count",1)),int(request.form.get("film_count",1))
@@ -187,10 +326,10 @@ def duo_picker():
                 for t in sel:
                     info=get_movie_info(t)
                     if info: allm.append(info)
-            return render_template("duo_picker_result.html",movies=allm,usernames=users,lang=lang)
+            return render_template("duo_picker_result.html",movies=allm,usernames=users,translations=get_translations(),current_lang=get_current_language())
         except Exception as e:
-            return render_template("duo_picker_result.html",error=str(e),lang=lang)
-    return render_template("duo_picker.html",lang=lang)
+            return render_template("duo_picker_result.html",error=str(e),translations=get_translations(),current_lang=get_current_language())
+    return render_template("duo_picker.html",translations=get_translations(),current_lang=get_current_language())
 
 @app.route("/follow",methods=["GET","POST"])
 def follow_index():
@@ -199,8 +338,8 @@ def follow_index():
         following,followers,nmap=get_follow_data(u)
         diff=sorted(set(following)-set(followers))
         diff_list=[{"username":x,"display_name":nmap.get(x,x)} for x in diff]
-        return render_template("follow-result.html",username=u,difference_list=diff_list)
-    return render_template("followerboxd.html")
+        return render_template("follow-result.html",username=u,difference_list=diff_list,translations=get_translations(),current_lang=get_current_language())
+    return render_template("followerboxd.html",translations=get_translations(),current_lang=get_current_language())
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=True)
