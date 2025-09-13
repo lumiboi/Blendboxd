@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ translations.app_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
+     crossorigin="anonymous"></script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2Q77KLT449');
+    </script>
+    
+    <style>
+        /* Language Switcher Styles */
+        .language-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 8px 16px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .language-switcher:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .language-switcher i {
+            color: #00b7a4;
+            font-size: 16px;
+        }
+        
+        .language-switcher span {
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .language-switcher .flag {
+            width: 20px;
+            height: 15px;
+            border-radius: 2px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .language-switcher .flag.tr {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjRTEwRTEwIi8+CjxjaXJjbGUgY3g9IjEwIiBjeT0iNy41IiByPSIzLjUiIGZpbGw9IiNGRkZGRkYiLz4KPHN0YXIgY3g9IjEwIiBjeT0iNy41IiByPSIyLjUiIGZpbGw9IiNEMDAwMDAiLz4KPC9zdmc+');
+        }
+        
+        .language-switcher .flag.en {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMDEyMTY5Ii8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI2LjkyNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iMTMuODUiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3Qgd2lkdGg9IjIuMzA3NyIgaGVpZ2h0PSIxNSIgeT0iMCIgeD0iOC44NDYyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI0LjYxNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iOS4yMzA4IiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPg==');
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .language-switcher {
+                top: 10px;
+                right: 10px;
+                padding: 6px 12px;
+            }
+            
+            .language-switcher span {
+                font-size: 12px;
+            }
+            
+            .language-switcher .flag {
+                width: 16px;
+                height: 12px;
+            }
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Language Switcher -->
+    <div class="language-switcher" onclick="toggleLanguage()">
+        <i class="fas fa-globe"></i>
+        <div class="flag {{ current_lang }}"></div>
+        <span id="languageText">{{ translations.language }}</span>
+    </div>
+    
+    {% block content %}{% endblock %}
+    
+    <script>
+        // Language switching functionality
+        function toggleLanguage() {
+            const currentLang = '{{ current_lang }}';
+            const newLang = currentLang === 'tr' ? 'en' : 'tr';
+            
+            fetch(`/set_language/${newLang}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Language switch error:', error);
+                });
+        }
+        
+        // Initialize language-specific content
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will be overridden by individual page scripts
+            if (typeof initializeLanguage === 'function') {
+                initializeLanguage();
+            }
+        });
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

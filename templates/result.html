@@ -1,20 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLEND!</title>
+{% extends "base.html" %}
+
+{% block title %}{{ username1 }} ve {{ username2 }} için Watchbox!{% endblock %}
+
+{% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/html2canvas"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
-    <!-- Google Analytics için etiket (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-2Q77KLT449');
-    </script>
     <style>
         :root {
             --teal: #00b7a4;
@@ -53,21 +42,16 @@
         .button { margin-top: 16px; background: linear-gradient(135deg, rgba(0,183,164,.85), rgba(0,224,84,.85)); color:#fff; border:1px solid rgba(255,255,255,.12); padding:12px 18px; border-radius:12px; cursor:pointer; font-size:14px; box-shadow: 0 10px 24px rgba(0,183,164,.35); }
         .button:hover { filter:brightness(1.05); transform: translateY(-1px); }
         .link { display:block; margin-top:10px; text-decoration:none; color:var(--teal); font-weight:bold; }
-        .language-selector { position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,.55); padding:6px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); color:#fff; display:flex; align-items:center; cursor:pointer; z-index:10; backdrop-filter: blur(6px); }
-        .language-selector i { margin-right: 6px; }
         #compatibility { color: var(--orange); font-size: 22px; margin-top: 12px; }
     </style>
-</head>
-<body>
-    <div class="language-selector" id="languageSelector">
-        <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
-    </div>
+{% endblock %}
 
+{% block content %}
     <div class="gradient-overlay"></div>
     <div class="stage">
     <div class="container">
         <h1 id="header">{{ username1 }} ve {{ username2 }} için Watchbox!</h1>
-        <h2>WATCHBOX:</h2>
+        <h2>{{ translations.watchbox_title }}</h2>
         <div class="lists">
         <ul id="movieList">
             {% if common_movies %}
@@ -75,57 +59,30 @@
                      <li>{{ movie }}</li>
                 {% endfor %}
             {% else %}
-                <li>Ortak film bulunamadı</li>
+                <li>{{ translations.no_common_movies }}</li>
             {% endif %}
         </ul>
         </div>
-        <div id="compatibility">Uyum: {{ compatibility_percentage | round(2) }}%</div>
-        <h3 id="tavsiye">Bu İkili İçin Film Önerileri:</h3>
+        <div id="compatibility">{{ translations.compatibility }}: {{ compatibility_percentage | round(2) }}%</div>
+        <h3 id="tavsiye">{{ translations.movie_recommendations }}</h3>
         <ul id="recommendationList">
             {% if recommendations %}
                 {% for recommendation in recommendations[:10] %} <!-- Only 10 movies -->
                     <li>{{ recommendation }}</li>
                 {% endfor %}
             {% else %}
-                <li>Film önerisi bulunamadı.</li>
+                <li>{{ translations.no_recommendations }}</li>
             {% endif %}
         </ul>
-        <button class="button" id="downloadBtn">Canvas olarak indir</button>
-        <button class="button" id="downloadInstagramStoryBtn">Canvas olarak indir (Instagram Hikayesi)</button>
-        <a href="/" class="link">Yeni kullanıcı adları girin</a>
+        <button class="button" id="downloadBtn">{{ translations.download_button }}</button>
+        <button class="button" id="downloadInstagramStoryBtn">{{ translations.download_instagram_button }}</button>
+        <a href="/" class="link">{{ translations.enter_usernames }}</a>
     </div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
-        // Dinamik dil çevirisi
-        function getTranslation(key) {
-            const translations = {
-                en: { header: "{{ username1 }} and {{ username2 }} Watchbox!", watchbox: "WATCHBOX:", no_common_movies: "No common movies found.", compatibility: "Compatibility", movie_recommendations: "Movie Recommendations for This Duo:", no_recommendations: "No movie recommendations found.", download_button: "Download as Canvas", download_instagram_button: "Download as Canvas (Instagram Story)", enter_usernames: "Enter new usernames" },
-                tr: { header: "{{ username1 }} ve {{ username2 }} için Watchbox!", watchbox: "WATCHBOX:", no_common_movies: "Ortak film bulunamadı.", compatibility: "Uyum", movie_recommendations: "Bu İkili İçin Film Önerileri:", no_recommendations: "Film önerisi bulunamadı.", download_button: "Canvas olarak indir", download_instagram_button: "Canvas olarak indir (Instagram Hikayesi)", enter_usernames: "Yeni kullanıcı adları girin" }
-            };
-            const currentLanguage = document.documentElement.lang || 'en';
-            return translations[currentLanguage][key] || key;
-        }
-
-        // Language selector
-        document.getElementById('languageSelector').addEventListener('click', function() {
-            const currentLanguage = document.documentElement.lang || 'en';
-            if (currentLanguage === 'en') {
-                document.documentElement.lang = 'tr';
-                document.getElementById('languageText').textContent = 'Dil: Türkçe';
-            } else {
-                document.documentElement.lang = 'en';
-                document.getElementById('languageText').textContent = 'Language: English';
-            }
-            document.getElementById('header').textContent = getTranslation('header');
-            document.querySelector('h2').textContent = getTranslation('watchbox');
-            document.getElementById('tavsiye').textContent = getTranslation('movie_recommendations');
-            document.getElementById('compatibility').textContent = `${getTranslation('compatibility')}: ${document.getElementById('compatibility').textContent.split(':')[1]}`;
-            document.getElementById('downloadBtn').textContent = getTranslation('download_button');
-            document.getElementById('downloadInstagramStoryBtn').textContent = getTranslation('download_instagram_button');
-            document.querySelector('.link').textContent = getTranslation('enter_usernames');
-        });
-
         // Unified poster drawer
         function drawPoster(ctx, width, height, usernames, movies, compatibility, columns, rows, isStory=false) {
             // Helpers
@@ -196,7 +153,7 @@
             ctx.fillText(`${usernames[0]} × ${usernames[1]}`, width/2, cardY + (isStory ? 70 : 60));
 
             // pill
-            const pillText = `${getTranslation('compatibility')}: ${compatibility}`;
+            const pillText = `{{ translations.compatibility }}: ${compatibility}`;
             ctx.font = (isStory ? 'bold 30px' : 'bold 26px') + ' "Helvetica Neue", Arial, sans-serif';
             const pillPaddingX = 16, pillPaddingY = 10;
             const pillW = ctx.measureText(pillText).width + pillPaddingX*2;
@@ -319,6 +276,4 @@
             link.click();
         });
     </script>
-</body>
-</html>
-
+{% endblock %}

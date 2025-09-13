@@ -1,23 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blendboxd</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+{% extends "base.html" %}
 
-        gtag('config', 'G-2Q77KLT449');
-    </script>
+{% block title %}{{ translations.app_name }}{% endblock %}
+
+{% block extra_head %}
     <style>
         /* Modern Parallax + Glass UI */
         :root {
@@ -216,23 +201,6 @@
         }
         .link:hover { text-decoration: underline; }
 
-        .language-selector {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.55);
-            padding: 6px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: white;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-            backdrop-filter: blur(6px);
-        }
-        .language-selector i { margin-right: 6px; }
-
         .loading {
             display: none;
             position: fixed;
@@ -256,18 +224,15 @@
             .container { width: 92%; padding: 28px 22px; }
         }
     </style>
-</head>
-<body>
-    <div class="language-selector" id="languageSelector">
-        <i class="fas fa-globe"></i><span id="languageText">Dil: Türkçe</span>
-    </div>
+{% endblock %}
 
+{% block content %}
     <div class="nav">
         <div class="dot"></div>
-        <div class="brand">Blendboxd</div>
-        <div class="pill" onclick="location.href='/follow'">Followboxd</div>
-        <div class="pill" onclick="location.href='/picker'">Randomboxd</div>
-        <div class="pill" onclick="location.href='/duo_picker'">Squadboxd</div>
+        <div class="brand">{{ translations.app_name }}</div>
+        <div class="pill" onclick="location.href='/follow'">{{ translations.followboxd }}</div>
+        <div class="pill" onclick="location.href='/picker'">{{ translations.randomboxd }}</div>
+        <div class="pill" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</div>
     </div>
 
     <div class="gradient-overlay"></div>
@@ -277,25 +242,25 @@
     <div class="stage">
     <div class="card3d">
     <div class="container" id="card">
-        <h1>Blendboxd</h1>
-        <div class="subtitle" id="description">Blender'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...</div>
+        <h1>{{ translations.main_title }}</h1>
+        <div class="subtitle" id="description">{{ translations.description }}</div>
         <form id="userForm" method="POST">
-            <input class="input" type="text" name="username1" id="username1" placeholder="Kullanıcı Adı 1" required>
-            <input class="input" type="text" name="username2" id="username2" placeholder="Kullanıcı Adı 2" required>
-            <button class="btn" type="submit" style="grid-column: 1 / -1">Blender!</button>
+            <input class="input" type="text" name="username1" id="username1" placeholder="{{ translations.username1_placeholder }}" required>
+            <input class="input" type="text" name="username2" id="username2" placeholder="{{ translations.username2_placeholder }}" required>
+            <button class="btn" type="submit" style="grid-column: 1 / -1">{{ translations.blend_button }}</button>
         </form>
-        <h2>Extra</h2>
+        <h2>{{ translations.extra_title }}</h2>
         <div class="grid">
-            <button class="btn ghost" type="button" onclick="location.href='/picker'">Randomboxd</button>
-            <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">Squadboxd</button>
-            <button class="btn ghost" type="button" onclick="location.href='/follow'">Followboxd</button>
+            <button class="btn ghost" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
+            <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
+            <button class="btn ghost" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
         </div>
             
-            <h6 id="copyright">© Tüm Hakları Mert Ergün'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.</h6> 
-            <p5><a href="mailto:mert@codedbylumi.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Sponsorluk saire vesaire blabla</a></p5> 
+            <h6 id="copyright">{{ translations.copyright }}</h6> 
+            <p5><a href="mailto:mert@codedbylumi.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">{{ translations.sponsor_button }}</a></p5> 
             <br>
             <br> 
-            <a href="https://letterboxd.com/lumiboi/" class="link" id="letterboxdLink">bu da benim letırbaks linkim.</a>
+            <a href="https://letterboxd.com/lumiboi/" class="link" id="letterboxdLink">{{ translations.letterboxd_link }}</a>
         </form>
     </div>
     </div>
@@ -303,57 +268,18 @@
 
     <div class="loading" id="loading">
         <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
-        <p id="loadingText">Blender çalışıyor... </p>
-        <p id="loadingSounds">Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)
-Tsshhh... (rüzgar sesi)
-Woop-woop... (filmler kayıyor)
-Klink! (filmler birbirine çarpıyor)</p>
+        <p id="loadingText">{{ translations.loading_text }}</p>
+        <p id="loadingSounds">{{ translations.loading_sounds }}</p>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         const form = document.getElementById('userForm');
         const loading = document.getElementById('loading');
-        const languageSelector = document.getElementById('languageSelector');
-        const languageText = document.getElementById('languageText');
-        const description = document.getElementById('description');
-        const username1Input = document.getElementById('username1');
-        const username2Input = document.getElementById('username2');
-        const copyright = document.getElementById('copyright');
-        const sponsorButton = document.getElementById('sponsorButton');
-        const letterboxdLink = document.getElementById('letterboxdLink');
-        const loadingText = document.getElementById('loadingText');
-        const loadingSounds = document.getElementById('loadingSounds');
-        
-        let language = 'tr'; // Default language is Turkish
         
         form.addEventListener('submit', function() {
-            loading.style.display = 'block'; // Yükleme ekranını göster
-        });
-
-        languageSelector.addEventListener('click', function() {
-            if (language === 'tr') {
-                language = 'en';
-                languageText.textContent = 'Language: English';
-                description.textContent = 'Let\'s enter the details of two users to run the blender and create the watchbox...';
-                username1Input.placeholder = 'Username 1';
-                username2Input.placeholder = 'Username 2';
-                copyright.textContent = '© All Rights Reserved by Mert Ergün… Just kidding. I didn’t get into those professional things, but there’s effort.';
-                sponsorButton.textContent = 'Sponsorship etc. blah blah';
-                letterboxdLink.textContent = 'Here’s my Letterboxd link.';
-                loadingText.textContent = 'Blender is running...';
-                loadingSounds.textContent = 'Bzzzzzt... Bzzz... Bzzzz... (spinning sound)\nTsshhh... (wind sound)\nWoop-woop... (movies sliding)\nKlink! (movies crashing)';
-            } else {
-                language = 'tr';
-                languageText.textContent = 'Dil: Türkçe';
-                description.textContent = 'Blender\'ın çalışması ve watchbox oluşturulması için iki kullanıcının bilgilerini girelim...';
-                username1Input.placeholder = 'Kullanıcı Adı 1';
-                username2Input.placeholder = 'Kullanıcı Adı 2';
-                copyright.textContent = '© Tüm Hakları Mert Ergün\'e ai... Şaka şaka. Öyle profesyonel işlere kalkışmadım ama emek var.';
-                sponsorButton.textContent = 'Sponsorluk saire vesaire blabla';
-                letterboxdLink.textContent = 'Bu da benim letırbaks linkim.';
-                loadingText.textContent = 'Blender çalışıyor...';
-                loadingSounds.textContent = 'Bzzzzzt... Bzzz... Bzzzz... (dönme sesi)\nTsshhh... (rüzgar sesi)\nWoop-woop... (filmler kayıyor)\nKlink! (filmler birbirine çarpıyor)';
-            }
+            loading.style.display = 'block'; // Show loading screen
         });
 
         // 3D tilt card + parallax for orbs
@@ -374,7 +300,4 @@ Klink! (filmler birbirine çarpıyor)</p>
             card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
         });
     </script>
-</body>
-</html>
-
-
+{% endblock %}

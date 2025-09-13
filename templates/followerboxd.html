@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Letterboxd Takipçi Kontrolü</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+
+{% block title %}{{ translations.enter_letterboxd_username }}{% endblock %}
+
+{% block extra_head %}
     <style>
         body {
              background: url('https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGdlZ252aGtrd2s5ZXc0enF0eW16MWJicWZiemkxdHN6dnludDBneiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QGsrqrThkTVHLQxZpZ/giphy.gif') no-repeat center center fixed;
@@ -30,11 +26,6 @@
             text-align: center;
             width: 320px;
             opacity: 0.85;
-        }
-        .language-select {
-            position: absolute;
-            top: 20px;
-            left: 20px;
         }
         h1 {
             color: #000000;
@@ -86,49 +77,31 @@
             color: #fff;
         }
     </style>
-</head>
-<body>
-    <div class="language-select">
-        <label for="language">Dil Seçin: / Select Language: </label>
-        <select id="language" onchange="changeLanguage()">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-        </select>
-    </div>
+{% endblock %}
+
+{% block content %}
     <div class="container">
-          <p5><a href="/" id="anasayfa" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">Anasayfa / Main Page</a></p5> 
+          <p5><a href="/" id="anasayfa" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">{{ translations.main_page }}</a></p5> 
            <br>
-        <h1 data-tr="Letterboxd Kullanıcı Adı Girin" data-en="Enter Letterboxd Username"></h1>
-       <h6 style="color: black;">Sizi takip etmeyen kullanıcıları listeler.</h6>
+        <h1>{{ translations.enter_letterboxd_username }}</h1>
+       <h6 style="color: black;">{{ translations.follower_description }}</h6>
         <form method="POST" onsubmit="showLoading()">
-            <input type="text" name="username" placeholder="Kullanıcı Adı" required>
-            <button type="submit"><i class="fas fa-paper-plane"></i> <span data-tr="Gönder" data-en="Submit"></span></button>
+            <input type="text" name="username" placeholder="{{ translations.username }}" required>
+            <button type="submit"><i class="fas fa-paper-plane"></i> <span>{{ translations.submit }}</span></button>
         </form>
     </div>
     <div id="loading">
-        <div data-tr="Yükleniyordur... (İşlem birazcık zaman alabilirdir.)" data-en="Loading... (The process may take some time.)"></div>
+        <div>{{ translations.loading }}</div>
     </div>
     <footer>
         <p>Bütün hakları Mert Ergün'e aittir ha. Şaka şaka hak mak yok ama uğraştık o kadar çalmayın.</p>
     </footer>
-    
+{% endblock %}
+
+{% block extra_scripts %}
     <script>
         function showLoading() {
             document.getElementById("loading").style.display = "flex";
         }
-
-        function changeLanguage() {
-            const lang = document.getElementById("language").value;
-            const elements = document.querySelectorAll('[data-tr], [data-en]');
-            elements.forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
-            });
-        }
-
-        // Sayfa yüklendiğinde varsayılan dili ayarla
-        window.onload = function() {
-            changeLanguage();
-        };
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="{{ lang }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
+{% extends "base.html" %}
+
+{% block title %}{{ translations.duo_picker_results }}{% endblock %}
+
+{% block extra_head %}
     <style>
         /* Mevcut CSS */
         body {
@@ -117,28 +114,22 @@
             background-color: #40bcf4;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <header>
         <a href="/" style="display: inline-block; margin-top: 20px; text-decoration: none; background-color: #00e054; color: #FFFFFF; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; text-align: center;">
-            <span>{{ 'Ana Sayfa' if lang == 'tr' else 'Main Page' }}</span>
+            <span>{{ translations.main_page }}</span>
         </a>
         <br><br>
-        <h1>{{ 'Duo Picker Sonuçları' if lang == 'tr' else 'Duo Picker Results' }}</h1>
-        <form method="GET" action="/duo_picker">
-            <label for="lang">{{ 'Dil Seç' if lang == 'tr' else 'Choose Language' }}:</label>
-            <select name="lang" id="lang" onchange="this.form.submit()">
-                <option value="tr" {% if lang == 'tr' %}selected{% endif %}>Türkçe</option>
-                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
-            </select>
-        </form>
+        <h1>{{ translations.duo_picker_results }}</h1>
     </header>
     <main>
         {% if error %}
-            <p class="error">{{ 'Hata: ' if lang == 'tr' else 'Error: ' }}{{ error }}</p>
+            <p class="error">{{ translations.error }}{{ error }}</p>
         {% else %}
             <section>
-                <h2>{{ 'Seçilen Kullanıcılar:' if lang == 'tr' else 'Selected Users:' }}</h2>
+                <h2>{{ translations.selected_users }}</h2>
                 <ul>
                     {% for username in usernames %}
                         <li>{{ username }}</li>
@@ -146,7 +137,7 @@
                 </ul>
             </section>
             <section>
-                <h2>{{ 'Rastgele Seçilen Filmler:' if lang == 'tr' else 'Randomly Selected Movies:' }}</h2>
+                <h2>{{ translations.randomly_selected_movies }}</h2>
                 <ul id="movie-list">
                     {% for movie in movies %}
                         <li>
@@ -158,10 +149,13 @@
             </section>
         {% endif %}
         <button class="single-movie-button" onclick="pickSingleMovie()">
-            {{ 'Tek Bir Film Seç' if lang == 'tr' else 'Pick One Movie' }}
+            {{ translations.pick_one_movie }}
         </button>
-        <a href="/duo_picker">{{ 'Geri Dön' if lang == 'tr' else 'Go Back' }}</a>
+        <a href="/duo_picker">{{ translations.go_back }}</a>
     </main>
+{% endblock %}
+
+{% block extra_scripts %}
     <script>
         function pickSingleMovie() {
             const movieList = document.getElementById('movie-list');
@@ -175,5 +169,4 @@
             });
         }
     </script>
-</body>
-</html>
+{% endblock %}

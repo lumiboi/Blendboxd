@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Film Picker</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+
+{% block title %}{{ translations.random_film_picker }}{% endblock %}
+
+{% block extra_head %}
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -122,33 +118,36 @@
             margin-bottom: 10px;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
-        <a href="/" class="link">Anasayfaya Dön</a>
+        <a href="/" class="link">{{ translations.back_to_main }}</a>
         <br>
-        <h1>Random Film Seçici!</h1>
-        <h6>Letterboxd Watchlist'inizden Rastgele Film Seçer.</h6>
+        <h1>{{ translations.random_film_picker }}</h1>
+        <h6>{{ translations.random_film_description }}</h6>
         <form id="moviePickerForm">
-            <input type="text" id="username" placeholder="Letterboxd Kullanıcı Adı" required>
+            <input type="text" id="username" placeholder="{{ translations.letterboxd_username }}" required>
             <div class="trackbar-container">
                 <input type="range" min="1" max="10" value="1" class="trackbar" id="movieCount">
-                <p id="movieCountDisplay">1 Film</p>
+                <p id="movieCountDisplay">1 {{ translations.films }}</p>
             </div>
-            <button type="submit">Film Seç</button>
+            <button type="submit">{{ translations.select_films }}</button>
         </form>
         <div class="loading" id="loading">
             <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
         </div>
         <div class="movie-display" id="movieDisplay"></div>
     </div>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         const trackbar = document.getElementById('movieCount');
         const countDisplay = document.getElementById('movieCountDisplay');
 
         trackbar.addEventListener('input', function() {
-            countDisplay.textContent = `${this.value} Film`;
+            countDisplay.textContent = `${this.value} {{ translations.films }}`;
         });
 
         document.getElementById('moviePickerForm').addEventListener('submit', function(e) {
@@ -174,6 +173,4 @@
             });
         });
     </script>
-</body>
-</html>
-
+{% endblock %}

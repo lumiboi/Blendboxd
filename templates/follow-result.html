@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonuçlar</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+
+{% block title %}{{ username }}'nin {{ translations.follower_status }}{% endblock %}
+
+{% block extra_head %}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -63,11 +59,6 @@
         a:hover {
             text-decoration: underline;
         }
-        .language-select {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
         #loading {
             display: none;
             position: fixed;
@@ -98,19 +89,13 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="language-select">
-        <label for="language">Dil Seçin: / Select Language: </label>
-        <select id="language" onchange="changeLanguage()">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-        </select>
-    </div>
+{% endblock %}
+
+{% block content %}
     <div class="container">
        
-        <h1 data-tr="{{ username }}'nin Takipçi Durumu" data-en="{{ username }}'s Follower Status"></h1>
-        <h2 data-tr="Seni Takip Etmeyen Şeref Yoksunları:" data-en="People Not Following You:"></h2>
+        <h1>{{ username }}'nin {{ translations.follower_status }}</h1>
+        <h2>{{ translations.people_not_following }}</h2>
         <ul>
             {% if difference_list %}
                 {% for user in difference_list %}
@@ -119,36 +104,24 @@
                     </li>
                 {% endfor %}
             {% else %}
-                <li data-tr="0 kişi" data-en="0 people"></li>
+                <li>{{ translations.zero_people }}</li>
             {% endif %}
         </ul>
-        <a href="/follow"><span data-tr="Yeni bir kullanıcı adı gir" data-en="Enter a new username"></span></a> <br>
-        <a href="/"><span data-tr="Ana Sayfa" data-en="Main Page"></span></a>
+        <a href="/follow"><span>{{ translations.enter_new_username }}</span></a> <br>
+        <a href="/"><span>{{ translations.main_page }}</span></a>
     </div>
     <div id="loading">
-        <div data-tr="Yükleniyordur... (İşlem biraz zaman alabilirdir.)" data-en="Loading...(The process may take some time.)"></div>
+        <div>{{ translations.loading }}</div>
     </div>
     <footer>
         <p>Bütün hakları Mert Ergün'e aittir ha. Şaka şaka hak mak yok ama uğraştık o kadar çalmayın.</p>
     </footer>
+{% endblock %}
 
+{% block extra_scripts %}
     <script>
         function showLoading() {
             document.getElementById("loading").style.display = "flex";
         }
-
-        function changeLanguage() {
-            const lang = document.getElementById("language").value;
-            const elements = document.querySelectorAll('[data-tr], [data-en]');
-            elements.forEach(el => {
-                el.textContent = el.getAttribute(`data-${lang}`);
-            });
-        }
-
-        // Sayfa yüklendiğinde varsayılan dili ayarla
-        window.onload = function() {
-            changeLanguage();
-        };
     </script>
-</body>
-</html>
+{% endblock %}
