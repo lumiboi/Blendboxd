@@ -4,10 +4,6 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
-import letterboxdpy
-import concurrent.futures
-import threading
-from functools import lru_cache
 
 try:
     import cloudscraper
@@ -22,7 +18,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
 
 if not TMDB_API_KEY:
-    TMDB_API_KEY = "dummy_key"  # Use dummy key if not set
+    raise ValueError("TMDB_API_KEY environment variable is not set!")
     
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -109,31 +105,7 @@ def get_translations():
             'language': 'Language: English',
             'support_title': 'Support This Project',
             'support_text': 'This Python-based project runs on Railway (paid hosting). Help us keep it alive!',
-            'support_button': 'Support on Patreon',
-            'matchboxd': 'Matchboxd',
-            'matchboxd_description': 'Discover your perfect movie soulmates! Find users who share your taste in cinema.',
-            'matchboxd_explanation': 'Enter your Letterboxd username and we\'ll scan the platform to find users with the most similar movie preferences. The algorithm analyzes your watched films and matches you with people who have the highest compatibility score.',
-            'enter_username_matchboxd': 'Your Letterboxd Username',
-            'find_matches': 'Find My Matches',
-            'matchboxd_results': 'Your Perfect Matches',
-            'movie_soulmates': 'Your Movie Soulmates',
-            'compatibility_score': 'Match Score',
-            'shared_movies': 'Shared Movies',
-            'shared_favorites': 'Shared Favorites',
-            'total_movies': 'Total Movies',
-            'total_favorites': 'Total Favorites',
-            'no_movies_found': 'Couldn\'t find any movies for this user',
-            'no_matches_found': 'No matches found',
-            'processing': 'Scanning Letterboxd for your perfect matches...',
-            'view_profile': 'Visit Profile',
-            'match_explanation': 'Higher scores mean more shared movie taste!',
-            'favorites_weight': 'Favorites are weighted more heavily in matching!',
-            'smart_analysis': 'Smart Analysis',
-            'genre_match': 'Genre Match',
-            'era_match': 'Era Match',
-            'director_match': 'Director Match',
-            'rating_match': 'Rating Match',
-            'analysis_explanation': 'Our smart algorithm finds users with similar favorite movies and movie taste patterns!'
+            'support_button': 'Support on Patreon'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -189,31 +161,7 @@ def get_translations():
             'language': 'Dil: Türkçe',
             'support_title': 'Bu Projeyi Destekle',
             'support_text': 'Bu Python tabanlı proje Railway\'de (ücretli hosting) çalışıyor. Hayatta kalması için destek ol!',
-            'support_button': 'Patreon\'da Destekle',
-            'matchboxd': 'Matchboxd',
-            'matchboxd_description': 'Mükemmel sinema ruh eşlerinizi keşfedin! Film zevkinizi paylaşan kullanıcıları bulun.',
-            'matchboxd_explanation': 'Letterboxd kullanıcı adınızı girin, platformu tarayıp en benzer film tercihlerine sahip kullanıcıları bulalım. Algoritma izlediğiniz filmleri analiz ederek en yüksek uyumluluk skoruna sahip kişilerle eşleştirir.',
-            'enter_username_matchboxd': 'Letterboxd Kullanıcı Adınız',
-            'find_matches': 'Eşleşmelerimi Bul',
-            'matchboxd_results': 'Mükemmel Eşleşmeleriniz',
-            'movie_soulmates': 'Sinema Ruh Eşleriniz',
-            'compatibility_score': 'Eşleşme Skoru',
-            'shared_movies': 'Ortak Filmler',
-            'shared_favorites': 'Ortak Favoriler',
-            'total_movies': 'Toplam Film',
-            'total_favorites': 'Toplam Favori',
-            'no_movies_found': 'Bu kullanıcı için film bulunamadı',
-            'no_matches_found': 'Eşleşme bulunamadı',
-            'processing': 'Letterboxd\'de mükemmel eşleşmeleriniz aranıyor...',
-            'view_profile': 'Profili Ziyaret Et',
-            'match_explanation': 'Yüksek skorlar daha fazla ortak film zevki demek!',
-            'favorites_weight': 'Favori filmler eşleşmede daha ağırlıklı!',
-            'smart_analysis': 'Akıllı Analiz',
-            'genre_match': 'Tür Eşleşmesi',
-            'era_match': 'Dönem Eşleşmesi',
-            'director_match': 'Yönetmen Eşleşmesi',
-            'rating_match': 'Puan Eşleşmesi',
-            'analysis_explanation': 'Akıllı algoritmamız benzer favori filmleri ve film zevki kalıplarını buluyor!'
+            'support_button': 'Patreon\'da Destekle'
         }
     }
     return translations[lang]
@@ -254,40 +202,21 @@ def extract_movies_from_soup(soup):
             if t and t not in seen: seen.add(t); titles.append(t)
     return titles
 
-@lru_cache(maxsize=1000)
 def get_watched_movies(username):
-    """Get user's watched movies using letterboxdpy API - CACHED for speed"""
-    try:
-        # Use letterboxdpy to get user's watched movies
-        user_data = letterboxdpy.user.get_user(username)
-        if user_data and 'watched' in user_data:
-            movies = []
-            for movie in user_data['watched']:
-                if 'title' in movie:
-                    movies.append(movie['title'])
-            return tuple(movies)  # Convert to tuple for caching
-    except Exception as e:
-        if DEBUG: print(f"Error getting watched movies via API for {username}: {e}")
-    
-    # Fallback to scraping if API fails
-    try:
-        username = username.strip().lower()
-        collected, seen = [], set()
-        page = 1
-        while True:
-            url = f"https://letterboxd.com/{username}/films/page/{page}/"
-            status, html = fetch_html(url)
-            if status != 200 or not html: break
-            soup = BeautifulSoup(html, "lxml")
-            for t in extract_movies_from_soup(soup):
-                if t not in seen: seen.add(t); collected.append(t)
-            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
-            page += 1
-            if page > 50: break
-        return tuple(collected)  # Convert to tuple for caching
-    except Exception as e:
-        if DEBUG: print(f"Error getting watched movies via scraping for {username}: {e}")
-        return tuple()
+    username = username.strip().lower()
+    collected, seen = [], set()
+    page = 1
+    while True:
+        url = f"https://letterboxd.com/{username}/films/page/{page}/"
+        status, html = fetch_html(url)
+        if status != 200 or not html: break
+        soup = BeautifulSoup(html, "lxml")
+        for t in extract_movies_from_soup(soup):
+            if t not in seen: seen.add(t); collected.append(t)
+        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+        page += 1
+        if page > 50: break
+    return collected
 
 def get_watchlist(username):
     username = username.strip().lower()
@@ -304,209 +233,6 @@ def get_watchlist(username):
         page += 1
         if page > 50: break
     return collected
-
-@lru_cache(maxsize=1000)
-def get_favorite_movies(username):
-    """Get user's favorite movies - WORKING VERSION"""
-    try:
-        if DEBUG: print(f"🔍 Getting favorites for {username}...")
-        
-        # Try letterboxdpy first
-        try:
-            from letterboxdpy import user
-            lb_user = user.User(username)
-            favorites = lb_user.get_favorite_films()
-            if favorites:
-                if DEBUG: print(f"✅ letterboxdpy: Got {len(favorites)} favorites for {username}: {favorites[:3]}...")
-                return tuple(favorites)  # Convert to tuple for caching
-            else:
-                if DEBUG: print(f"❌ letterboxdpy: No favorites found for {username}")
-        except Exception as e:
-            if DEBUG: print(f"❌ letterboxdpy failed for {username}: {e}")
-        
-        # Fallback to scraping - WORKING VERSION
-        if DEBUG: print(f"🔄 Trying scraping for {username}...")
-        username = username.strip().lower()
-        favorites = []
-        
-        # Try different URL patterns - FAVORITES ON MAIN PROFILE
-        urls_to_try = [
-            f"https://letterboxd.com/{username}/",  # Main profile page - FAVORITES HERE!
-        ]
-        
-        for url in urls_to_try:
-            if DEBUG: print(f"🔄 Trying URL: {url}")
-            status, html = fetch_html(url)
-            if status == 200 and html:
-                soup = BeautifulSoup(html, "lxml")
-                
-                # FAVORITE FILMS SELECTOR - Look for favorite films section
-                if DEBUG: print("Looking for favorite films section...")
-                
-                # Look for "Favorite films" section
-                favorite_section = soup.find('h2', string='Favorite films')
-                if favorite_section:
-                    if DEBUG: print("Found 'Favorite films' section!")
-                    # Find the next sibling with film posters
-                    next_section = favorite_section.find_next_sibling()
-                    if next_section:
-                        # Look for film posters in this section
-                        film_posters = next_section.select('.film-poster')
-                        if DEBUG: print(f"Found {len(film_posters)} favorite film posters")
-                        
-                        for poster in film_posters:
-                            # Get film title from img alt attribute
-                            img = poster.find('img')
-                            if img:
-                                title = img.get('alt', '').strip()
-                                if title and len(title) > 2:
-                                    favorites.append(title)
-                                    if DEBUG: print(f"Added favorite: {title}")
-                                else:
-                                    if DEBUG: print(f"No alt text found for img: {img}")
-                            else:
-                                if DEBUG: print(f"No img found in poster: {poster}")
-                else:
-                    if DEBUG: print("No 'Favorite films' section found")
-                
-                if favorites:
-                    if DEBUG: print(f"✅ Found {len(favorites)} favorites: {favorites[:3]}")
-                    break
-            else:
-                if DEBUG: print(f"❌ URL failed: {url} (status: {status})")
-        
-        if DEBUG: print(f"✅ Final result: {len(favorites)} favorites for {username}: {favorites[:3]}...")
-        return tuple(favorites) if favorites else tuple()  # Convert to tuple for caching
-    except Exception as e:
-        if DEBUG: print(f"❌ Error getting favorites for {username}: {e}")
-        return tuple()
-
-def discover_letterboxd_users(user_favorites):
-    """Find users from ENTIRE Letterboxd - REAL CRAWL"""
-    users = set()
-    
-    try:
-        if DEBUG: print(f"🚀 CRAWLING ENTIRE LETTERBOXD for users with favorites: {user_favorites}")
-        
-        # METHOD 1: Search for users with SAME favorite films - REAL SEARCH API
-        if user_favorites:
-            if DEBUG: print("🔍 Searching users with SAME favorite films using REAL search API...")
-            for fav in user_favorites:
-                try:
-                    film_slug = fav.lower().replace(" ", "-").replace(":", "").replace("'", "").replace("!", "").replace("?", "").replace(".", "").replace(",", "")
-                    search_query = f"fan:{film_slug}"
-                    if DEBUG: print(f"Searching: {search_query}")
-                    
-                    # REAL LETTERBOXD SEARCH API - NO MEMBERS/ NEEDED!
-                    url = f"https://letterboxd.com/search/fan:+{film_slug}"
-                    status, html = fetch_html(url)
-                    if status == 200 and html:
-                        soup = BeautifulSoup(html, "lxml")
-                        # Look for user profile links in search results
-                        user_links = soup.select("a[href^='/']")
-                        for link in user_links:
-                            href = link.get('href', '')
-                            if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/') and not href.startswith('/search/') and not href.startswith('/journal/'):
-                                username = href.strip('/').split('/')[0]
-                                if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films', 'search', 'journal', 'about', 'pro', 'news', 'apps', 'podcast', 'help', 'terms', 'api', 'contact']:
-                                    users.add(username)
-                        if DEBUG: print(f"Found {len(users)} users for {fav}")
-                except Exception as e:
-                    if DEBUG: print(f"Error searching {fav}: {e}")
-                    continue
-        
-        # METHOD 2: ULTRA FAST - ONLY 3 PAGES!
-        if DEBUG: print("🌍 ULTRA FAST: Only 3 pages...")
-        for page in range(1, 4):  # ONLY 3 PAGES = 60+ users - ULTRA FAST!
-            try:
-                url = f"https://letterboxd.com/members/page/{page}/"
-                status, html = fetch_html(url)
-                if status == 200 and html:
-                    soup = BeautifulSoup(html, "lxml")
-                    user_links = soup.select("a[href^='/']")
-                    for link in user_links:
-                        href = link.get('href', '')
-                        if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
-                            username = href.strip('/').split('/')[0]
-                            if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
-                                users.add(username)
-                if DEBUG and page % 5 == 0:
-                    print(f"🌍 Crawled {page} pages, found {len(users)} users")
-            except Exception as e:
-                if DEBUG: print(f"Error on page {page}: {e}")
-                continue
-        
-        # METHOD 3: SKIP POPULAR FILMS - TOO SLOW!
-        if DEBUG: print("🎬 SKIPPING popular films - TOO SLOW!")
-        # popular_films = []  # SKIP FOR SPEED!
-        
-        # SKIP POPULAR FILMS - TOO SLOW!
-        
-    except Exception as e:
-        if DEBUG: print(f"Error in discover_letterboxd_users: {e}")
-    
-    user_list = list(users)
-    if DEBUG: print(f"🎯 FINAL: Found {len(user_list)} users from ENTIRE Letterboxd platform!")
-    return user_list
-
-def check_user_favorites(username, user_favorites):
-    """Check if user has common favorites - for parallel processing"""
-    try:
-        other_favorites = get_favorite_movies(username)
-        if other_favorites:
-            common = list(set(user_favorites) & set(other_favorites))
-            if common:  # If they have ANY common favorites
-                return {
-                    'username': username,
-                    'common_favorites': common,
-                    'total_favorites': len(other_favorites)
-                }
-    except Exception as e:
-        if DEBUG: print(f"Error getting favorites for {username}: {e}")
-    return None
-
-def find_users_with_common_favorites(user_favorites, all_users):
-    """Find users with common favorites - REAL VERIFICATION"""
-    if not user_favorites:
-        return []
-    
-    users_with_common = []
-    
-    if DEBUG: print(f"VERIFYING {len(all_users)} users for common favorites...")
-    
-    # Check each user for REAL common favorites - ULTRA FAST!
-    for username in all_users[:10]:  # MAX 10 USERS FOR ULTRA SPEED!
-        try:
-            other_favorites = get_favorite_movies(username)
-            if other_favorites:
-                # Convert to sets for comparison
-                user_fav_set = set(user_favorites)
-                other_fav_set = set(other_favorites)
-                
-                # Find REAL common favorites
-                common = list(user_fav_set & other_fav_set)
-                if common:  # If they have ANY common favorites
-                    users_with_common.append({
-                        'username': username,
-                        'common_favorites': common,
-                        'total_favorites': len(other_favorites)
-                    })
-                    if DEBUG:
-                        print(f"✅ FOUND COMMON FAVORITES with {username}: {common}")
-                    
-                    # Stop after finding 10 users with common favorites
-                    if len(users_with_common) >= 10:
-                        break
-                else:
-                    if DEBUG: print(f"❌ No common favorites with {username}")
-        except Exception as e:
-            if DEBUG: print(f"Error getting favorites for {username}: {e}")
-            continue
-    
-    # Sort by number of common favorites
-    users_with_common.sort(key=lambda x: len(x['common_favorites']), reverse=True)
-    if DEBUG: print(f"FINAL: Found {len(users_with_common)} users with REAL common favorites!")
-    return users_with_common
 
 def get_follow_data(username):
     username = username.strip().lower()
@@ -538,154 +264,6 @@ def calculate_compatibility(u1, u2, common):
     if total==0 or not common: return 0
     c=len(common)
     return min(100, (2*c/total)*100 if c<=5 else 50+(2*c/total)*100)
-
-def get_movie_details(movie_title):
-    """Get detailed movie information from TMDb"""
-    try:
-        if not TMDB_API_KEY or TMDB_API_KEY == "test":
-            return None
-        
-        # Search for movie
-        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_title}"
-        response = requests.get(search_url, timeout=10)
-        if response.status_code != 200:
-            return None
-        
-        data = response.json()
-        if not data.get('results'):
-            return None
-        
-        movie = data['results'][0]
-        movie_id = movie['id']
-        
-        # Get detailed info
-        details_url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}"
-        details_response = requests.get(details_url, timeout=10)
-        if details_response.status_code != 200:
-            return None
-        
-        return details_response.json()
-    except:
-        return None
-
-def analyze_movie_preferences(movies, favorites):
-    """Analyze user's movie preferences in detail"""
-    all_movies = movies + favorites
-    if not all_movies:
-        return {}
-    
-    # Get movie details for analysis
-    movie_details = []
-    for movie in all_movies[:50]:  # Limit for performance
-        details = get_movie_details(movie)
-        if details:
-            movie_details.append(details)
-    
-    if not movie_details:
-        return {}
-    
-    # Analyze genres
-    genre_counts = {}
-    for movie in movie_details:
-        for genre in movie.get('genres', []):
-            genre_name = genre['name']
-            genre_counts[genre_name] = genre_counts.get(genre_name, 0) + 1
-    
-    # Analyze decades
-    decade_counts = {}
-    for movie in movie_details:
-        year = movie.get('release_date', '')[:4]
-        if year and year.isdigit():
-            decade = f"{year[:3]}0s"
-            decade_counts[decade] = decade_counts.get(decade, 0) + 1
-    
-    # Analyze directors
-    director_counts = {}
-    for movie in movie_details:
-        # Get director from credits
-        try:
-            credits_url = f"https://api.themoviedb.org/3/movie/{movie['id']}/credits?api_key={TMDB_API_KEY}"
-            credits_response = requests.get(credits_url, timeout=5)
-            if credits_response.status_code == 200:
-                credits = credits_response.json()
-                for person in credits.get('crew', []):
-                    if person.get('job') == 'Director':
-                        director_name = person['name']
-                        director_counts[director_name] = director_counts.get(director_name, 0) + 1
-                        break
-        except:
-            continue
-    
-    # Analyze ratings (if available)
-    ratings = [movie.get('vote_average', 0) for movie in movie_details if movie.get('vote_average', 0) > 0]
-    avg_rating = sum(ratings) / len(ratings) if ratings else 0
-    
-    return {
-        'genres': genre_counts,
-        'decades': decade_counts,
-        'directors': director_counts,
-        'avg_rating': avg_rating,
-        'total_analyzed': len(movie_details)
-    }
-
-def calculate_fast_smart_compatibility(user_movies, user_favorites, other_movies, other_favorites):
-    """Fast and smart compatibility using only Letterboxd data"""
-    
-    # Basic movie overlap
-    common_watched = list(set(user_movies) & set(other_movies))
-    common_favorites = list(set(user_favorites) & set(other_favorites))
-    
-    # Calculate basic overlap score
-    overlap_score = calculate_compatibility(user_movies, other_movies, common_watched)
-    
-    # Favorites bonus - this is the key!
-    favorites_bonus = 0
-    if user_favorites and other_favorites:
-        # If they have ANY common favorites, give huge bonus
-        if common_favorites:
-            favorites_bonus = min(50, len(common_favorites) * 10)  # Up to 50% bonus
-        else:
-            # Even if no common favorites, check if they have similar favorite patterns
-            # (both like similar types of movies based on titles)
-            user_fav_titles = [fav.lower() for fav in user_favorites]
-            other_fav_titles = [fav.lower() for fav in other_favorites]
-            
-            # Simple keyword matching for similar taste
-            user_keywords = set()
-            other_keywords = set()
-            
-            for title in user_fav_titles:
-                words = title.split()
-                for word in words:
-                    if len(word) > 3:  # Only meaningful words
-                        user_keywords.add(word)
-            
-            for title in other_fav_titles:
-                words = title.split()
-                for word in words:
-                    if len(word) > 3:
-                        other_keywords.add(word)
-            
-            if user_keywords and other_keywords:
-                common_keywords = user_keywords & other_keywords
-                keyword_similarity = len(common_keywords) / max(len(user_keywords), len(other_keywords))
-                favorites_bonus = keyword_similarity * 30  # Up to 30% bonus for similar taste
-    
-    # Calculate final score
-    final_score = overlap_score + favorites_bonus
-    final_score = min(100, final_score)  # Cap at 100%
-    
-    return {
-        'compatibility': round(final_score, 1),
-        'common_watched': len(common_watched),
-        'common_favorites': len(common_favorites),
-        'total_watched': len(user_movies),
-        'total_other_watched': len(other_movies),
-        'total_favorites': len(user_favorites),
-        'total_other_favorites': len(other_favorites),
-        'favorites_bonus': round(favorites_bonus, 1),
-        'analysis_type': 'fast_smart'
-    }
 
 def get_recommendations(common):
     recs=[]
@@ -768,103 +346,6 @@ def follow_index():
         diff_list=[{"username":x,"display_name":nmap.get(x,x)} for x in diff]
         return render_template("follow-result.html",username=u,difference_list=diff_list,translations=get_translations(),current_lang=get_current_language())
     return render_template("followerboxd.html",translations=get_translations(),current_lang=get_current_language())
-
-@app.route("/matchboxd",methods=["GET","POST"])
-def matchboxd():
-    if request.method=="POST":
-        username=request.form["username"].lower()
-        try:
-            # Get user's watched movies and favorites
-            user_movies = get_watched_movies(username)
-            user_favorites = get_favorite_movies(username)
-            if not user_movies:
-                return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
-            
-            # REAL SEARCH - BASED ON USER'S ACTUAL FAVORITES
-            if DEBUG: print("Starting REAL search based on user's ACTUAL favorites...")
-            all_users = discover_letterboxd_users(user_favorites)
-            if DEBUG: print(f"Found {len(all_users)} users based on user's ACTUAL favorites")
-            
-            # REAL CRAWL - NO LIMITS!
-            if DEBUG: print(f"🚀 Using {len(all_users)} users from ENTIRE Letterboxd platform!")
-            
-            compatibility_list = []
-            
-            # SIMPLE search for common favorites
-            if user_favorites:
-                if DEBUG: print("Searching for users with common favorites...")
-                users_with_common_favorites = find_users_with_common_favorites(user_favorites, all_users)
-                if DEBUG: print(f"Found {len(users_with_common_favorites)} users with common favorites")
-                
-                # Process users with common favorites
-                for user_data in users_with_common_favorites:
-                    try:
-                        other_username = user_data['username']
-                        other_movies = get_watched_movies(other_username)
-                        
-                        if other_movies:
-                            common_watched = list(set(user_movies) & set(other_movies))
-                            common_favorites = user_data['common_favorites']
-                            
-                            # Calculate compatibility with REAL common favorites
-                            base_score = calculate_compatibility(user_movies, other_movies, common_watched)
-                            favorites_bonus = len(common_favorites) * 25  # Higher bonus for real favorites
-                            favorites_bonus = min(90, favorites_bonus)  # Higher max bonus
-                            final_score = min(100, base_score + favorites_bonus)
-                            
-                            if DEBUG: print(f"✅ {other_username}: {len(common_favorites)} common favorites, {len(common_watched)} common watched, score: {final_score}")
-                            
-                            compatibility_list.append({
-                                "username": other_username,
-                                "display_name": other_username.title().replace('_', ' '),
-                                "compatibility": round(final_score, 1),
-                                "common_watched": len(common_watched),
-                                "common_favorites": len(common_favorites),
-                                "total_movies": len(other_movies),
-                                "total_favorites": user_data['total_favorites'],
-                                "favorites_bonus": round(favorites_bonus, 1),
-                                "analysis_type": "real_favorites_match"
-                            })
-                    except Exception as e:
-                        if DEBUG: print(f"Error processing {other_username}: {e}")
-                        continue
-            
-            # Add some regular matches if needed
-            if len(compatibility_list) < 5:
-                if DEBUG: print("Adding regular matches...")
-                for other_username in all_users[:5]:  # ONLY first 5 for ULTRA SPEED!
-                    try:
-                        other_movies = get_watched_movies(other_username)
-                        other_favorites = get_favorite_movies(other_username)
-                        
-                        if other_movies:
-                            compatibility_data = calculate_fast_smart_compatibility(
-                                user_movies, user_favorites, other_movies, other_favorites
-                            )
-                            compatibility_list.append({
-                                "username": other_username,
-                                "display_name": other_username.title().replace('_', ' '),
-                                "compatibility": compatibility_data['compatibility'],
-                                "common_watched": compatibility_data['common_watched'],
-                                "common_favorites": compatibility_data['common_favorites'],
-                                "total_movies": compatibility_data['total_other_watched'],
-                                "total_favorites": compatibility_data['total_other_favorites'],
-                                "favorites_bonus": compatibility_data.get('favorites_bonus', 0),
-                                "analysis_type": "regular_match"
-                            })
-                    except Exception as e:
-                        if DEBUG: print(f"Error processing {other_username}: {e}")
-                        continue
-            
-            # Sort by compatibility and filter out very low matches
-            compatibility_list.sort(key=lambda x: x["compatibility"], reverse=True)
-            compatibility_list = [user for user in compatibility_list if user["compatibility"] > 5]  # Only show matches above 5%
-            
-            return render_template("matchboxd.html",username=username,compatibility_list=compatibility_list,translations=get_translations(),current_lang=get_current_language())
-        except Exception as e:
-            return render_template("matchboxd.html",error=str(e),translations=get_translations(),current_lang=get_current_language())
-    
-    return render_template("matchboxd.html",translations=get_translations(),current_lang=get_current_language())
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=True)
