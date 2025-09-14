@@ -4,7 +4,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
-from letterboxdpy import user, film, list as letterboxd_list
+import letterboxdpy
 
 try:
     import cloudscraper
@@ -255,7 +255,7 @@ def get_watched_movies(username):
     """Get user's watched movies using letterboxdpy API"""
     try:
         # Use letterboxdpy to get user's watched movies
-        user_data = user.get_user(username)
+        user_data = letterboxdpy.user.get_user(username)
         if user_data and 'watched' in user_data:
             movies = []
             for movie in user_data['watched']:
@@ -305,7 +305,7 @@ def get_favorite_movies(username):
     """Get user's favorite movies using letterboxdpy API"""
     try:
         # Use letterboxdpy to get user's favorite movies
-        user_data = user.get_user(username)
+        user_data = letterboxdpy.user.get_user(username)
         if user_data and 'favorites' in user_data:
             favorites = []
             for fav in user_data['favorites']:
@@ -353,10 +353,10 @@ def discover_letterboxd_users():
         for film_slug in popular_films:
             try:
                 # Get film data using letterboxdpy
-                film_data = film.get_film(film_slug)
+                film_data = letterboxdpy.film.get_film(film_slug)
                 if film_data:
                     # Get users who reviewed this film
-                    reviews = film.get_film_reviews(film_slug)
+                    reviews = letterboxdpy.film.get_film_reviews(film_slug)
                     if reviews:
                         for review in reviews:
                             if 'user' in review and 'username' in review['user']:
@@ -374,10 +374,10 @@ def discover_letterboxd_users():
         for list_slug in popular_lists:
             try:
                 # Get list data using letterboxdpy
-                list_data = letterboxd_list.get_list(list_slug)
+                list_data = letterboxdpy.list.get_list(list_slug)
                 if list_data:
                     # Get users who liked this list
-                    likes = letterboxd_list.get_list_likes(list_slug)
+                    likes = letterboxdpy.list.get_list_likes(list_slug)
                     if likes:
                         for like in likes:
                             if 'user' in like and 'username' in like['user']:
@@ -388,12 +388,12 @@ def discover_letterboxd_users():
         
         # Method 3: Get users from trending films
         try:
-            trending_films = film.get_trending_films()
+            trending_films = letterboxdpy.film.get_trending_films()
             if trending_films:
                 for film_item in trending_films[:30]:  # First 30 trending
                     if 'slug' in film_item:
                         try:
-                            reviews = film.get_film_reviews(film_item['slug'])
+                            reviews = letterboxdpy.film.get_film_reviews(film_item['slug'])
                             if reviews:
                                 for review in reviews:
                                     if 'user' in review and 'username' in review['user']:
@@ -406,7 +406,7 @@ def discover_letterboxd_users():
         # Method 4: Get users from recent activity
         try:
             # Get recent reviews from popular films
-            recent_reviews = film.get_recent_reviews()
+            recent_reviews = letterboxdpy.film.get_recent_reviews()
             if recent_reviews:
                 for review in recent_reviews:
                     if 'user' in review and 'username' in review['user']:
