@@ -4,6 +4,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
+from letterboxdpy import user, film, list as letterboxd_list
 
 try:
     import cloudscraper
@@ -251,20 +252,38 @@ def extract_movies_from_soup(soup):
     return titles
 
 def get_watched_movies(username):
-    username = username.strip().lower()
-    collected, seen = [], set()
-    page = 1
-    while True:
-        url = f"https://letterboxd.com/{username}/films/page/{page}/"
-        status, html = fetch_html(url)
-        if status != 200 or not html: break
-        soup = BeautifulSoup(html, "lxml")
-        for t in extract_movies_from_soup(soup):
-            if t not in seen: seen.add(t); collected.append(t)
-        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
-        page += 1
-        if page > 50: break
-    return collected
+    """Get user's watched movies using letterboxdpy API"""
+    try:
+        # Use letterboxdpy to get user's watched movies
+        user_data = user.get_user(username)
+        if user_data and 'watched' in user_data:
+            movies = []
+            for movie in user_data['watched']:
+                if 'title' in movie:
+                    movies.append(movie['title'])
+            return movies
+    except Exception as e:
+        if DEBUG: print(f"Error getting watched movies via API for {username}: {e}")
+    
+    # Fallback to scraping if API fails
+    try:
+        username = username.strip().lower()
+        collected, seen = [], set()
+        page = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/films/page/{page}/"
+            status, html = fetch_html(url)
+            if status != 200 or not html: break
+            soup = BeautifulSoup(html, "lxml")
+            for t in extract_movies_from_soup(soup):
+                if t not in seen: seen.add(t); collected.append(t)
+            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+            page += 1
+            if page > 50: break
+        return collected
+    except Exception as e:
+        if DEBUG: print(f"Error getting watched movies via scraping for {username}: {e}")
+        return []
 
 def get_watchlist(username):
     username = username.strip().lower()
@@ -283,123 +302,142 @@ def get_watchlist(username):
     return collected
 
 def get_favorite_movies(username):
-    """Get user's favorite movies from their favorites page"""
-    username = username.strip().lower()
-    favorites = []
-    page = 1
-    while True:
-        url = f"https://letterboxd.com/{username}/favourites/page/{page}/"
-        status, html = fetch_html(url)
-        if status != 200 or not html: break
-        soup = BeautifulSoup(html, "lxml")
-        movies = extract_movies_from_soup(soup)
-        if not movies: break
-        favorites.extend(movies)
-        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
-        page += 1
-        if page > 10: break  # Limit to first 10 pages for performance
-    return favorites
+    """Get user's favorite movies using letterboxdpy API"""
+    try:
+        # Use letterboxdpy to get user's favorite movies
+        user_data = user.get_user(username)
+        if user_data and 'favorites' in user_data:
+            favorites = []
+            for fav in user_data['favorites']:
+                if 'title' in fav:
+                    favorites.append(fav['title'])
+            return favorites
+    except Exception as e:
+        if DEBUG: print(f"Error getting favorites via API for {username}: {e}")
+    
+    # Fallback to scraping if API fails
+    try:
+        username = username.strip().lower()
+        favorites = []
+        page = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/favourites/page/{page}/"
+            status, html = fetch_html(url)
+            if status != 200 or not html: break
+            soup = BeautifulSoup(html, "lxml")
+            movies = extract_movies_from_soup(soup)
+            if not movies: break
+            favorites.extend(movies)
+            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+            page += 1
+            if page > 10: break  # Limit to first 10 pages for performance
+        return favorites
+    except Exception as e:
+        if DEBUG: print(f"Error getting favorites via scraping for {username}: {e}")
+        return []
 
 def discover_letterboxd_users():
-    """Discover real Letterboxd users by crawling the entire platform"""
+    """Discover ALL Letterboxd users using letterboxdpy API"""
     users = set()
     
-    # Method 1: Crawl members directory pages
-    for page in range(1, 21):  # First 20 pages of members
-        try:
-            url = f"https://letterboxd.com/members/page/{page}/"
-            status, html = fetch_html(url)
-            if status == 200 and html:
-                soup = BeautifulSoup(html, "lxml")
-                # Find user profile links
-                user_links = soup.select("a[href^='/']")
-                for link in user_links:
-                    href = link.get('href', '')
-                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
-                        username = href.strip('/').split('/')[0]
-                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
-                            users.add(username)
-        except:
-            continue
-    
-    # Method 2: Crawl recent activity for active users
-    for page in range(1, 11):  # First 10 pages of activity
-        try:
-            url = f"https://letterboxd.com/activity/page/{page}/"
-            status, html = fetch_html(url)
-            if status == 200 and html:
-                soup = BeautifulSoup(html, "lxml")
-                user_links = soup.select("a[href^='/']")
-                for link in user_links:
-                    href = link.get('href', '')
-                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/'):
-                        username = href.strip('/').split('/')[0]
-                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members']:
-                            users.add(username)
-        except:
-            continue
-    
-    # Method 3: Crawl popular films for users who reviewed them
-    popular_films = [
-        "https://letterboxd.com/film/the-godfather/",
-        "https://letterboxd.com/film/pulp-fiction/",
-        "https://letterboxd.com/film/the-dark-knight/",
-        "https://letterboxd.com/film/inception/",
-        "https://letterboxd.com/film/fight-club/",
-        "https://letterboxd.com/film/the-matrix/",
-        "https://letterboxd.com/film/goodfellas/",
-        "https://letterboxd.com/film/forrest-gump/",
-        "https://letterboxd.com/film/the-shawshank-redemption/",
-        "https://letterboxd.com/film/star-wars/"
-    ]
-    
-    for film_url in popular_films:
-        try:
-            # Get reviews page
-            reviews_url = film_url + "reviews/"
-            status, html = fetch_html(reviews_url)
-            if status == 200 and html:
-                soup = BeautifulSoup(html, "lxml")
-                user_links = soup.select("a[href^='/']")
-                for link in user_links:
-                    href = link.get('href', '')
-                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/'):
-                        username = href.strip('/').split('/')[0]
-                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews']:
-                            users.add(username)
-        except:
-            continue
-    
-    # Method 4: Crawl trending films for active users
     try:
-        status, html = fetch_html("https://letterboxd.com/films/trending/")
-        if status == 200 and html:
-            soup = BeautifulSoup(html, "lxml")
-            film_links = soup.select("a[href*='/film/']")
-            for link in film_links[:20]:  # First 20 trending films
-                href = link.get('href', '')
-                if href:
-                    try:
-                        # Get reviews for this film
-                        reviews_url = href + "reviews/"
-                        status2, html2 = fetch_html(reviews_url)
-                        if status2 == 200 and html2:
-                            soup2 = BeautifulSoup(html2, "lxml")
-                            user_links = soup2.select("a[href^='/']")
-                            for user_link in user_links:
-                                user_href = user_link.get('href', '')
-                                if user_href and not user_href.startswith('/film/') and not user_href.startswith('/list/') and not user_href.startswith('/activity/'):
-                                    username = user_href.strip('/').split('/')[0]
-                                    if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews']:
-                                        users.add(username)
-                    except:
-                        continue
-    except:
-        pass
+        # Method 1: Get users from popular films using letterboxdpy
+        popular_films = [
+            "the-godfather", "pulp-fiction", "the-dark-knight", "inception", 
+            "fight-club", "the-matrix", "goodfellas", "forrest-gump", 
+            "the-shawshank-redemption", "star-wars", "the-lord-of-the-rings",
+            "titanic", "avatar", "jaws", "et", "back-to-the-future",
+            "indiana-jones", "terminator", "alien", "blade-runner"
+        ]
+        
+        for film_slug in popular_films:
+            try:
+                # Get film data using letterboxdpy
+                film_data = film.get_film(film_slug)
+                if film_data:
+                    # Get users who reviewed this film
+                    reviews = film.get_film_reviews(film_slug)
+                    if reviews:
+                        for review in reviews:
+                            if 'user' in review and 'username' in review['user']:
+                                users.add(review['user']['username'])
+            except Exception as e:
+                if DEBUG: print(f"Error getting users from film {film_slug}: {e}")
+                continue
+        
+        # Method 2: Get users from popular lists
+        popular_lists = [
+            "imdb-top-250", "sight-and-sound", "afi-100", "criterion-collection",
+            "oscar-winners", "cannes-winners", "berlin-winners", "venice-winners"
+        ]
+        
+        for list_slug in popular_lists:
+            try:
+                # Get list data using letterboxdpy
+                list_data = letterboxd_list.get_list(list_slug)
+                if list_data:
+                    # Get users who liked this list
+                    likes = letterboxd_list.get_list_likes(list_slug)
+                    if likes:
+                        for like in likes:
+                            if 'user' in like and 'username' in like['user']:
+                                users.add(like['user']['username'])
+            except Exception as e:
+                if DEBUG: print(f"Error getting users from list {list_slug}: {e}")
+                continue
+        
+        # Method 3: Get users from trending films
+        try:
+            trending_films = film.get_trending_films()
+            if trending_films:
+                for film_item in trending_films[:30]:  # First 30 trending
+                    if 'slug' in film_item:
+                        try:
+                            reviews = film.get_film_reviews(film_item['slug'])
+                            if reviews:
+                                for review in reviews:
+                                    if 'user' in review and 'username' in review['user']:
+                                        users.add(review['user']['username'])
+                        except:
+                            continue
+        except Exception as e:
+            if DEBUG: print(f"Error getting trending users: {e}")
+        
+        # Method 4: Get users from recent activity
+        try:
+            # Get recent reviews from popular films
+            recent_reviews = film.get_recent_reviews()
+            if recent_reviews:
+                for review in recent_reviews:
+                    if 'user' in review and 'username' in review['user']:
+                        users.add(review['user']['username'])
+        except Exception as e:
+            if DEBUG: print(f"Error getting recent users: {e}")
+        
+        # Method 5: Get users from member directory (fallback to scraping)
+        try:
+            for page in range(1, 51):  # 50 pages of members
+                url = f"https://letterboxd.com/members/page/{page}/"
+                status, html = fetch_html(url)
+                if status == 200 and html:
+                    soup = BeautifulSoup(html, "lxml")
+                    user_links = soup.select("a[href^='/']")
+                    for link in user_links:
+                        href = link.get('href', '')
+                        if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                            username = href.strip('/').split('/')[0]
+                            if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
+                                users.add(username)
+        except Exception as e:
+            if DEBUG: print(f"Error getting members: {e}")
+        
+    except Exception as e:
+        if DEBUG: print(f"Error in discover_letterboxd_users: {e}")
     
     # Convert to list and return
     user_list = list(users)
-    return user_list[:200]  # Return up to 200 users for comprehensive search
+    if DEBUG: print(f"Discovered {len(user_list)} users using letterboxdpy API")
+    return user_list[:500]  # Return up to 500 users for massive search
 
 def find_users_with_common_favorites(user_favorites, all_users):
     """Find users who have common favorites with the given user - MASSIVE SEARCH"""
@@ -705,10 +743,10 @@ def matchboxd():
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
-            # MASSIVE CRAWL: Discover ALL Letterboxd users
-            if DEBUG: print("Starting massive Letterboxd crawl...")
+            # MASSIVE API CRAWL: Discover ALL Letterboxd users using letterboxdpy
+            if DEBUG: print("Starting MASSIVE Letterboxd API crawl...")
             all_users = discover_letterboxd_users()
-            if DEBUG: print(f"Discovered {len(all_users)} users from Letterboxd")
+            if DEBUG: print(f"Discovered {len(all_users)} users from ENTIRE Letterboxd platform")
             
             compatibility_list = []
             
@@ -754,11 +792,11 @@ def matchboxd():
             
             # If we don't have enough matches, search through ALL users for regular matches
             if len(compatibility_list) < 10:
-                if DEBUG: print("Searching for regular matches across all users...")
-                for i, other_username in enumerate(all_users[:100]):  # Check first 100 users
+                if DEBUG: print("Searching for regular matches across ALL Letterboxd users...")
+                for i, other_username in enumerate(all_users[:200]):  # Check first 200 users
                     try:
                         if DEBUG and i % 20 == 0:
-                            print(f"Checking regular match {i+1}/100: {other_username}")
+                            print(f"Checking regular match {i+1}/200: {other_username}")
                         
                         other_movies = get_watched_movies(other_username)
                         other_favorites = get_favorite_movies(other_username)
