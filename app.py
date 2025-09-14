@@ -115,12 +115,15 @@ def get_translations():
             'movie_soulmates': 'Your Movie Soulmates',
             'compatibility_score': 'Match Score',
             'shared_movies': 'Shared Movies',
+            'shared_favorites': 'Shared Favorites',
             'total_movies': 'Total Movies',
+            'total_favorites': 'Total Favorites',
             'no_movies_found': 'Couldn\'t find any movies for this user',
             'no_matches_found': 'No matches found',
             'processing': 'Scanning Letterboxd for your perfect matches...',
             'view_profile': 'Visit Profile',
-            'match_explanation': 'Higher scores mean more shared movie taste!'
+            'match_explanation': 'Higher scores mean more shared movie taste!',
+            'favorites_weight': 'Favorites are weighted more heavily in matching!'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -186,12 +189,15 @@ def get_translations():
             'movie_soulmates': 'Sinema Ruh Eşleriniz',
             'compatibility_score': 'Eşleşme Skoru',
             'shared_movies': 'Ortak Filmler',
+            'shared_favorites': 'Ortak Favoriler',
             'total_movies': 'Toplam Film',
+            'total_favorites': 'Toplam Favori',
             'no_movies_found': 'Bu kullanıcı için film bulunamadı',
             'no_matches_found': 'Eşleşme bulunamadı',
             'processing': 'Letterboxd\'de mükemmel eşleşmeleriniz aranıyor...',
             'view_profile': 'Profili Ziyaret Et',
-            'match_explanation': 'Yüksek skorlar daha fazla ortak film zevki demek!'
+            'match_explanation': 'Yüksek skorlar daha fazla ortak film zevki demek!',
+            'favorites_weight': 'Favori filmler eşleşmede daha ağırlıklı!'
         }
     }
     return translations[lang]
@@ -264,6 +270,24 @@ def get_watchlist(username):
         if page > 50: break
     return collected
 
+def get_favorite_movies(username):
+    """Get user's favorite movies from their favorites page"""
+    username = username.strip().lower()
+    favorites = []
+    page = 1
+    while True:
+        url = f"https://letterboxd.com/{username}/favourites/page/{page}/"
+        status, html = fetch_html(url)
+        if status != 200 or not html: break
+        soup = BeautifulSoup(html, "lxml")
+        movies = extract_movies_from_soup(soup)
+        if not movies: break
+        favorites.extend(movies)
+        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+        page += 1
+        if page > 10: break  # Limit to first 10 pages for performance
+    return favorites
+
 def get_follow_data(username):
     username = username.strip().lower()
     following, followers, name_map = set(), set(), {}
@@ -294,6 +318,34 @@ def calculate_compatibility(u1, u2, common):
     if total==0 or not common: return 0
     c=len(common)
     return min(100, (2*c/total)*100 if c<=5 else 50+(2*c/total)*100)
+
+def calculate_enhanced_compatibility(user_movies, user_favorites, other_movies, other_favorites):
+    """Calculate compatibility including both watched movies and favorites"""
+    # Basic compatibility from watched movies
+    common_watched = list(set(user_movies) & set(other_movies))
+    watched_compatibility = calculate_compatibility(user_movies, other_movies, common_watched)
+    
+    # Favorites compatibility (weighted more heavily)
+    common_favorites = list(set(user_favorites) & set(other_favorites))
+    favorites_compatibility = 0
+    if user_favorites and other_favorites:
+        favorites_compatibility = calculate_compatibility(user_favorites, other_favorites, common_favorites)
+    
+    # Weighted combination: 70% watched movies, 30% favorites
+    if user_favorites and other_favorites:
+        final_score = (watched_compatibility * 0.7) + (favorites_compatibility * 0.3)
+    else:
+        final_score = watched_compatibility
+    
+    return {
+        'compatibility': round(final_score, 1),
+        'common_watched': len(common_watched),
+        'common_favorites': len(common_favorites),
+        'total_watched': len(user_movies),
+        'total_other_watched': len(other_movies),
+        'total_favorites': len(user_favorites),
+        'total_other_favorites': len(other_favorites)
+    }
 
 def get_recommendations(common):
     recs=[]
@@ -382,8 +434,9 @@ def matchboxd():
     if request.method=="POST":
         username=request.form["username"].lower()
         try:
-            # Get user's watched movies
+            # Get user's watched movies and favorites
             user_movies = get_watched_movies(username)
+            user_favorites = get_favorite_movies(username)
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
@@ -406,15 +459,20 @@ def matchboxd():
             for i, other_user in enumerate(sample_users[:30]):  # Check 30 users for better results
                 try:
                     other_movies = get_watched_movies(other_user)
+                    other_favorites = get_favorite_movies(other_user)
                     if other_movies:
-                        common = list(set(user_movies) & set(other_movies))
-                        compatibility = calculate_compatibility(user_movies, other_movies, common)
+                        # Use enhanced compatibility calculation
+                        compatibility_data = calculate_enhanced_compatibility(
+                            user_movies, user_favorites, other_movies, other_favorites
+                        )
                         compatibility_list.append({
                             "username": other_user,
                             "display_name": other_user.title().replace('_', ' '),
-                            "compatibility": round(compatibility, 1),
-                            "common_movies": len(common),
-                            "total_movies": len(other_movies)
+                            "compatibility": compatibility_data['compatibility'],
+                            "common_watched": compatibility_data['common_watched'],
+                            "common_favorites": compatibility_data['common_favorites'],
+                            "total_movies": compatibility_data['total_other_watched'],
+                            "total_favorites": compatibility_data['total_other_favorites']
                         })
                 except Exception as e:
                     if DEBUG: print(f"Error processing {other_user}: {e}")
