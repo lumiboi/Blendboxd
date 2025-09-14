@@ -283,6 +283,17 @@
             font-weight: 600;
         }
 
+        .real-favorites-match h4 {
+            color: #ff6b35 !important;
+            font-weight: 700 !important;
+            text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+
+        .real-favorites-match {
+            border-left-color: #ff6b35 !important;
+            background: rgba(255, 107, 53, 0.1) !important;
+        }
+
         .analysis-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -398,7 +409,21 @@
                                 </div>
                             </div>
                             
-                            {% if user.analysis_type == 'fast_smart' and user.favorites_bonus > 0 %}
+                            {% if user.analysis_type == 'real_favorites_match' %}
+                            <div class="smart-analysis real-favorites-match">
+                                <h4>🎯 REAL FAVORITES MATCH!</h4>
+                                <div class="analysis-stats">
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">Common Favorites</div>
+                                        <div class="analysis-value">{{ user.common_favorites }}</div>
+                                    </div>
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">Favorites Bonus</div>
+                                        <div class="analysis-value">+{{ user.favorites_bonus }}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif user.analysis_type == 'fast_smart' and user.favorites_bonus > 0 %}
                             <div class="smart-analysis">
                                 <h4>{{ translations.smart_analysis }}</h4>
                                 <div class="analysis-stats">
