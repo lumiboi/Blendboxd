@@ -105,7 +105,20 @@ def get_translations():
             'language': 'Language: English',
             'support_title': 'Support This Project',
             'support_text': 'This Python-based project runs on Railway (paid hosting). Help us keep it alive!',
-            'support_button': 'Support on Patreon'
+            'support_button': 'Support on Patreon',
+            'compatibility_finder': 'Compatibility Finder',
+            'compatibility_description': 'Find your most compatible users based on shared movies!',
+            'enter_username_compatibility': 'Enter Letterboxd Username',
+            'find_compatibility': 'Find Compatibility',
+            'compatibility_results': 'Compatibility Results',
+            'most_compatible_users': 'Most Compatible Users',
+            'compatibility_score': 'Compatibility Score',
+            'common_movies': 'Common Movies',
+            'total_movies': 'Total Movies',
+            'no_movies_found': 'No movies found for this user',
+            'no_following_found': 'No following users found',
+            'processing': 'Processing compatibility...',
+            'view_profile': 'View Profile'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -161,7 +174,20 @@ def get_translations():
             'language': 'Dil: Türkçe',
             'support_title': 'Bu Projeyi Destekle',
             'support_text': 'Bu Python tabanlı proje Railway\'de (ücretli hosting) çalışıyor. Hayatta kalması için destek ol!',
-            'support_button': 'Patreon\'da Destekle'
+            'support_button': 'Patreon\'da Destekle',
+            'compatibility_finder': 'Uyumluluk Bulucu',
+            'compatibility_description': 'Ortak filmlerinize göre en uyumlu kullanıcıları bulun!',
+            'enter_username_compatibility': 'Letterboxd Kullanıcı Adı Girin',
+            'find_compatibility': 'Uyumluluğu Bul',
+            'compatibility_results': 'Uyumluluk Sonuçları',
+            'most_compatible_users': 'En Uyumlu Kullanıcılar',
+            'compatibility_score': 'Uyumluluk Skoru',
+            'common_movies': 'Ortak Filmler',
+            'total_movies': 'Toplam Film',
+            'no_movies_found': 'Bu kullanıcı için film bulunamadı',
+            'no_following_found': 'Takip edilen kullanıcı bulunamadı',
+            'processing': 'Uyumluluk işleniyor...',
+            'view_profile': 'Profili Görüntüle'
         }
     }
     return translations[lang]
@@ -346,6 +372,49 @@ def follow_index():
         diff_list=[{"username":x,"display_name":nmap.get(x,x)} for x in diff]
         return render_template("follow-result.html",username=u,difference_list=diff_list,translations=get_translations(),current_lang=get_current_language())
     return render_template("followerboxd.html",translations=get_translations(),current_lang=get_current_language())
+
+@app.route("/compatibility",methods=["GET","POST"])
+def compatibility():
+    if request.method=="POST":
+        username=request.form["username"].lower()
+        try:
+            # Get user's watched movies
+            user_movies = get_watched_movies(username)
+            if not user_movies:
+                return render_template("compatibility.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
+            
+            # Get following list
+            following,_,nmap = get_follow_data(username)
+            if not following:
+                return render_template("compatibility.html",error="No following users found",translations=get_translations(),current_lang=get_current_language())
+            
+            # Calculate compatibility with each following user
+            compatibility_list = []
+            for i, other_user in enumerate(following[:20]):  # Limit to first 20 for performance
+                try:
+                    other_movies = get_watched_movies(other_user)
+                    if other_movies:
+                        common = list(set(user_movies) & set(other_movies))
+                        compatibility = calculate_compatibility(user_movies, other_movies, common)
+                        compatibility_list.append({
+                            "username": other_user,
+                            "display_name": nmap.get(other_user, other_user),
+                            "compatibility": round(compatibility, 1),
+                            "common_movies": len(common),
+                            "total_movies": len(other_movies)
+                        })
+                except Exception as e:
+                    if DEBUG: print(f"Error processing {other_user}: {e}")
+                    continue
+            
+            # Sort by compatibility
+            compatibility_list.sort(key=lambda x: x["compatibility"], reverse=True)
+            
+            return render_template("compatibility.html",username=username,compatibility_list=compatibility_list,translations=get_translations(),current_lang=get_current_language())
+        except Exception as e:
+            return render_template("compatibility.html",error=str(e),translations=get_translations(),current_lang=get_current_language())
+    
+    return render_template("compatibility.html",translations=get_translations(),current_lang=get_current_language())
 
 if __name__=="__main__":
     app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=True)
