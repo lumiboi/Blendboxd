@@ -398,25 +398,17 @@
                                 </div>
                             </div>
                             
-                            {% if user.analysis_type == 'advanced' %}
+                            {% if user.analysis_type == 'fast_smart' and user.favorites_bonus > 0 %}
                             <div class="smart-analysis">
                                 <h4>{{ translations.smart_analysis }}</h4>
                                 <div class="analysis-stats">
                                     <div class="analysis-stat">
-                                        <div class="analysis-label">{{ translations.genre_match }}</div>
-                                        <div class="analysis-value">{{ user.genre_score }}%</div>
+                                        <div class="analysis-label">Favorites Bonus</div>
+                                        <div class="analysis-value">+{{ user.favorites_bonus }}%</div>
                                     </div>
                                     <div class="analysis-stat">
-                                        <div class="analysis-label">{{ translations.era_match }}</div>
-                                        <div class="analysis-value">{{ user.decade_score }}%</div>
-                                    </div>
-                                    <div class="analysis-stat">
-                                        <div class="analysis-label">{{ translations.director_match }}</div>
-                                        <div class="analysis-value">{{ user.director_score }}%</div>
-                                    </div>
-                                    <div class="analysis-stat">
-                                        <div class="analysis-label">{{ translations.rating_match }}</div>
-                                        <div class="analysis-value">{{ user.rating_score }}%</div>
+                                        <div class="analysis-label">Common Favorites</div>
+                                        <div class="analysis-value">{{ user.common_favorites }}</div>
                                     </div>
                                 </div>
                             </div>
