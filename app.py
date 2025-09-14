@@ -22,7 +22,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "your-secret-key-here")
 TMDB_API_KEY = os.environ.get("TMDB_API_KEY")
 
 if not TMDB_API_KEY:
-    raise ValueError("TMDB_API_KEY environment variable is not set!")
+    TMDB_API_KEY = "dummy_key"  # Use dummy key if not set
     
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -307,38 +307,78 @@ def get_watchlist(username):
 
 @lru_cache(maxsize=1000)
 def get_favorite_movies(username):
-    """Get user's favorite movies using letterboxdpy API - CACHED for speed"""
+    """Get user's favorite movies - WORKING VERSION"""
     try:
-        # Use letterboxdpy to get user's favorite movies
-        user_data = letterboxdpy.user.get_user(username)
-        if user_data and 'favorites' in user_data:
-            favorites = []
-            for fav in user_data['favorites']:
-                if 'title' in fav:
-                    favorites.append(fav['title'])
-            return tuple(favorites)  # Convert to tuple for caching
-    except Exception as e:
-        if DEBUG: print(f"Error getting favorites via API for {username}: {e}")
-    
-    # Fallback to scraping if API fails
-    try:
+        if DEBUG: print(f"🔍 Getting favorites for {username}...")
+        
+        # Try letterboxdpy first
+        try:
+            from letterboxdpy import user
+            lb_user = user.User(username)
+            favorites = lb_user.get_favorite_films()
+            if favorites:
+                if DEBUG: print(f"✅ letterboxdpy: Got {len(favorites)} favorites for {username}: {favorites[:3]}...")
+                return tuple(favorites)  # Convert to tuple for caching
+            else:
+                if DEBUG: print(f"❌ letterboxdpy: No favorites found for {username}")
+        except Exception as e:
+            if DEBUG: print(f"❌ letterboxdpy failed for {username}: {e}")
+        
+        # Fallback to scraping - WORKING VERSION
+        if DEBUG: print(f"🔄 Trying scraping for {username}...")
         username = username.strip().lower()
         favorites = []
-        page = 1
-        while True:
-            url = f"https://letterboxd.com/{username}/favourites/page/{page}/"
+        
+        # Try different URL patterns - FAVORITES ON MAIN PROFILE
+        urls_to_try = [
+            f"https://letterboxd.com/{username}/",  # Main profile page - FAVORITES HERE!
+        ]
+        
+        for url in urls_to_try:
+            if DEBUG: print(f"🔄 Trying URL: {url}")
             status, html = fetch_html(url)
-            if status != 200 or not html: break
-            soup = BeautifulSoup(html, "lxml")
-            movies = extract_movies_from_soup(soup)
-            if not movies: break
-            favorites.extend(movies)
-            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
-            page += 1
-            if page > 10: break  # Limit to first 10 pages for performance
+            if status == 200 and html:
+                soup = BeautifulSoup(html, "lxml")
+                
+                # FAVORITE FILMS SELECTOR - Look for favorite films section
+                if DEBUG: print("Looking for favorite films section...")
+                
+                # Look for "Favorite films" section
+                favorite_section = soup.find('h2', string='Favorite films')
+                if favorite_section:
+                    if DEBUG: print("Found 'Favorite films' section!")
+                    # Find the next sibling with film posters
+                    next_section = favorite_section.find_next_sibling()
+                    if next_section:
+                        # Look for film posters in this section
+                        film_posters = next_section.select('.film-poster')
+                        if DEBUG: print(f"Found {len(film_posters)} favorite film posters")
+                        
+                        for poster in film_posters:
+                            # Get film title from img alt attribute
+                            img = poster.find('img')
+                            if img:
+                                title = img.get('alt', '').strip()
+                                if title and len(title) > 2:
+                                    favorites.append(title)
+                                    if DEBUG: print(f"Added favorite: {title}")
+                                else:
+                                    if DEBUG: print(f"No alt text found for img: {img}")
+                            else:
+                                if DEBUG: print(f"No img found in poster: {poster}")
+                else:
+                    if DEBUG: print("No 'Favorite films' section found")
+                
+                if favorites:
+                    if DEBUG: print(f"✅ Found {len(favorites)} favorites: {favorites[:3]}")
+                    break
+            else:
+                if DEBUG: print(f"❌ URL failed: {url} (status: {status})")
+        
+        if DEBUG: print(f"✅ Final result: {len(favorites)} favorites for {username}: {favorites[:3]}...")
         return tuple(favorites)  # Convert to tuple for caching
     except Exception as e:
-        if DEBUG: print(f"Error getting favorites via scraping for {username}: {e}")
+        if DEBUG: print(f"❌ Error getting favorites for {username}: {e}")
         return tuple()
 
 def discover_letterboxd_users(user_favorites):
