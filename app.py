@@ -342,86 +342,14 @@ def get_favorite_movies(username):
         return tuple()
 
 def discover_letterboxd_users():
-    """Discover ALL Letterboxd users using letterboxdpy API"""
+    """Crawl ALL Letterboxd users - REAL DATA"""
     users = set()
     
     try:
-        # Method 1: Get users from popular films using letterboxdpy
-        popular_films = [
-            "the-godfather", "pulp-fiction", "the-dark-knight", "inception", 
-            "fight-club", "the-matrix", "goodfellas", "forrest-gump", 
-            "the-shawshank-redemption", "star-wars", "the-lord-of-the-rings",
-            "titanic", "avatar", "jaws", "et", "back-to-the-future",
-            "indiana-jones", "terminator", "alien", "blade-runner"
-        ]
-        
-        for film_slug in popular_films:
+        # Method 1: Crawl member directory pages
+        if DEBUG: print("Crawling member directory...")
+        for page in range(1, 101):  # 100 pages = 2000+ users
             try:
-                # Get film data using letterboxdpy
-                film_data = letterboxdpy.film.get_film(film_slug)
-                if film_data:
-                    # Get users who reviewed this film
-                    reviews = letterboxdpy.film.get_film_reviews(film_slug)
-                    if reviews:
-                        for review in reviews:
-                            if 'user' in review and 'username' in review['user']:
-                                users.add(review['user']['username'])
-            except Exception as e:
-                if DEBUG: print(f"Error getting users from film {film_slug}: {e}")
-                continue
-        
-        # Method 2: Get users from popular lists
-        popular_lists = [
-            "imdb-top-250", "sight-and-sound", "afi-100", "criterion-collection",
-            "oscar-winners", "cannes-winners", "berlin-winners", "venice-winners"
-        ]
-        
-        for list_slug in popular_lists:
-            try:
-                # Get list data using letterboxdpy
-                list_data = letterboxdpy.list.get_list(list_slug)
-                if list_data:
-                    # Get users who liked this list
-                    likes = letterboxdpy.list.get_list_likes(list_slug)
-                    if likes:
-                        for like in likes:
-                            if 'user' in like and 'username' in like['user']:
-                                users.add(like['user']['username'])
-            except Exception as e:
-                if DEBUG: print(f"Error getting users from list {list_slug}: {e}")
-                continue
-        
-        # Method 3: Get users from trending films
-        try:
-            trending_films = letterboxdpy.film.get_trending_films()
-            if trending_films:
-                for film_item in trending_films[:30]:  # First 30 trending
-                    if 'slug' in film_item:
-                        try:
-                            reviews = letterboxdpy.film.get_film_reviews(film_item['slug'])
-                            if reviews:
-                                for review in reviews:
-                                    if 'user' in review and 'username' in review['user']:
-                                        users.add(review['user']['username'])
-                        except:
-                            continue
-        except Exception as e:
-            if DEBUG: print(f"Error getting trending users: {e}")
-        
-        # Method 4: Get users from recent activity
-        try:
-            # Get recent reviews from popular films
-            recent_reviews = letterboxdpy.film.get_recent_reviews()
-            if recent_reviews:
-                for review in recent_reviews:
-                    if 'user' in review and 'username' in review['user']:
-                        users.add(review['user']['username'])
-        except Exception as e:
-            if DEBUG: print(f"Error getting recent users: {e}")
-        
-        # Method 5: Get users from member directory (fallback to scraping)
-        try:
-            for page in range(1, 51):  # 50 pages of members
                 url = f"https://letterboxd.com/members/page/{page}/"
                 status, html = fetch_html(url)
                 if status == 200 and html:
@@ -433,16 +361,97 @@ def discover_letterboxd_users():
                             username = href.strip('/').split('/')[0]
                             if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
                                 users.add(username)
-        except Exception as e:
-            if DEBUG: print(f"Error getting members: {e}")
+                if DEBUG and page % 10 == 0:
+                    print(f"Crawled {page} pages, found {len(users)} users")
+            except Exception as e:
+                if DEBUG: print(f"Error on page {page}: {e}")
+                continue
+        
+        # Method 2: Crawl popular films for users
+        if DEBUG: print("Crawling popular films for users...")
+        popular_films = [
+            "the-godfather", "pulp-fiction", "the-dark-knight", "inception", 
+            "fight-club", "the-matrix", "goodfellas", "forrest-gump", 
+            "the-shawshank-redemption", "star-wars", "the-lord-of-the-rings",
+            "titanic", "avatar", "jaws", "et", "back-to-the-future",
+            "indiana-jones", "terminator", "alien", "blade-runner",
+            "casablanca", "citizen-kane", "vertigo", "psycho", "taxi-driver",
+            "apocalypse-now", "raiders-of-the-lost-ark", "back-to-the-future",
+            "the-empire-strikes-back", "return-of-the-jedi", "the-silence-of-the-lambs",
+            "schindlers-list", "saving-private-ryan", "the-green-mile", "american-beauty"
+        ]
+        
+        for film_slug in popular_films:
+            try:
+                # Get users who reviewed this film
+                for page in range(1, 6):  # 5 pages per film
+                    url = f"https://letterboxd.com/film/{film_slug}/reviews/page/{page}/"
+                    status, html = fetch_html(url)
+                    if status == 200 and html:
+                        soup = BeautifulSoup(html, "lxml")
+                        review_links = soup.select("a[href^='/']")
+                        for link in review_links:
+                            href = link.get('href', '')
+                            if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                                username = href.strip('/').split('/')[0]
+                                if username and len(username) > 2:
+                                    users.add(username)
+            except Exception as e:
+                if DEBUG: print(f"Error crawling film {film_slug}: {e}")
+                continue
+        
+        # Method 3: Crawl recent activity
+        if DEBUG: print("Crawling recent activity...")
+        for page in range(1, 21):  # 20 pages of recent activity
+            try:
+                url = f"https://letterboxd.com/activity/page/{page}/"
+                status, html = fetch_html(url)
+                if status == 200 and html:
+                    soup = BeautifulSoup(html, "lxml")
+                    user_links = soup.select("a[href^='/']")
+                    for link in user_links:
+                        href = link.get('href', '')
+                        if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                            username = href.strip('/').split('/')[0]
+                            if username and len(username) > 2:
+                                users.add(username)
+            except Exception as e:
+                if DEBUG: print(f"Error crawling activity page {page}: {e}")
+                continue
+        
+        # Method 4: Crawl popular lists for users
+        if DEBUG: print("Crawling popular lists...")
+        popular_lists = [
+            "imdb-top-250", "sight-and-sound", "afi-100", "criterion-collection",
+            "oscar-winners", "cannes-winners", "berlin-winners", "venice-winners",
+            "best-films-2023", "best-films-2022", "best-films-2021", "best-films-2020"
+        ]
+        
+        for list_slug in popular_lists:
+            try:
+                # Get users who liked this list
+                for page in range(1, 6):  # 5 pages per list
+                    url = f"https://letterboxd.com/list/{list_slug}/likes/page/{page}/"
+                    status, html = fetch_html(url)
+                    if status == 200 and html:
+                        soup = BeautifulSoup(html, "lxml")
+                        user_links = soup.select("a[href^='/']")
+                        for link in user_links:
+                            href = link.get('href', '')
+                            if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                                username = href.strip('/').split('/')[0]
+                                if username and len(username) > 2:
+                                    users.add(username)
+            except Exception as e:
+                if DEBUG: print(f"Error crawling list {list_slug}: {e}")
+                continue
         
     except Exception as e:
         if DEBUG: print(f"Error in discover_letterboxd_users: {e}")
     
-    # Convert to list and return - NO LIMITS!
     user_list = list(users)
     if DEBUG: print(f"Discovered {len(user_list)} users from ENTIRE Letterboxd platform")
-    return user_list  # NO LIMITS - ALL USERS!
+    return user_list  # ALL USERS - NO LIMITS!
 
 def check_user_favorites(username, user_favorites):
     """Check if user has common favorites - for parallel processing"""
@@ -461,21 +470,19 @@ def check_user_favorites(username, user_favorites):
     return None
 
 def find_users_with_common_favorites(user_favorites, all_users):
-    """Find users who have common favorites with the given user - ULTRA FAST PARALLEL SEARCH"""
+    """Find users with common favorites - ULTRA FAST PARALLEL"""
     if not user_favorites:
         return []
     
     users_with_common = []
     
-    # PARALLEL PROCESSING for ULTRA SPEED!
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-        # Submit all tasks
+    # ULTRA FAST PARALLEL PROCESSING
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
         future_to_username = {
             executor.submit(check_user_favorites, username, user_favorites): username 
             for username in all_users
         }
         
-        # Collect results as they complete
         for i, future in enumerate(concurrent.futures.as_completed(future_to_username)):
             if DEBUG and i % 100 == 0:
                 print(f"Processed {i+1}/{len(all_users)} users...")
@@ -766,21 +773,21 @@ def matchboxd():
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
-            # MASSIVE API CRAWL: Discover ALL Letterboxd users using letterboxdpy
-            if DEBUG: print("Starting MASSIVE Letterboxd API crawl...")
+            # ULTRA FAST SEARCH - ALL LETTERBOXD USERS
+            if DEBUG: print("Starting ULTRA FAST search across ALL Letterboxd users...")
             all_users = discover_letterboxd_users()
             if DEBUG: print(f"Discovered {len(all_users)} users from ENTIRE Letterboxd platform")
             
             compatibility_list = []
             
-            # MASSIVE SEARCH: Find users with common favorites across ALL users
+            # ULTRA FAST search for common favorites across ALL users
             if user_favorites:
-                if DEBUG: print("Searching for users with common favorites...")
+                if DEBUG: print("Searching for users with common favorites across ALL users...")
                 users_with_common_favorites = find_users_with_common_favorites(user_favorites, all_users)
                 if DEBUG: print(f"Found {len(users_with_common_favorites)} users with common favorites")
                 
-                # Process users with common favorites first
-                for user_data in users_with_common_favorites:
+                # Process users with common favorites - PARALLEL
+                def process_common_favorite_user(user_data):
                     try:
                         other_username = user_data['username']
                         other_movies = get_watched_movies(other_username)
@@ -789,16 +796,13 @@ def matchboxd():
                             common_watched = list(set(user_movies) & set(other_movies))
                             common_favorites = user_data['common_favorites']
                             
-                            # Calculate base compatibility
+                            # Calculate compatibility
                             base_score = calculate_compatibility(user_movies, other_movies, common_watched)
-                            
-                            # HUGE bonus for common favorites
-                            favorites_bonus = len(common_favorites) * 20  # Increased bonus
-                            favorites_bonus = min(80, favorites_bonus)  # Higher cap
-                            
+                            favorites_bonus = len(common_favorites) * 20
+                            favorites_bonus = min(80, favorites_bonus)
                             final_score = min(100, base_score + favorites_bonus)
                             
-                            compatibility_list.append({
+                            return {
                                 "username": other_username,
                                 "display_name": other_username.title().replace('_', ' '),
                                 "compatibility": round(final_score, 1),
@@ -808,16 +812,32 @@ def matchboxd():
                                 "total_favorites": user_data['total_favorites'],
                                 "favorites_bonus": round(favorites_bonus, 1),
                                 "analysis_type": "real_favorites_match"
-                            })
+                            }
                     except Exception as e:
                         if DEBUG: print(f"Error processing {other_username}: {e}")
-                        continue
+                        return None
+                
+                # PARALLEL PROCESSING for ULTRA SPEED
+                with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                    future_to_user = {
+                        executor.submit(process_common_favorite_user, user_data): user_data 
+                        for user_data in users_with_common_favorites
+                    }
+                    
+                    for future in concurrent.futures.as_completed(future_to_user):
+                        try:
+                            result = future.result()
+                            if result:
+                                compatibility_list.append(result)
+                        except Exception as e:
+                            if DEBUG: print(f"Error in parallel processing: {e}")
+                            continue
             
             # If we don't have enough matches, search through ALL users for regular matches
             if len(compatibility_list) < 10:
                 if DEBUG: print("Searching for regular matches across ALL Letterboxd users...")
                 
-                def check_regular_match(other_username):
+                def process_regular_user(other_username):
                     try:
                         other_movies = get_watched_movies(other_username)
                         other_favorites = get_favorite_movies(other_username)
@@ -839,12 +859,12 @@ def matchboxd():
                             }
                     except Exception as e:
                         if DEBUG: print(f"Error processing {other_username}: {e}")
-                    return None
+                        return None
                 
-                # PARALLEL PROCESSING for ULTRA SPEED!
-                with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                # PARALLEL PROCESSING for ULTRA SPEED
+                with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
                     future_to_username = {
-                        executor.submit(check_regular_match, username): username 
+                        executor.submit(process_regular_user, username): username 
                         for username in all_users
                     }
                     
