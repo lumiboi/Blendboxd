@@ -271,19 +271,19 @@ def get_watched_movies(username):
     
     # Fallback to scraping if API fails
     try:
-    username = username.strip().lower()
-    collected, seen = [], set()
-    page = 1
-    while True:
-        url = f"https://letterboxd.com/{username}/films/page/{page}/"
-        status, html = fetch_html(url)
-        if status != 200 or not html: break
-        soup = BeautifulSoup(html, "lxml")
-        for t in extract_movies_from_soup(soup):
-            if t not in seen: seen.add(t); collected.append(t)
-        if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
-        page += 1
-        if page > 50: break
+        username = username.strip().lower()
+        collected, seen = [], set()
+        page = 1
+        while True:
+            url = f"https://letterboxd.com/{username}/films/page/{page}/"
+            status, html = fetch_html(url)
+            if status != 200 or not html: break
+            soup = BeautifulSoup(html, "lxml")
+            for t in extract_movies_from_soup(soup):
+                if t not in seen: seen.add(t); collected.append(t)
+            if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
+            page += 1
+            if page > 50: break
         return tuple(collected)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"Error getting watched movies via scraping for {username}: {e}")
