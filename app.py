@@ -123,7 +123,13 @@ def get_translations():
             'processing': 'Scanning Letterboxd for your perfect matches...',
             'view_profile': 'Visit Profile',
             'match_explanation': 'Higher scores mean more shared movie taste!',
-            'favorites_weight': 'Favorites are weighted more heavily in matching!'
+            'favorites_weight': 'Favorites are weighted more heavily in matching!',
+            'smart_analysis': 'Smart Analysis',
+            'genre_match': 'Genre Match',
+            'era_match': 'Era Match',
+            'director_match': 'Director Match',
+            'rating_match': 'Rating Match',
+            'analysis_explanation': 'Our smart algorithm analyzes your movie preferences across multiple dimensions to find truly compatible users!'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -197,7 +203,13 @@ def get_translations():
             'processing': 'Letterboxd\'de mükemmel eşleşmeleriniz aranıyor...',
             'view_profile': 'Profili Ziyaret Et',
             'match_explanation': 'Yüksek skorlar daha fazla ortak film zevki demek!',
-            'favorites_weight': 'Favori filmler eşleşmede daha ağırlıklı!'
+            'favorites_weight': 'Favori filmler eşleşmede daha ağırlıklı!',
+            'smart_analysis': 'Akıllı Analiz',
+            'genre_match': 'Tür Eşleşmesi',
+            'era_match': 'Dönem Eşleşmesi',
+            'director_match': 'Yönetmen Eşleşmesi',
+            'rating_match': 'Puan Eşleşmesi',
+            'analysis_explanation': 'Akıllı algoritmamız film tercihlerinizi çok boyutlu analiz ederek gerçekten uyumlu kullanıcıları buluyor!'
         }
     }
     return translations[lang]
@@ -319,23 +331,160 @@ def calculate_compatibility(u1, u2, common):
     c=len(common)
     return min(100, (2*c/total)*100 if c<=5 else 50+(2*c/total)*100)
 
-def calculate_enhanced_compatibility(user_movies, user_favorites, other_movies, other_favorites):
-    """Calculate compatibility including both watched movies and favorites"""
-    # Basic compatibility from watched movies
+def get_movie_details(movie_title):
+    """Get detailed movie information from TMDb"""
+    try:
+        if not TMDB_API_KEY or TMDB_API_KEY == "test":
+            return None
+        
+        # Search for movie
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_title}"
+        response = requests.get(search_url, timeout=10)
+        if response.status_code != 200:
+            return None
+        
+        data = response.json()
+        if not data.get('results'):
+            return None
+        
+        movie = data['results'][0]
+        movie_id = movie['id']
+        
+        # Get detailed info
+        details_url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}"
+        details_response = requests.get(details_url, timeout=10)
+        if details_response.status_code != 200:
+            return None
+        
+        return details_response.json()
+    except:
+        return None
+
+def analyze_movie_preferences(movies, favorites):
+    """Analyze user's movie preferences in detail"""
+    all_movies = movies + favorites
+    if not all_movies:
+        return {}
+    
+    # Get movie details for analysis
+    movie_details = []
+    for movie in all_movies[:50]:  # Limit for performance
+        details = get_movie_details(movie)
+        if details:
+            movie_details.append(details)
+    
+    if not movie_details:
+        return {}
+    
+    # Analyze genres
+    genre_counts = {}
+    for movie in movie_details:
+        for genre in movie.get('genres', []):
+            genre_name = genre['name']
+            genre_counts[genre_name] = genre_counts.get(genre_name, 0) + 1
+    
+    # Analyze decades
+    decade_counts = {}
+    for movie in movie_details:
+        year = movie.get('release_date', '')[:4]
+        if year and year.isdigit():
+            decade = f"{year[:3]}0s"
+            decade_counts[decade] = decade_counts.get(decade, 0) + 1
+    
+    # Analyze directors
+    director_counts = {}
+    for movie in movie_details:
+        # Get director from credits
+        try:
+            credits_url = f"https://api.themoviedb.org/3/movie/{movie['id']}/credits?api_key={TMDB_API_KEY}"
+            credits_response = requests.get(credits_url, timeout=5)
+            if credits_response.status_code == 200:
+                credits = credits_response.json()
+                for person in credits.get('crew', []):
+                    if person.get('job') == 'Director':
+                        director_name = person['name']
+                        director_counts[director_name] = director_counts.get(director_name, 0) + 1
+                        break
+        except:
+            continue
+    
+    # Analyze ratings (if available)
+    ratings = [movie.get('vote_average', 0) for movie in movie_details if movie.get('vote_average', 0) > 0]
+    avg_rating = sum(ratings) / len(ratings) if ratings else 0
+    
+    return {
+        'genres': genre_counts,
+        'decades': decade_counts,
+        'directors': director_counts,
+        'avg_rating': avg_rating,
+        'total_analyzed': len(movie_details)
+    }
+
+def calculate_smart_compatibility(user_movies, user_favorites, other_movies, other_favorites):
+    """Calculate sophisticated compatibility using multiple factors"""
+    
+    # Get detailed preferences for both users
+    user_prefs = analyze_movie_preferences(user_movies, user_favorites)
+    other_prefs = analyze_movie_preferences(other_movies, other_favorites)
+    
+    if not user_prefs or not other_prefs:
+        # Fallback to basic compatibility
+        common_watched = list(set(user_movies) & set(other_movies))
+        basic_score = calculate_compatibility(user_movies, other_movies, common_watched)
+        return {
+            'compatibility': round(basic_score, 1),
+            'common_watched': len(common_watched),
+            'common_favorites': len(set(user_favorites) & set(other_favorites)),
+            'total_watched': len(user_movies),
+            'total_other_watched': len(other_movies),
+            'total_favorites': len(user_favorites),
+            'total_other_favorites': len(other_favorites),
+            'analysis_type': 'basic'
+        }
+    
+    # Calculate genre compatibility
+    genre_score = 0
+    user_genres = set(user_prefs['genres'].keys())
+    other_genres = set(other_prefs['genres'].keys())
+    if user_genres and other_genres:
+        common_genres = user_genres & other_genres
+        genre_score = len(common_genres) / max(len(user_genres), len(other_genres)) * 100
+    
+    # Calculate decade compatibility
+    decade_score = 0
+    user_decades = set(user_prefs['decades'].keys())
+    other_decades = set(other_prefs['decades'].keys())
+    if user_decades and other_decades:
+        common_decades = user_decades & other_decades
+        decade_score = len(common_decades) / max(len(user_decades), len(other_decades)) * 100
+    
+    # Calculate director compatibility
+    director_score = 0
+    user_directors = set(user_prefs['directors'].keys())
+    other_directors = set(other_prefs['directors'].keys())
+    if user_directors and other_directors:
+        common_directors = user_directors & other_directors
+        director_score = len(common_directors) / max(len(user_directors), len(other_directors)) * 100
+    
+    # Calculate rating similarity
+    rating_score = 0
+    if user_prefs['avg_rating'] > 0 and other_prefs['avg_rating'] > 0:
+        rating_diff = abs(user_prefs['avg_rating'] - other_prefs['avg_rating'])
+        rating_score = max(0, 100 - (rating_diff * 10))  # 1 point difference = 10% score reduction
+    
+    # Calculate basic movie overlap
     common_watched = list(set(user_movies) & set(other_movies))
-    watched_compatibility = calculate_compatibility(user_movies, other_movies, common_watched)
-    
-    # Favorites compatibility (weighted more heavily)
     common_favorites = list(set(user_favorites) & set(other_favorites))
-    favorites_compatibility = 0
-    if user_favorites and other_favorites:
-        favorites_compatibility = calculate_compatibility(user_favorites, other_favorites, common_favorites)
+    overlap_score = calculate_compatibility(user_movies, other_movies, common_watched)
     
-    # Weighted combination: 70% watched movies, 30% favorites
-    if user_favorites and other_favorites:
-        final_score = (watched_compatibility * 0.7) + (favorites_compatibility * 0.3)
-    else:
-        final_score = watched_compatibility
+    # Weighted final score
+    final_score = (
+        overlap_score * 0.25 +      # 25% - Basic movie overlap
+        genre_score * 0.30 +        # 30% - Genre preferences
+        decade_score * 0.20 +       # 20% - Era preferences
+        director_score * 0.15 +     # 15% - Director preferences
+        rating_score * 0.10         # 10% - Rating similarity
+    )
     
     return {
         'compatibility': round(final_score, 1),
@@ -344,7 +493,12 @@ def calculate_enhanced_compatibility(user_movies, user_favorites, other_movies, 
         'total_watched': len(user_movies),
         'total_other_watched': len(other_movies),
         'total_favorites': len(user_favorites),
-        'total_other_favorites': len(other_favorites)
+        'total_other_favorites': len(other_favorites),
+        'genre_score': round(genre_score, 1),
+        'decade_score': round(decade_score, 1),
+        'director_score': round(director_score, 1),
+        'rating_score': round(rating_score, 1),
+        'analysis_type': 'advanced'
     }
 
 def get_recommendations(common):
@@ -461,8 +615,8 @@ def matchboxd():
                     other_movies = get_watched_movies(other_user)
                     other_favorites = get_favorite_movies(other_user)
                     if other_movies:
-                        # Use enhanced compatibility calculation
-                        compatibility_data = calculate_enhanced_compatibility(
+                        # Use smart compatibility calculation
+                        compatibility_data = calculate_smart_compatibility(
                             user_movies, user_favorites, other_movies, other_favorites
                         )
                         compatibility_list.append({
