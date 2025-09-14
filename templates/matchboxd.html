@@ -268,6 +268,51 @@
         .loading .spinner { margin-bottom: 15px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        .smart-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #00e054;
+        }
+
+        .smart-analysis h4 {
+            margin: 0 0 15px 0;
+            color: #00e054;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .analysis-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .analysis-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-stat:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        .analysis-value {
+            font-size: 14px;
+            color: #00e054;
+            font-weight: 600;
+        }
+
         /* Error styles */
         .error {
             background: rgba(255, 0, 0, 0.1);
@@ -284,6 +329,7 @@
             .container { padding: 20px; }
             .user-info { flex-direction: column; align-items: flex-start; gap: 15px; }
             .stats { grid-template-columns: 1fr; gap: 15px; }
+            .analysis-stats { grid-template-columns: 1fr; gap: 10px; }
             .match-score { font-size: 24px; }
             .explanation { font-size: 13px; padding: 15px; }
         }
@@ -351,12 +397,36 @@
                                     <div class="stat-value">{{ user.total_favorites }}</div>
                                 </div>
                             </div>
+                            
+                            {% if user.analysis_type == 'advanced' %}
+                            <div class="smart-analysis">
+                                <h4>{{ translations.smart_analysis }}</h4>
+                                <div class="analysis-stats">
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">{{ translations.genre_match }}</div>
+                                        <div class="analysis-value">{{ user.genre_score }}%</div>
+                                    </div>
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">{{ translations.era_match }}</div>
+                                        <div class="analysis-value">{{ user.decade_score }}%</div>
+                                    </div>
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">{{ translations.director_match }}</div>
+                                        <div class="analysis-value">{{ user.director_score }}%</div>
+                                    </div>
+                                    <div class="analysis-stat">
+                                        <div class="analysis-label">{{ translations.rating_match }}</div>
+                                        <div class="analysis-value">{{ user.rating_score }}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                     
                     <div class="match-explanation">
-                        {{ translations.match_explanation }}<br>
-                        <strong>{{ translations.favorites_weight }}</strong>
+                        {{ translations.analysis_explanation }}<br>
+                        <strong>{{ translations.match_explanation }}</strong>
                     </div>
                 </div>
             {% endif %}
