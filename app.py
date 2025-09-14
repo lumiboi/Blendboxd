@@ -129,7 +129,7 @@ def get_translations():
             'era_match': 'Era Match',
             'director_match': 'Director Match',
             'rating_match': 'Rating Match',
-            'analysis_explanation': 'Our smart algorithm analyzes your movie preferences across multiple dimensions to find truly compatible users!'
+            'analysis_explanation': 'Our smart algorithm finds users with similar favorite movies and movie taste patterns!'
         },
         'tr': {
             'app_name': 'Blendboxd',
@@ -209,7 +209,7 @@ def get_translations():
             'era_match': 'Dönem Eşleşmesi',
             'director_match': 'Yönetmen Eşleşmesi',
             'rating_match': 'Puan Eşleşmesi',
-            'analysis_explanation': 'Akıllı algoritmamız film tercihlerinizi çok boyutlu analiz ederek gerçekten uyumlu kullanıcıları buluyor!'
+            'analysis_explanation': 'Akıllı algoritmamız benzer favori filmleri ve film zevki kalıplarını buluyor!'
         }
     }
     return translations[lang]
@@ -420,71 +420,52 @@ def analyze_movie_preferences(movies, favorites):
         'total_analyzed': len(movie_details)
     }
 
-def calculate_smart_compatibility(user_movies, user_favorites, other_movies, other_favorites):
-    """Calculate sophisticated compatibility using multiple factors"""
+def calculate_fast_smart_compatibility(user_movies, user_favorites, other_movies, other_favorites):
+    """Fast and smart compatibility using only Letterboxd data"""
     
-    # Get detailed preferences for both users
-    user_prefs = analyze_movie_preferences(user_movies, user_favorites)
-    other_prefs = analyze_movie_preferences(other_movies, other_favorites)
-    
-    if not user_prefs or not other_prefs:
-        # Fallback to basic compatibility
-        common_watched = list(set(user_movies) & set(other_movies))
-        basic_score = calculate_compatibility(user_movies, other_movies, common_watched)
-        return {
-            'compatibility': round(basic_score, 1),
-            'common_watched': len(common_watched),
-            'common_favorites': len(set(user_favorites) & set(other_favorites)),
-            'total_watched': len(user_movies),
-            'total_other_watched': len(other_movies),
-            'total_favorites': len(user_favorites),
-            'total_other_favorites': len(other_favorites),
-            'analysis_type': 'basic'
-        }
-    
-    # Calculate genre compatibility
-    genre_score = 0
-    user_genres = set(user_prefs['genres'].keys())
-    other_genres = set(other_prefs['genres'].keys())
-    if user_genres and other_genres:
-        common_genres = user_genres & other_genres
-        genre_score = len(common_genres) / max(len(user_genres), len(other_genres)) * 100
-    
-    # Calculate decade compatibility
-    decade_score = 0
-    user_decades = set(user_prefs['decades'].keys())
-    other_decades = set(other_prefs['decades'].keys())
-    if user_decades and other_decades:
-        common_decades = user_decades & other_decades
-        decade_score = len(common_decades) / max(len(user_decades), len(other_decades)) * 100
-    
-    # Calculate director compatibility
-    director_score = 0
-    user_directors = set(user_prefs['directors'].keys())
-    other_directors = set(other_prefs['directors'].keys())
-    if user_directors and other_directors:
-        common_directors = user_directors & other_directors
-        director_score = len(common_directors) / max(len(user_directors), len(other_directors)) * 100
-    
-    # Calculate rating similarity
-    rating_score = 0
-    if user_prefs['avg_rating'] > 0 and other_prefs['avg_rating'] > 0:
-        rating_diff = abs(user_prefs['avg_rating'] - other_prefs['avg_rating'])
-        rating_score = max(0, 100 - (rating_diff * 10))  # 1 point difference = 10% score reduction
-    
-    # Calculate basic movie overlap
+    # Basic movie overlap
     common_watched = list(set(user_movies) & set(other_movies))
     common_favorites = list(set(user_favorites) & set(other_favorites))
+    
+    # Calculate basic overlap score
     overlap_score = calculate_compatibility(user_movies, other_movies, common_watched)
     
-    # Weighted final score
-    final_score = (
-        overlap_score * 0.25 +      # 25% - Basic movie overlap
-        genre_score * 0.30 +        # 30% - Genre preferences
-        decade_score * 0.20 +       # 20% - Era preferences
-        director_score * 0.15 +     # 15% - Director preferences
-        rating_score * 0.10         # 10% - Rating similarity
-    )
+    # Favorites bonus - this is the key!
+    favorites_bonus = 0
+    if user_favorites and other_favorites:
+        # If they have ANY common favorites, give huge bonus
+        if common_favorites:
+            favorites_bonus = min(50, len(common_favorites) * 10)  # Up to 50% bonus
+        else:
+            # Even if no common favorites, check if they have similar favorite patterns
+            # (both like similar types of movies based on titles)
+            user_fav_titles = [fav.lower() for fav in user_favorites]
+            other_fav_titles = [fav.lower() for fav in other_favorites]
+            
+            # Simple keyword matching for similar taste
+            user_keywords = set()
+            other_keywords = set()
+            
+            for title in user_fav_titles:
+                words = title.split()
+                for word in words:
+                    if len(word) > 3:  # Only meaningful words
+                        user_keywords.add(word)
+            
+            for title in other_fav_titles:
+                words = title.split()
+                for word in words:
+                    if len(word) > 3:
+                        other_keywords.add(word)
+            
+            if user_keywords and other_keywords:
+                common_keywords = user_keywords & other_keywords
+                keyword_similarity = len(common_keywords) / max(len(user_keywords), len(other_keywords))
+                favorites_bonus = keyword_similarity * 30  # Up to 30% bonus for similar taste
+    
+    # Calculate final score
+    final_score = overlap_score + favorites_bonus
+    final_score = min(100, final_score)  # Cap at 100%
     
     return {
         'compatibility': round(final_score, 1),
@@ -494,11 +475,8 @@ def calculate_smart_compatibility(user_movies, user_favorites, other_movies, oth
         'total_other_watched': len(other_movies),
         'total_favorites': len(user_favorites),
         'total_other_favorites': len(other_favorites),
-        'genre_score': round(genre_score, 1),
-        'decade_score': round(decade_score, 1),
-        'director_score': round(director_score, 1),
-        'rating_score': round(rating_score, 1),
-        'analysis_type': 'advanced'
+        'favorites_bonus': round(favorites_bonus, 1),
+        'analysis_type': 'fast_smart'
     }
 
 def get_recommendations(common):
@@ -594,29 +572,29 @@ def matchboxd():
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
-            # Get a sample of users to compare with (popular users + some random)
-            # This simulates searching all Letterboxd users
-            sample_users = [
-                "davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert",
-                "paulinekael", "andrewhorton", "davidbordwell", "kristenthompson",
-                "jimemerson", "davidchen", "filmcritic", "cinematheque", "criterion",
-                "mubi", "letterboxd", "film", "movies", "cinema", "director"
-            ]
-            
-            # Add some random usernames for variety
-            import random
-            random_users = [f"user{i}" for i in range(1, 21)]
-            sample_users.extend(random_users)
+            # Get real users from Letterboxd - followers and following
+            try:
+                following, followers, name_map = get_follow_data(username)
+                # Combine followers and following, remove duplicates
+                all_users = list(set(following + followers))
+                # Add some popular users for variety
+                popular_users = ["davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert"]
+                all_users.extend(popular_users)
+                # Remove duplicates and limit to 20 for speed
+                sample_users = list(set(all_users))[:20]
+            except:
+                # Fallback to popular users if follow data fails
+                sample_users = ["davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert"]
             
             # Calculate compatibility with each user
             compatibility_list = []
-            for i, other_user in enumerate(sample_users[:30]):  # Check 30 users for better results
+            for i, other_user in enumerate(sample_users[:15]):  # Check 15 users for speed
                 try:
                     other_movies = get_watched_movies(other_user)
                     other_favorites = get_favorite_movies(other_user)
                     if other_movies:
-                        # Use smart compatibility calculation
-                        compatibility_data = calculate_smart_compatibility(
+                        # Use fast smart compatibility calculation
+                        compatibility_data = calculate_fast_smart_compatibility(
                             user_movies, user_favorites, other_movies, other_favorites
                         )
                         compatibility_list.append({
@@ -626,7 +604,9 @@ def matchboxd():
                             "common_watched": compatibility_data['common_watched'],
                             "common_favorites": compatibility_data['common_favorites'],
                             "total_movies": compatibility_data['total_other_watched'],
-                            "total_favorites": compatibility_data['total_other_favorites']
+                            "total_favorites": compatibility_data['total_other_favorites'],
+                            "favorites_bonus": compatibility_data.get('favorites_bonus', 0),
+                            "analysis_type": compatibility_data.get('analysis_type', 'fast_smart')
                         })
                 except Exception as e:
                     if DEBUG: print(f"Error processing {other_user}: {e}")
