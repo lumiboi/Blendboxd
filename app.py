@@ -5,6 +5,9 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
 import letterboxdpy
+import concurrent.futures
+import threading
+from functools import lru_cache
 
 try:
     import cloudscraper
@@ -251,8 +254,9 @@ def extract_movies_from_soup(soup):
             if t and t not in seen: seen.add(t); titles.append(t)
     return titles
 
+@lru_cache(maxsize=1000)
 def get_watched_movies(username):
-    """Get user's watched movies using letterboxdpy API"""
+    """Get user's watched movies using letterboxdpy API - CACHED for speed"""
     try:
         # Use letterboxdpy to get user's watched movies
         user_data = letterboxdpy.user.get_user(username)
@@ -261,7 +265,7 @@ def get_watched_movies(username):
             for movie in user_data['watched']:
                 if 'title' in movie:
                     movies.append(movie['title'])
-            return movies
+            return tuple(movies)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"Error getting watched movies via API for {username}: {e}")
     
@@ -280,10 +284,10 @@ def get_watched_movies(username):
             if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
             page += 1
             if page > 50: break
-        return collected
+        return tuple(collected)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"Error getting watched movies via scraping for {username}: {e}")
-        return []
+        return tuple()
 
 def get_watchlist(username):
     username = username.strip().lower()
@@ -301,8 +305,9 @@ def get_watchlist(username):
         if page > 50: break
     return collected
 
+@lru_cache(maxsize=1000)
 def get_favorite_movies(username):
-    """Get user's favorite movies using letterboxdpy API"""
+    """Get user's favorite movies using letterboxdpy API - CACHED for speed"""
     try:
         # Use letterboxdpy to get user's favorite movies
         user_data = letterboxdpy.user.get_user(username)
@@ -311,7 +316,7 @@ def get_favorite_movies(username):
             for fav in user_data['favorites']:
                 if 'title' in fav:
                     favorites.append(fav['title'])
-            return favorites
+            return tuple(favorites)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"Error getting favorites via API for {username}: {e}")
     
@@ -331,10 +336,10 @@ def get_favorite_movies(username):
             if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
             page += 1
             if page > 10: break  # Limit to first 10 pages for performance
-        return favorites
+        return tuple(favorites)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"Error getting favorites via scraping for {username}: {e}")
-        return []
+        return tuple()
 
 def discover_letterboxd_users():
     """Discover ALL Letterboxd users using letterboxdpy API"""
@@ -434,42 +439,60 @@ def discover_letterboxd_users():
     except Exception as e:
         if DEBUG: print(f"Error in discover_letterboxd_users: {e}")
     
-    # Convert to list and return
+    # Convert to list and return - NO LIMITS!
     user_list = list(users)
-    if DEBUG: print(f"Discovered {len(user_list)} users using letterboxdpy API")
-    return user_list[:500]  # Return up to 500 users for massive search
+    if DEBUG: print(f"Discovered {len(user_list)} users from ENTIRE Letterboxd platform")
+    return user_list  # NO LIMITS - ALL USERS!
+
+def check_user_favorites(username, user_favorites):
+    """Check if user has common favorites - for parallel processing"""
+    try:
+        other_favorites = get_favorite_movies(username)
+        if other_favorites:
+            common = list(set(user_favorites) & set(other_favorites))
+            if common:  # If they have ANY common favorites
+                return {
+                    'username': username,
+                    'common_favorites': common,
+                    'total_favorites': len(other_favorites)
+                }
+    except Exception as e:
+        if DEBUG: print(f"Error getting favorites for {username}: {e}")
+    return None
 
 def find_users_with_common_favorites(user_favorites, all_users):
-    """Find users who have common favorites with the given user - MASSIVE SEARCH"""
+    """Find users who have common favorites with the given user - ULTRA FAST PARALLEL SEARCH"""
     if not user_favorites:
         return []
     
     users_with_common = []
     
-    # Search through ALL discovered users
-    for i, username in enumerate(all_users):
-        try:
-            if DEBUG and i % 10 == 0:
-                print(f"Checking user {i+1}/{len(all_users)}: {username}")
+    # PARALLEL PROCESSING for ULTRA SPEED!
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        # Submit all tasks
+        future_to_username = {
+            executor.submit(check_user_favorites, username, user_favorites): username 
+            for username in all_users
+        }
+        
+        # Collect results as they complete
+        for i, future in enumerate(concurrent.futures.as_completed(future_to_username)):
+            if DEBUG and i % 100 == 0:
+                print(f"Processed {i+1}/{len(all_users)} users...")
             
-            other_favorites = get_favorite_movies(username)
-            if other_favorites:
-                common = list(set(user_favorites) & set(other_favorites))
-                if common:  # If they have ANY common favorites
-                    users_with_common.append({
-                        'username': username,
-                        'common_favorites': common,
-                        'total_favorites': len(other_favorites)
-                    })
+            try:
+                result = future.result()
+                if result:
+                    users_with_common.append(result)
                     if DEBUG:
-                        print(f"FOUND COMMON FAVORITES with {username}: {common}")
-        except Exception as e:
-            if DEBUG: print(f"Error getting favorites for {username}: {e}")
-            continue
+                        print(f"FOUND COMMON FAVORITES with {result['username']}: {result['common_favorites']}")
+            except Exception as e:
+                if DEBUG: print(f"Error in parallel processing: {e}")
+                continue
     
     # Sort by number of common favorites
     users_with_common.sort(key=lambda x: len(x['common_favorites']), reverse=True)
-    return users_with_common[:20]  # Return top 20 with common favorites
+    return users_with_common  # Return ALL users with common favorites - NO LIMITS!
 
 def get_follow_data(username):
     username = username.strip().lower()
@@ -793,11 +816,9 @@ def matchboxd():
             # If we don't have enough matches, search through ALL users for regular matches
             if len(compatibility_list) < 10:
                 if DEBUG: print("Searching for regular matches across ALL Letterboxd users...")
-                for i, other_username in enumerate(all_users[:200]):  # Check first 200 users
+                
+                def check_regular_match(other_username):
                     try:
-                        if DEBUG and i % 20 == 0:
-                            print(f"Checking regular match {i+1}/200: {other_username}")
-                        
                         other_movies = get_watched_movies(other_username)
                         other_favorites = get_favorite_movies(other_username)
                         
@@ -805,7 +826,7 @@ def matchboxd():
                             compatibility_data = calculate_fast_smart_compatibility(
                                 user_movies, user_favorites, other_movies, other_favorites
                             )
-                            compatibility_list.append({
+                            return {
                                 "username": other_username,
                                 "display_name": other_username.title().replace('_', ' '),
                                 "compatibility": compatibility_data['compatibility'],
@@ -815,10 +836,29 @@ def matchboxd():
                                 "total_favorites": compatibility_data['total_other_favorites'],
                                 "favorites_bonus": compatibility_data.get('favorites_bonus', 0),
                                 "analysis_type": "regular_match"
-                            })
+                            }
                     except Exception as e:
                         if DEBUG: print(f"Error processing {other_username}: {e}")
-                        continue
+                    return None
+                
+                # PARALLEL PROCESSING for ULTRA SPEED!
+                with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                    future_to_username = {
+                        executor.submit(check_regular_match, username): username 
+                        for username in all_users
+                    }
+                    
+                    for i, future in enumerate(concurrent.futures.as_completed(future_to_username)):
+                        if DEBUG and i % 100 == 0:
+                            print(f"Processed regular match {i+1}/{len(all_users)}...")
+                        
+                        try:
+                            result = future.result()
+                            if result:
+                                compatibility_list.append(result)
+                        except Exception as e:
+                            if DEBUG: print(f"Error in parallel processing: {e}")
+                            continue
             
             # Sort by compatibility and filter out very low matches
             compatibility_list.sort(key=lambda x: x["compatibility"], reverse=True)
