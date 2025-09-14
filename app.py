@@ -300,6 +300,100 @@ def get_favorite_movies(username):
         if page > 10: break  # Limit to first 10 pages for performance
     return favorites
 
+def discover_letterboxd_users():
+    """Discover real Letterboxd users from various sources"""
+    users = set()
+    
+    # Method 1: Get users from popular lists and pages
+    popular_pages = [
+        "https://letterboxd.com/members/",
+        "https://letterboxd.com/films/popular/",
+        "https://letterboxd.com/films/trending/",
+        "https://letterboxd.com/films/this-week/",
+        "https://letterboxd.com/films/this-month/"
+    ]
+    
+    for page_url in popular_pages:
+        try:
+            status, html = fetch_html(page_url)
+            if status == 200 and html:
+                soup = BeautifulSoup(html, "lxml")
+                # Find user links
+                user_links = soup.select("a[href*='/']")
+                for link in user_links:
+                    href = link.get('href', '')
+                    if '/film/' in href or '/list/' in href:
+                        # Extract username from film/list pages
+                        parts = href.strip('/').split('/')
+                        if len(parts) >= 2:
+                            potential_user = parts[0]
+                            if potential_user and not potential_user.startswith('film') and not potential_user.startswith('list'):
+                                users.add(potential_user)
+        except:
+            continue
+    
+    # Method 2: Get users from recent activity
+    try:
+        status, html = fetch_html("https://letterboxd.com/activity/")
+        if status == 200 and html:
+            soup = BeautifulSoup(html, "lxml")
+            user_links = soup.select("a[href*='/']")
+            for link in user_links:
+                href = link.get('href', '')
+                if href.startswith('/') and not href.startswith('/film/') and not href.startswith('/list/'):
+                    username = href.strip('/').split('/')[0]
+                    if username and len(username) > 2:
+                        users.add(username)
+    except:
+        pass
+    
+    # Method 3: Get users from popular reviews
+    try:
+        status, html = fetch_html("https://letterboxd.com/films/reviews/")
+        if status == 200 and html:
+            soup = BeautifulSoup(html, "lxml")
+            review_links = soup.select("a[href*='/']")
+            for link in review_links:
+                href = link.get('href', '')
+                if '/film/' in href:
+                    # Extract from film pages
+                    parts = href.strip('/').split('/')
+                    if len(parts) >= 2:
+                        potential_user = parts[0]
+                        if potential_user and not potential_user.startswith('film'):
+                            users.add(potential_user)
+    except:
+        pass
+    
+    # Convert to list and limit for performance
+    user_list = list(users)[:100]  # Limit to 100 users for speed
+    return user_list
+
+def find_users_with_common_favorites(user_favorites, all_users):
+    """Find users who have common favorites with the given user"""
+    if not user_favorites:
+        return []
+    
+    users_with_common = []
+    
+    for username in all_users:
+        try:
+            other_favorites = get_favorite_movies(username)
+            if other_favorites:
+                common = list(set(user_favorites) & set(other_favorites))
+                if common:  # If they have ANY common favorites
+                    users_with_common.append({
+                        'username': username,
+                        'common_favorites': common,
+                        'total_favorites': len(other_favorites)
+                    })
+        except:
+            continue
+    
+    # Sort by number of common favorites
+    users_with_common.sort(key=lambda x: len(x['common_favorites']), reverse=True)
+    return users_with_common[:20]  # Return top 20
+
 def get_follow_data(username):
     username = username.strip().lower()
     following, followers, name_map = set(), set(), {}
@@ -572,45 +666,77 @@ def matchboxd():
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
-            # Get real users from Letterboxd - followers and following
-            try:
-                following, followers, name_map = get_follow_data(username)
-                # Combine followers and following, remove duplicates
-                all_users = list(set(following + followers))
-                # Add some popular users for variety
-                popular_users = ["davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert"]
-                all_users.extend(popular_users)
-                # Remove duplicates and limit to 20 for speed
-                sample_users = list(set(all_users))[:20]
-            except:
-                # Fallback to popular users if follow data fails
-                sample_users = ["davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert"]
+            # Discover real Letterboxd users from the platform
+            all_users = discover_letterboxd_users()
             
-            # Calculate compatibility with each user
+            # Find users with common favorites FIRST - this is the key!
+            users_with_common_favorites = find_users_with_common_favorites(user_favorites, all_users)
+            
             compatibility_list = []
-            for i, other_user in enumerate(sample_users[:15]):  # Check 15 users for speed
+            
+            # Process users with common favorites first (these are the real matches!)
+            for user_data in users_with_common_favorites:
                 try:
-                    other_movies = get_watched_movies(other_user)
-                    other_favorites = get_favorite_movies(other_user)
+                    other_username = user_data['username']
+                    other_movies = get_watched_movies(other_username)
+                    other_favorites = user_data['common_favorites']  # We already have this
+                    
                     if other_movies:
-                        # Use fast smart compatibility calculation
-                        compatibility_data = calculate_fast_smart_compatibility(
-                            user_movies, user_favorites, other_movies, other_favorites
-                        )
+                        # Calculate compatibility with heavy weight on common favorites
+                        common_watched = list(set(user_movies) & set(other_movies))
+                        common_favorites = user_data['common_favorites']
+                        
+                        # Calculate base compatibility
+                        base_score = calculate_compatibility(user_movies, other_movies, common_watched)
+                        
+                        # HUGE bonus for common favorites
+                        favorites_bonus = len(common_favorites) * 15  # 15% per common favorite
+                        favorites_bonus = min(70, favorites_bonus)  # Cap at 70%
+                        
+                        final_score = min(100, base_score + favorites_bonus)
+                        
                         compatibility_list.append({
-                            "username": other_user,
-                            "display_name": other_user.title().replace('_', ' '),
-                            "compatibility": compatibility_data['compatibility'],
-                            "common_watched": compatibility_data['common_watched'],
-                            "common_favorites": compatibility_data['common_favorites'],
-                            "total_movies": compatibility_data['total_other_watched'],
-                            "total_favorites": compatibility_data['total_other_favorites'],
-                            "favorites_bonus": compatibility_data.get('favorites_bonus', 0),
-                            "analysis_type": compatibility_data.get('analysis_type', 'fast_smart')
+                            "username": other_username,
+                            "display_name": other_username.title().replace('_', ' '),
+                            "compatibility": round(final_score, 1),
+                            "common_watched": len(common_watched),
+                            "common_favorites": len(common_favorites),
+                            "total_movies": len(other_movies),
+                            "total_favorites": user_data['total_favorites'],
+                            "favorites_bonus": round(favorites_bonus, 1),
+                            "analysis_type": "real_favorites_match"
                         })
                 except Exception as e:
-                    if DEBUG: print(f"Error processing {other_user}: {e}")
+                    if DEBUG: print(f"Error processing {other_username}: {e}")
                     continue
+            
+            # If we don't have enough matches, add some regular users
+            if len(compatibility_list) < 10:
+                remaining_users = [u for u in all_users if u not in [u['username'] for u in users_with_common_favorites]]
+                
+                for other_username in remaining_users[:10]:
+                    try:
+                        other_movies = get_watched_movies(other_username)
+                        other_favorites = get_favorite_movies(other_username)
+                        
+                        if other_movies:
+                            compatibility_data = calculate_fast_smart_compatibility(
+                                user_movies, user_favorites, other_movies, other_favorites
+                            )
+                            compatibility_list.append({
+                                "username": other_username,
+                                "display_name": other_username.title().replace('_', ' '),
+                                "compatibility": compatibility_data['compatibility'],
+                                "common_watched": compatibility_data['common_watched'],
+                                "common_favorites": compatibility_data['common_favorites'],
+                                "total_movies": compatibility_data['total_other_watched'],
+                                "total_favorites": compatibility_data['total_other_favorites'],
+                                "favorites_bonus": compatibility_data.get('favorites_bonus', 0),
+                                "analysis_type": "regular_match"
+                            })
+                    except Exception as e:
+                        if DEBUG: print(f"Error processing {other_username}: {e}")
+                        continue
             
             # Sort by compatibility and filter out very low matches
             compatibility_list.sort(key=lambda x: x["compatibility"], reverse=True)
