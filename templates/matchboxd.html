@@ -217,8 +217,9 @@
         }
 
         .stats {
-            display: flex;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             margin-top: 15px;
         }
 
@@ -282,7 +283,7 @@
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .user-info { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .stats { justify-content: space-between; }
+            .stats { grid-template-columns: 1fr; gap: 15px; }
             .match-score { font-size: 24px; }
             .explanation { font-size: 13px; padding: 15px; }
         }
@@ -335,18 +336,27 @@
                             <div class="stats">
                                 <div class="stat">
                                     <div class="stat-label">{{ translations.shared_movies }}</div>
-                                    <div class="stat-value">{{ user.common_movies }}</div>
+                                    <div class="stat-value">{{ user.common_watched }}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">{{ translations.shared_favorites }}</div>
+                                    <div class="stat-value">{{ user.common_favorites }}</div>
                                 </div>
                                 <div class="stat">
                                     <div class="stat-label">{{ translations.total_movies }}</div>
                                     <div class="stat-value">{{ user.total_movies }}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-label">{{ translations.total_favorites }}</div>
+                                    <div class="stat-value">{{ user.total_favorites }}</div>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                     
                     <div class="match-explanation">
-                        {{ translations.match_explanation }}
+                        {{ translations.match_explanation }}<br>
+                        <strong>{{ translations.favorites_weight }}</strong>
                     </div>
                 </div>
             {% endif %}
