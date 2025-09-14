@@ -375,27 +375,27 @@ def get_favorite_movies(username):
             else:
                 if DEBUG: print(f"❌ URL failed: {url} (status: {status})")
         
-        if DEBUG: print(f"✅ Final result: {len(favorites)} favorites for {username}: {favorites[:3]}...")
-        return tuple(favorites)  # Convert to tuple for caching
+            if DEBUG: print(f"✅ Final result: {len(favorites)} favorites for {username}: {favorites[:3]}...")
+            return tuple(favorites)  # Convert to tuple for caching
     except Exception as e:
         if DEBUG: print(f"❌ Error getting favorites for {username}: {e}")
         return tuple()
 
 def discover_letterboxd_users(user_favorites):
-    """Find users based on ACTUAL user's favorite films - STEP BY STEP"""
+    """Find users from ENTIRE Letterboxd - REAL CRAWL"""
     users = set()
     
     try:
-        if DEBUG: print(f"STEP 1: User's favorite films: {user_favorites}")
+        if DEBUG: print(f"🚀 CRAWLING ENTIRE LETTERBOXD for users with favorites: {user_favorites}")
         
-        # STEP 2: Search for users with SAME favorite films - INDIVIDUALLY FIRST
+        # METHOD 1: Search for users with SAME favorite films
         if user_favorites:
-            if DEBUG: print("STEP 2: Searching users with INDIVIDUAL favorite films...")
-            for fav in user_favorites[:4]:  # First 4 favorites individually
+            if DEBUG: print("🔍 Searching users with SAME favorite films...")
+            for fav in user_favorites:
                 try:
                     film_slug = fav.lower().replace(" ", "-").replace(":", "").replace("'", "").replace("!", "").replace("?", "").replace(".", "").replace(",", "")
                     search_query = f"fan:{film_slug}"
-                    if DEBUG: print(f"Searching individual favorite: {search_query}")
+                    if DEBUG: print(f"Searching: {search_query}")
                     
                     url = f"https://letterboxd.com/search/members/?q={search_query}"
                     status, html = fetch_html(url)
@@ -410,22 +410,45 @@ def discover_letterboxd_users(user_favorites):
                                     users.add(username)
                         if DEBUG: print(f"Found {len(users)} users for {fav}")
                 except Exception as e:
-                    if DEBUG: print(f"Error searching individual favorite {fav}: {e}")
+                    if DEBUG: print(f"Error searching {fav}: {e}")
                     continue
         
-        # STEP 3: Search for users with MULTIPLE favorite films together
-        if len(user_favorites) >= 2 and len(users) < 20:
-            if DEBUG: print("STEP 3: Searching users with MULTIPLE favorite films together...")
-            search_terms = []
-            for fav in user_favorites[:4]:  # Max 4 favorites for search
-                film_slug = fav.lower().replace(" ", "-").replace(":", "").replace("'", "").replace("!", "").replace("?", "").replace(".", "").replace(",", "")
-                search_terms.append(f"fan:{film_slug}")
-            
-            if search_terms:
-                search_query = " ".join(search_terms)
-                if DEBUG: print(f"Searching for users with: {search_query}")
-                
-                url = f"https://letterboxd.com/search/members/?q={search_query.replace(' ', '+')}"
+        # METHOD 2: MASSIVE MEMBER DIRECTORY CRAWL - ENTIRE LETTERBOXD
+        if DEBUG: print("🌍 MASSIVE CRAWL: Scanning ENTIRE member directory...")
+        for page in range(1, 201):  # 200 pages = 4000+ users - REAL CRAWL!
+            try:
+                url = f"https://letterboxd.com/members/page/{page}/"
+                status, html = fetch_html(url)
+                if status == 200 and html:
+                    soup = BeautifulSoup(html, "lxml")
+                    user_links = soup.select("a[href^='/']")
+                    for link in user_links:
+                        href = link.get('href', '')
+                        if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                            username = href.strip('/').split('/')[0]
+                            if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
+                                users.add(username)
+                if DEBUG and page % 50 == 0:
+                    print(f"🌍 Crawled {page} pages, found {len(users)} users")
+            except Exception as e:
+                if DEBUG: print(f"Error on page {page}: {e}")
+                continue
+        
+        # METHOD 3: Search popular films for more users
+        if DEBUG: print("🎬 Searching popular films for more users...")
+        popular_films = [
+            "the-godfather", "pulp-fiction", "the-dark-knight", "inception", 
+            "fight-club", "the-matrix", "goodfellas", "forrest-gump", 
+            "the-shawshank-redemption", "star-wars", "the-lord-of-the-rings",
+            "titanic", "avatar", "jaws", "et", "back-to-the-future",
+            "indiana-jones", "terminator", "alien", "blade-runner",
+            "casablanca", "citizen-kane", "vertigo", "psycho", "taxi-driver"
+        ]
+        
+        for film_slug in popular_films:
+            try:
+                search_query = f"fan:{film_slug}"
+                url = f"https://letterboxd.com/search/members/?q={search_query}"
                 status, html = fetch_html(url)
                 if status == 200 and html:
                     soup = BeautifulSoup(html, "lxml")
@@ -436,33 +459,15 @@ def discover_letterboxd_users(user_favorites):
                             username = href.strip('/').split('/')[0]
                             if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films', 'search']:
                                 users.add(username)
-                    if DEBUG: print(f"Found {len(users)} users with multiple favorites")
-        
-        # STEP 4: Fallback to member directory if still not enough
-        if len(users) < 20:
-            if DEBUG: print("STEP 4: Fallback to member directory...")
-            for page in range(1, 6):  # ONLY 5 pages = 100+ users for SPEED!
-                try:
-                    url = f"https://letterboxd.com/members/page/{page}/"
-                    status, html = fetch_html(url)
-                    if status == 200 and html:
-                        soup = BeautifulSoup(html, "lxml")
-                        user_links = soup.select("a[href^='/']")
-                        for link in user_links:
-                            href = link.get('href', '')
-                            if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
-                                username = href.strip('/').split('/')[0]
-                                if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
-                                    users.add(username)
-                except Exception as e:
-                    if DEBUG: print(f"Error on page {page}: {e}")
-                    continue
+            except Exception as e:
+                if DEBUG: print(f"Error searching popular film {film_slug}: {e}")
+                continue
         
     except Exception as e:
         if DEBUG: print(f"Error in discover_letterboxd_users: {e}")
     
     user_list = list(users)
-    if DEBUG: print(f"STEP 5: Found {len(user_list)} users based on ACTUAL user's favorites!")
+    if DEBUG: print(f"🎯 FINAL: Found {len(user_list)} users from ENTIRE Letterboxd platform!")
     return user_list
 
 def check_user_favorites(username, user_favorites):
@@ -490,8 +495,8 @@ def find_users_with_common_favorites(user_favorites, all_users):
     
     if DEBUG: print(f"VERIFYING {len(all_users)} users for common favorites...")
     
-    # Check each user for REAL common favorites
-    for username in all_users[:30]:  # LIMIT TO 30 USERS FOR SPEED!
+    # Check each user for REAL common favorites - NO LIMITS!
+    for username in all_users:  # ALL USERS - REAL CRAWL!
         try:
             other_favorites = get_favorite_movies(username)
             if other_favorites:
@@ -801,9 +806,8 @@ def matchboxd():
             all_users = discover_letterboxd_users(user_favorites)
             if DEBUG: print(f"Found {len(all_users)} users based on user's ACTUAL favorites")
             
-            # ULTRA FAST - Limit users to prevent timeout
-            all_users = all_users[:30]  # MAX 30 USERS FOR SPEED!
-            if DEBUG: print(f"Limited to {len(all_users)} users for ULTRA SPEED!")
+            # REAL CRAWL - NO LIMITS!
+            if DEBUG: print(f"🚀 Using {len(all_users)} users from ENTIRE Letterboxd platform!")
             
             compatibility_list = []
             
