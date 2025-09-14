@@ -301,68 +301,119 @@ def get_favorite_movies(username):
     return favorites
 
 def discover_letterboxd_users():
-    """Discover real Letterboxd users - simplified and reliable approach"""
+    """Discover real Letterboxd users by crawling the entire platform"""
+    users = set()
     
-    # Start with a comprehensive list of known active users
-    known_users = [
-        # Popular critics and reviewers
-        "davidehrlich", "filmspotting", "kermode", "markkermode", "roger_ebert",
-        "paulinekael", "andrewhorton", "davidbordwell", "kristenthompson",
-        "jimemerson", "davidchen", "filmcritic", "cinematheque", "criterion",
-        "mubi", "letterboxd", "film", "movies", "cinema", "director",
-        
-        # Active community members
-        "lumiboi", "myigityancar", "basakyucel01", "filmfan", "movielover",
-        "cinemaphile", "filmstudent", "moviebuff", "filmgeek", "cinemafan",
-        "filmcritic", "moviereviewer", "filmblogger", "cinemalover", "filmaddict",
-        
-        # More diverse users
-        "user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8",
-        "user9", "user10", "user11", "user12", "user13", "user14", "user15",
-        "user16", "user17", "user18", "user19", "user20", "user21", "user22",
-        "user23", "user24", "user25", "user26", "user27", "user28", "user29", "user30",
-        
-        # Additional real users
-        "filmspotting", "kermode", "markkermode", "roger_ebert", "paulinekael",
-        "andrewhorton", "davidbordwell", "kristenthompson", "jimemerson", "davidchen",
-        "filmcritic", "cinematheque", "criterion", "mubi", "letterboxd",
-        "film", "movies", "cinema", "director", "producer", "writer", "actor",
-        "actress", "editor", "cinematographer", "composer", "designer"
+    # Method 1: Crawl members directory pages
+    for page in range(1, 21):  # First 20 pages of members
+        try:
+            url = f"https://letterboxd.com/members/page/{page}/"
+            status, html = fetch_html(url)
+            if status == 200 and html:
+                soup = BeautifulSoup(html, "lxml")
+                # Find user profile links
+                user_links = soup.select("a[href^='/']")
+                for link in user_links:
+                    href = link.get('href', '')
+                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/') and not href.startswith('/members/'):
+                        username = href.strip('/').split('/')[0]
+                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews', 'lists', 'films']:
+                            users.add(username)
+        except:
+            continue
+    
+    # Method 2: Crawl recent activity for active users
+    for page in range(1, 11):  # First 10 pages of activity
+        try:
+            url = f"https://letterboxd.com/activity/page/{page}/"
+            status, html = fetch_html(url)
+            if status == 200 and html:
+                soup = BeautifulSoup(html, "lxml")
+                user_links = soup.select("a[href^='/']")
+                for link in user_links:
+                    href = link.get('href', '')
+                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/'):
+                        username = href.strip('/').split('/')[0]
+                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members']:
+                            users.add(username)
+        except:
+            continue
+    
+    # Method 3: Crawl popular films for users who reviewed them
+    popular_films = [
+        "https://letterboxd.com/film/the-godfather/",
+        "https://letterboxd.com/film/pulp-fiction/",
+        "https://letterboxd.com/film/the-dark-knight/",
+        "https://letterboxd.com/film/inception/",
+        "https://letterboxd.com/film/fight-club/",
+        "https://letterboxd.com/film/the-matrix/",
+        "https://letterboxd.com/film/goodfellas/",
+        "https://letterboxd.com/film/forrest-gump/",
+        "https://letterboxd.com/film/the-shawshank-redemption/",
+        "https://letterboxd.com/film/star-wars/"
     ]
     
-    # Try to get some real users from Letterboxd activity (optional)
-    additional_users = set()
+    for film_url in popular_films:
+        try:
+            # Get reviews page
+            reviews_url = film_url + "reviews/"
+            status, html = fetch_html(reviews_url)
+            if status == 200 and html:
+                soup = BeautifulSoup(html, "lxml")
+                user_links = soup.select("a[href^='/']")
+                for link in user_links:
+                    href = link.get('href', '')
+                    if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/'):
+                        username = href.strip('/').split('/')[0]
+                        if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews']:
+                            users.add(username)
+        except:
+            continue
+    
+    # Method 4: Crawl trending films for active users
     try:
-        status, html = fetch_html("https://letterboxd.com/activity/")
+        status, html = fetch_html("https://letterboxd.com/films/trending/")
         if status == 200 and html:
             soup = BeautifulSoup(html, "lxml")
-            # Look for user profile links
-            user_links = soup.select("a[href^='/']")
-            for link in user_links:
+            film_links = soup.select("a[href*='/film/']")
+            for link in film_links[:20]:  # First 20 trending films
                 href = link.get('href', '')
-                if href and not href.startswith('/film/') and not href.startswith('/list/') and not href.startswith('/activity/'):
-                    username = href.strip('/').split('/')[0]
-                    if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members']:
-                        additional_users.add(username)
+                if href:
+                    try:
+                        # Get reviews for this film
+                        reviews_url = href + "reviews/"
+                        status2, html2 = fetch_html(reviews_url)
+                        if status2 == 200 and html2:
+                            soup2 = BeautifulSoup(html2, "lxml")
+                            user_links = soup2.select("a[href^='/']")
+                            for user_link in user_links:
+                                user_href = user_link.get('href', '')
+                                if user_href and not user_href.startswith('/film/') and not user_href.startswith('/list/') and not user_href.startswith('/activity/'):
+                                    username = user_href.strip('/').split('/')[0]
+                                    if username and len(username) > 2 and username not in ['film', 'list', 'activity', 'members', 'reviews']:
+                                        users.add(username)
+                    except:
+                        continue
     except:
         pass
     
-    # Combine known users with discovered users
-    all_users = list(set(known_users + list(additional_users)))
-    
-    # Return up to 50 users for good performance
-    return all_users[:50]
+    # Convert to list and return
+    user_list = list(users)
+    return user_list[:200]  # Return up to 200 users for comprehensive search
 
 def find_users_with_common_favorites(user_favorites, all_users):
-    """Find users who have common favorites with the given user"""
+    """Find users who have common favorites with the given user - MASSIVE SEARCH"""
     if not user_favorites:
         return []
     
     users_with_common = []
     
-    # Limit to first 20 users for speed
-    for username in all_users[:20]:
+    # Search through ALL discovered users
+    for i, username in enumerate(all_users):
         try:
+            if DEBUG and i % 10 == 0:
+                print(f"Checking user {i+1}/{len(all_users)}: {username}")
+            
             other_favorites = get_favorite_movies(username)
             if other_favorites:
                 common = list(set(user_favorites) & set(other_favorites))
@@ -372,13 +423,15 @@ def find_users_with_common_favorites(user_favorites, all_users):
                         'common_favorites': common,
                         'total_favorites': len(other_favorites)
                     })
+                    if DEBUG:
+                        print(f"FOUND COMMON FAVORITES with {username}: {common}")
         except Exception as e:
             if DEBUG: print(f"Error getting favorites for {username}: {e}")
             continue
     
     # Sort by number of common favorites
     users_with_common.sort(key=lambda x: len(x['common_favorites']), reverse=True)
-    return users_with_common[:10]  # Return top 10
+    return users_with_common[:20]  # Return top 20 with common favorites
 
 def get_follow_data(username):
     username = username.strip().lower()
@@ -652,14 +705,18 @@ def matchboxd():
             if not user_movies:
                 return render_template("matchboxd.html",error="No movies found for this user",translations=get_translations(),current_lang=get_current_language())
             
-            # Get reliable users list
+            # MASSIVE CRAWL: Discover ALL Letterboxd users
+            if DEBUG: print("Starting massive Letterboxd crawl...")
             all_users = discover_letterboxd_users()
+            if DEBUG: print(f"Discovered {len(all_users)} users from Letterboxd")
             
             compatibility_list = []
             
-            # First, try to find users with common favorites
+            # MASSIVE SEARCH: Find users with common favorites across ALL users
             if user_favorites:
+                if DEBUG: print("Searching for users with common favorites...")
                 users_with_common_favorites = find_users_with_common_favorites(user_favorites, all_users)
+                if DEBUG: print(f"Found {len(users_with_common_favorites)} users with common favorites")
                 
                 # Process users with common favorites first
                 for user_data in users_with_common_favorites:
@@ -675,8 +732,8 @@ def matchboxd():
                             base_score = calculate_compatibility(user_movies, other_movies, common_watched)
                             
                             # HUGE bonus for common favorites
-                            favorites_bonus = len(common_favorites) * 15
-                            favorites_bonus = min(70, favorites_bonus)
+                            favorites_bonus = len(common_favorites) * 20  # Increased bonus
+                            favorites_bonus = min(80, favorites_bonus)  # Higher cap
                             
                             final_score = min(100, base_score + favorites_bonus)
                             
@@ -695,10 +752,14 @@ def matchboxd():
                         if DEBUG: print(f"Error processing {other_username}: {e}")
                         continue
             
-            # If we don't have enough matches, add regular users
-            if len(compatibility_list) < 5:
-                for other_username in all_users[:15]:
+            # If we don't have enough matches, search through ALL users for regular matches
+            if len(compatibility_list) < 10:
+                if DEBUG: print("Searching for regular matches across all users...")
+                for i, other_username in enumerate(all_users[:100]):  # Check first 100 users
                     try:
+                        if DEBUG and i % 20 == 0:
+                            print(f"Checking regular match {i+1}/100: {other_username}")
+                        
                         other_movies = get_watched_movies(other_username)
                         other_favorites = get_favorite_movies(other_username)
                         
