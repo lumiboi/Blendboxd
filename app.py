@@ -4,7 +4,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
- 
+
 try:
     import cloudscraper
     SCRAPER = cloudscraper.create_scraper()
@@ -210,7 +210,7 @@ def get_watched_movies(username):
         url = f"https://letterboxd.com/{username}/films/page/{page}/"
         status, html = fetch_html(url)
         if status != 200 or not html: break
-        soup = BeautifulSoup(html, "lxml")
+        soup = BeautifulSoup(html, "html.parser")
         for t in extract_movies_from_soup(soup):
             if t not in seen: seen.add(t); collected.append(t)
         if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
@@ -226,7 +226,7 @@ def get_watchlist(username):
         url = f"https://letterboxd.com/{username}/watchlist/page/{page}/"
         status, html = fetch_html(url)
         if status != 200 or not html: break
-        soup = BeautifulSoup(html, "lxml")
+        soup = BeautifulSoup(html, "html.parser")
         for t in extract_movies_from_soup(soup):
             if t not in seen: seen.add(t); collected.append(t)
         if not (soup.select_one("a.next") or soup.select_one("a[rel='next']")): break
@@ -243,7 +243,7 @@ def get_follow_data(username):
             url = f"https://letterboxd.com/{username}/{kind}/page/{page}/"
             status, html = fetch_html(url)
             if status != 200 or not html: break
-            soup = BeautifulSoup(html, "lxml")
+            soup = BeautifulSoup(html, "html.parser")
             persons = soup.select("div.person-summary h3 a, li.person a, .person a")
             if not persons: break
             for p in persons:
