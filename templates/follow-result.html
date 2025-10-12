@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ username }}'nin {{ translations.follower_status }}{% endblock %}
+{% block title %}{{ username }} {{ translations.follower_status }}{% endblock %}
 
 {% block extra_head %}
     <style>
@@ -94,7 +94,7 @@
 {% block content %}
     <div class="container">
        
-        <h1>{{ username }}'nin {{ translations.follower_status }}</h1>
+        <h1>{{ username }} {{ translations.follower_status }}</h1>
         <h2>{{ translations.people_not_following }}</h2>
         <ul>
             {% if difference_list %}
