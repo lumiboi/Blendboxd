@@ -4,7 +4,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, jsonify, session
-
+ 
 try:
     import cloudscraper
     SCRAPER = cloudscraper.create_scraper()
