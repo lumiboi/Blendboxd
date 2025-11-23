@@ -58,11 +58,16 @@
         :root {
             --bg-color: #050505;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            overflow-x: hidden;
-        }
+       body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color); /* fallback */
+    background-image: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    background-size: cover;
+    overflow-x: hidden;
+}
 
         /* Subtle background mesh animation */
         .mesh-gradient {
@@ -436,3 +441,4 @@
         }
     </script>
 {% endblock %}
+
