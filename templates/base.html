@@ -19,73 +19,74 @@
     </script>
     
     <style>
-        /* Language Switcher Styles */
-        .language-switcher {
+        /* ==== Language Badges - Bottom Left Flags ==== */
+        .language-badges {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            bottom: 20px;
+            left: 20px;
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 8px 16px;
-            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .language-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
         }
-        
-        .language-switcher:hover {
-            background: rgba(0, 0, 0, 0.9);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+
+        .language-badge:hover {
+            transform: translateY(-1px) scale(1.05);
+            border-color: rgba(0, 255, 200, 0.6);
         }
-        
-        .language-switcher i {
-            color: #00b7a4;
-            font-size: 16px;
+
+        .language-badge.active {
+            border-color: rgba(0, 255, 200, 0.9);
+            box-shadow: 0 0 0 1px rgba(0, 255, 200, 0.3), 0 6px 18px rgba(0, 0, 0, 0.7);
         }
-        
-        .language-switcher span {
-            color: white;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .language-switcher .flag {
-            width: 20px;
-            height: 15px;
-            border-radius: 2px;
+
+        .language-badge .flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
             background-size: cover;
             background-position: center;
         }
-        
-        .language-switcher .flag.tr {
+
+        .language-badge .flag.tr {
             background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjRTEwRTEwIi8+CjxjaXJjbGUgY3g9IjEwIiBjeT0iNy41IiByPSIzLjUiIGZpbGw9IiNGRkZGRkYiLz4KPHN0YXIgY3g9IjEwIiBjeT0iNy41IiByPSIyLjUiIGZpbGw9IiNEMDAwMDAiLz4KPC9zdmc+');
         }
-        
-        .language-switcher .flag.en {
+
+        .language-badge .flag.en {
             background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMDEyMTY5Ii8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI2LjkyNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iMTMuODUiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3Qgd2lkdGg9IjIuMzA3NyIgaGVpZ2h0PSIxNSIgeT0iMCIgeD0iOC44NDYyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI0LjYxNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iOS4yMzA4IiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPg==');
         }
-        
-        /* Responsive */
+
         @media (max-width: 768px) {
-            .language-switcher {
-                top: 10px;
-                right: 10px;
-                padding: 6px 12px;
+            .language-badges {
+                bottom: 14px;
+                left: 14px;
+                gap: 6px;
             }
-            
-            .language-switcher span {
-                font-size: 12px;
+            .language-badge {
+                width: 30px;
+                height: 30px;
+                padding: 2px;
             }
-            
-            .language-switcher .flag {
-                width: 16px;
-                height: 12px;
+            .language-badge .flag {
+                width: 20px;
+                height: 15px;
             }
         }
     </style>
@@ -93,22 +94,33 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Language Switcher -->
-    <div class="language-switcher" onclick="toggleLanguage()">
-        <i class="fas fa-globe"></i>
-        <div class="flag {{ current_lang }}"></div>
-        <span id="languageText">{{ translations.language }}</span>
+    <!-- Bottom-left Language Flags -->
+    <div class="language-badges">
+        <button
+            type="button"
+            class="language-badge {% if current_lang == 'tr' %}active{% endif %}"
+            onclick="setLanguage('tr')"
+            aria-label="Türkçe"
+        >
+            <span class="flag tr"></span>
+        </button>
+
+        <button
+            type="button"
+            class="language-badge {% if current_lang == 'en' %}active{% endif %}"
+            onclick="setLanguage('en')"
+            aria-label="English"
+        >
+            <span class="flag en"></span>
+        </button>
     </div>
     
     {% block content %}{% endblock %}
     
     <script>
-        // Language switching functionality
-        function toggleLanguage() {
-            const currentLang = '{{ current_lang }}';
-            const newLang = currentLang === 'tr' ? 'en' : 'tr';
-            
-            fetch(`/set_language/${newLang}`)
+        // Language switching functionality (explicit lang)
+        function setLanguage(lang) {
+            fetch(`/set_language/${lang}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
