@@ -1,23 +1,27 @@
 {% extends "base.html" %}
 
 {% block title %}
-    {{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools
+    {{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools | Letterboxd Blendboxd Film Blend Aracı
 {% endblock %}
 
 {% block extra_head %}
     {{ super() }}
     <!-- SEO -->
-    <meta name="description" content="{{ translations.seo_description|default('Blendboxd lets you create Spotify Blend–style mixes from Letterboxd accounts. Compare film taste, find users who do not follow you back, pick random movies from your watchlist and discover films from shared watchlists.') }}">
+    <link rel="canonical" href="https://blendboxd.xyz/">
+    <meta name="description" content="{{ translations.seo_description|default('Blendboxd lets you create Spotify Blend–style mixes from Letterboxd accounts. Compare film taste, find users who do not follow you back, pick random movies from your watchlist and discover films from shared watchlists. Letterboxd blend ve Letterboxd takip etmeyenleri görme aracı.') }}">
     <meta name="robots" content="index,follow">
+    <meta name="keywords" content="letterboxd blend, blendboxd, blendbox, film blend, letterboxd non followers, letterboxd non-followers, letterboxd takip etmeyenleri görme, letterboxd takip etmeyenler, letterboxd araçları, letterboxd tool, random watchlist picker, film taste blend, film zevki karşılaştırma, letterboxd takip analizi">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers &amp; Watchlist Tools">
-    <meta property="og:description" content="{{ translations.seo_description|default('Create a film taste blend from two Letterboxd profiles, list non-followers and get random picks from (shared) watchlists with Blendboxd.') }}">
+    <meta property="og:description" content="{{ translations.seo_description|default('Create a film taste blend from two Letterboxd profiles, list non-followers and get random picks from (shared) watchlists with Blendboxd. Letterboxd blend ve takip etmeyenleri görme aracı.') }}">
     <meta property="og:site_name" content="{{ translations.app_name }}">
     <meta property="og:url" content="https://blendboxd.xyz/">
     <meta property="og:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="tr_TR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers &amp; Watchlist Tools">
-    <meta name="twitter:description" content="{{ translations.seo_description|default('Blend your Letterboxd film taste like Spotify Blend, see who doesn’t follow you back and explore movies from your watchlists.') }}">
+    <meta name="twitter:description" content="{{ translations.seo_description|default('Blend your Letterboxd film taste like Spotify Blend, see who doesn’t follow you back and explore movies from your watchlists. Letterboxd blend ve Letterboxd takip etmeyenler aracı.') }}">
     <meta name="twitter:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
 
     <!-- Tailwind CSS -->
@@ -31,7 +35,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Structured Data -->
+    <!-- Structured Data: WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -45,7 +49,8 @@
         "Create a Spotify Blend–style film taste blend from two Letterboxd accounts",
         "List Letterboxd users who don’t follow you back",
         "Pick a random film from your own watchlist",
-        "Pick a random film from shared / common watchlists"
+        "Pick a random film from shared / common watchlists",
+        "Letterboxd takip etmeyenleri görme ve film zevkini karşılaştırma"
       ],
       "sameAs": [
         "https://letterboxd.com/lumiboi/",
@@ -54,20 +59,35 @@
     }
     </script>
 
+    <!-- Structured Data: WebSite for search intent -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Blendboxd",
+      "url": "https://blendboxd.xyz/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://blendboxd.xyz/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
     <style>
         :root {
             --bg-color: #050505;
         }
-       body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-color); /* fallback */
-    background-image: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-attachment: fixed;
-    background-size: cover;
-    overflow-x: hidden;
-}
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color); /* fallback */
+            background-image: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-size: cover;
+            overflow-x: hidden;
+        }
 
         /* Subtle background mesh animation */
         .mesh-gradient {
@@ -110,6 +130,13 @@
 
         /* Hide scrollbar for clean look */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* Mobile nav spacing so it doesn't clash with language area in base */
+        @media (max-width: 640px) {
+            .blend-nav-wrapper {
+                top: 0.75rem; /* biraz aşağıda dursun */
+            }
+        }
     </style>
 {% endblock %}
 
@@ -120,10 +147,10 @@
     <div class="mesh-gradient" aria-hidden="true"></div>
 
     <!-- Top Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center py-6 px-6">
-        <div class="flex items-center gap-1 bg-neutral-900/80 backdrop-blur-md border border-white/5 rounded-full p-1.5 pl-5 pr-1.5 shadow-2xl ring-1 ring-black/20">
-            <div class="flex items-center gap-2 mr-4">
-                <!-- Logo Icon (Abstract geometry) -->
+    <nav class="fixed inset-x-0 z-50 px-4 sm:px-6 blend-nav-wrapper sm:top-6">
+        <div class="max-w-3xl mx-auto flex items-center justify-between bg-neutral-900/80 backdrop-blur-md border border-white/5 rounded-full py-1.5 pl-4 pr-2 shadow-2xl ring-1 ring-black/20">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 mr-2">
                 <div class="relative flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
@@ -133,6 +160,7 @@
                 </span>
             </div>
 
+            <!-- Desktop Links -->
             <div class="hidden sm:flex items-center">
                 <a href="/follow" class="text-xs font-medium text-neutral-400 hover:text-white px-4 py-2 rounded-full transition-colors duration-200">
                     {{ translations.followboxd }}
@@ -146,9 +174,33 @@
             </div>
 
             <!-- Mobile Menu Button -->
-            <button class="sm:hidden p-2 text-neutral-400 hover:text-white" aria-label="Menu">
-                <i data-lucide="menu" class="w-4 h-4"></i>
+            <button
+                id="mobileMenuButton"
+                class="sm:hidden p-2 text-neutral-400 hover:text-white"
+                aria-label="Menu"
+                aria-expanded="false"
+                type="button"
+            >
+                <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
+        </div>
+
+        <!-- Mobile Menu (separate, language alanından bağımsız) -->
+        <div
+            id="mobileMenu"
+            class="sm:hidden max-w-3xl mx-auto mt-3 glass-card rounded-2xl px-4 py-3 border border-white/10 shadow-2xl hidden"
+        >
+            <div class="flex flex-col gap-1">
+                <a href="/follow" class="text-xs font-medium text-neutral-300 hover:text-white py-2 rounded-lg px-2 bg-white/0 hover:bg-white/5 transition-colors">
+                    {{ translations.followboxd }}
+                </a>
+                <a href="/picker" class="text-xs font-medium text-neutral-300 hover:text-white py-2 rounded-lg px-2 bg-white/0 hover:bg-white/5 transition-colors">
+                    {{ translations.randomboxd }}
+                </a>
+                <a href="/duo_picker" class="text-xs font-medium text-neutral-300 hover:text-white py-2 rounded-lg px-2 bg-white/0 hover:bg-white/5 transition-colors">
+                    {{ translations.squadboxd }}
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -322,6 +374,16 @@
                 </div>
 
             </div>
+
+            <!-- Küçük SEO-friendly açıklama (görünür ama rahatsız etmeyen) -->
+            <p class="mt-6 text-[11px] text-neutral-500 max-w-2xl mx-auto text-center leading-relaxed">
+                Blendboxd, Letterboxd hesabınız için
+                <strong>Letterboxd blend</strong>,
+                <strong>film blend kartı</strong>,
+                <strong>Letterboxd takip etmeyenleri görme</strong> ve
+                <strong>random watchlist picker</strong> gibi araçlar sunar.
+                Compare film taste, build Spotify-style Letterboxd blends and see who doesn’t follow you back.
+            </p>
         </div>
     </main>
 
@@ -439,7 +501,36 @@
                 card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
             });
         }
+
+        // Mobile Menu Toggle (responsive + dil alanından bağımsız)
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                const isOpen = !mobileMenu.classList.contains('hidden');
+                mobileMenu.classList.toggle('hidden');
+                mobileMenuButton.setAttribute('aria-expanded', String(!isOpen));
+
+                // İkonu değiştir (menu <-> x)
+                const iconName = isOpen ? 'menu' : 'x';
+                mobileMenuButton.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        // Resize'da desktop'a dönünce menüyü resetle
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 640 && mobileMenu && mobileMenuButton) {
+                mobileMenu.classList.add('hidden');
+                mobileMenuButton.setAttribute('aria-expanded', 'false');
+                mobileMenuButton.innerHTML = '<i data-lucide="menu" class="w-5 h-5"></i>';
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        });
     </script>
 {% endblock %}
-
-
