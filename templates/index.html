@@ -375,17 +375,53 @@
 
             </div>
 
-            <!-- Küçük SEO-friendly açıklama (görünür ama rahatsız etmeyen) -->
-            <p class="mt-6 text-[11px] text-neutral-500 max-w-2xl mx-auto text-center leading-relaxed">
-                Blendboxd, Letterboxd hesabınız için
-                <strong>Letterboxd blend</strong>,
-                <strong>film blend kartı</strong>,
-                <strong>Letterboxd takip etmeyenleri görme</strong> ve
-                <strong>random watchlist picker</strong> gibi araçlar sunar.
-                Compare film taste, build Spotify-style Letterboxd blends and see who doesn’t follow you back.
-            </p>
-        </div>
-    </main>
+            <!-- not: seo odaklı bilgi kutusu – sayfanın alt kısmındaki açıklama alanı -->
+<div class="mt-10 max-w-2xl mx-auto px-5">
+    <section
+        aria-label="Blendboxd Letterboxd araçları açıklaması"
+        class="rounded-2xl bg-black/70 backdrop-blur-md border border-white/10
+               shadow-[0_10px_40px_rgba(0,0,0,0.6)] px-5 py-5 space-y-3"
+    >
+        <!-- not: h2 – ana başlığı tamamlayan seo başlık -->
+        <h2 class="text-xs md:text-sm font-semibold text-neutral-100 tracking-wide text-center">
+            Letterboxd Blend, Takip Analizi ve Watchlist Araçları – Blendboxd
+        </h2>
+
+        <!-- not: kısa özet paragraf (tr + en karışık, keyword yoğun) -->
+        <p class="text-[11px] md:text-xs text-neutral-300 leading-relaxed text-center">
+            <strong class="text-white">Blendboxd</strong>, Letterboxd hesabınız için
+            <strong>Letterboxd blend</strong>,
+            <strong>film blend kartı</strong>,
+            <strong>Letterboxd takip etmeyenleri görme</strong>
+            ve <strong>random watchlist picker</strong> gibi araçlar sunar.
+            Compare film taste, build Spotify-style Letterboxd blends and see who doesn’t follow you back.
+        </p>
+
+        <!-- not: kısa madde listesi – hem tr hem en, seo kelimelerini netleştiriyorum -->
+        <ul class="text-[11px] md:text-xs text-neutral-400 leading-relaxed list-disc list-inside space-y-1">
+            <li>
+                İki farklı Letterboxd hesabı arasında
+                <strong>film zevki karşılaştırma</strong> ve
+                <strong>Letterboxd blend kartı</strong> oluşturma.
+            </li>
+            <li>
+                <strong>Letterboxd takip etmeyenleri görme</strong>,
+                non-followers listesini çıkarma ve takip analizini kolayca yapma.
+            </li>
+            <li>
+                <strong>Random watchlist picker</strong> ile kendi watchlist’inizden
+                veya ortak watchlist’lerden rastgele film önerileri alma.
+            </li>
+        </ul>
+
+        <!-- not: küçük alt satır – tamamen seo için, ama görsel olarak hala sade -->
+        <p class="text-[10px] text-neutral-500 text-center">
+            Letterboxd blend, film blend, non-followers check ve watchlist randomizer
+            arayanlar için hızlı, reklamsız ve ücretsiz bir web aracı.
+        </p>
+    </section>
+</div>
+
 
     <!-- Minimal Fixed Footer Links -->
     <footer class="fixed bottom-6 left-0 right-0 flex justify-center pointer-events-none z-20">
@@ -534,3 +570,4 @@
         });
     </script>
 {% endblock %}
+
