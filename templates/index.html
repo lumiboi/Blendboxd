@@ -1,26 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools{% endblock %}
+{% block title %}
+    {{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools
+{% endblock %}
 
 {% block extra_head %}
     {{ super() }}
-    <!-- Core SEO -->
+    <!-- SEO -->
     <meta name="description" content="{{ translations.seo_description|default('Blendboxd lets you create Spotify Blend–style mixes from Letterboxd accounts. Compare film taste, find users who do not follow you back, pick random movies from your watchlist and discover films from shared watchlists.') }}">
     <meta name="robots" content="index,follow">
-
-    <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools">
+    <meta property="og:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers &amp; Watchlist Tools">
     <meta property="og:description" content="{{ translations.seo_description|default('Create a film taste blend from two Letterboxd profiles, list non-followers and get random picks from (shared) watchlists with Blendboxd.') }}">
     <meta property="og:site_name" content="{{ translations.app_name }}">
     <meta property="og:url" content="https://blendboxd.xyz/">
     <meta property="og:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
-
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools">
+    <meta name="twitter:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers &amp; Watchlist Tools">
     <meta name="twitter:description" content="{{ translations.seo_description|default('Blend your Letterboxd film taste like Spotify Blend, see who doesn’t follow you back and explore movies from your watchlists.') }}">
     <meta name="twitter:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -46,461 +55,384 @@
     </script>
 
     <style>
-        /* Modern Parallax + Glass UI */
         :root {
-            --teal: #00b7a4;
-            --orange: #ff8000;
-            --blue: #40bcf4;
-            --green: #00e054;
-            --card-bg: rgba(10, 14, 20, 0.55);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+            --bg-color: #050505;
         }
-
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: url('https://64.media.tumblr.com/2145eef08016412758296c6315fce26b/tumblr_mox6v9erEP1rsyukao1_1280.gif') no-repeat center center fixed;
-            background-size: cover;
-            color: #fff;
-            margin: 0;
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
             overflow-x: hidden;
         }
 
-        /* Futuristic top nav */
-        .nav {
+        /* Subtle background mesh animation */
+        .mesh-gradient {
             position: fixed;
-            top: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 16px;
-            border-radius: 999px;
-            background: rgba(0,0,0,0.45);
-            border: 1px solid rgba(255,255,255,0.14);
-            backdrop-filter: blur(10px);
-            z-index: 20;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-        }
-        .nav .dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, var(--blue), transparent);
-            box-shadow: 0 0 12px var(--blue);
-        }
-        .nav .brand { font-weight: 800; letter-spacing: .5px; opacity: .9; }
-        .nav .pill {
-            padding: 6px 10px; border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.14);
-            background: rgba(255,255,255,0.06);
-            font-size: 12px; cursor: pointer;
-        }
-
-        /* Animated radial gradient and subtle grid overlay */
-        .gradient-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
             background:
-                radial-gradient(1200px 800px at 10% 20%, rgba(255,128,0,0.18), transparent 60%),
-                radial-gradient(1000px 700px at 90% 30%, rgba(64,188,244,0.18), transparent 60%),
-                radial-gradient(900px 600px at 50% 80%, rgba(0,224,84,0.14), transparent 60%);
-            animation: glowShift 20s ease-in-out infinite alternate;
-            z-index: 0;
+                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 98% 1%, rgba(64, 188, 244, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(0, 183, 164, 0.03) 0px, transparent 50%);
+            pointer-events: none;
         }
 
-        @keyframes glowShift {
-            0%   { filter: hue-rotate(0deg) saturate(1); }
-            100% { filter: hue-rotate(25deg) saturate(1.2); }
+        /* Custom input autofill fix for dark mode */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px #0F0F0F inset !important;
+            -webkit-text-fill-color: white !important;
+            caret-color: white;
         }
 
-        /* Parallax decorative orbs */
-        .orb {
-            position: fixed;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(64,188,244,0.35), rgba(0,0,0,0));
-            filter: blur(6px);
-            z-index: 0;
-            transform: translate3d(0,0,0);
-            will-change: transform;
-        }
-        .orb.o1 { top: 10%; left: -60px; }
-        .orb.o2 { bottom: 8%; right: -40px; background: radial-gradient(circle at 70% 60%, rgba(255,128,0,0.35), rgba(0,0,0,0)); }
-
-        /* Content wrapper */
-        .stage {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            z-index: 1;
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.2),
+                0 20px 40px -10px rgba(0,0,0,0.3);
         }
 
-        /* 3D holographic card */
-        .card3d {
-            perspective: 1200px;
-            width: min(880px, 92vw);
-        }
-        .container {
-            width: 100%;
-            padding: 40px 40px 34px 40px;
-            border-radius: 18px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(14px) saturate(120%);
-            -webkit-backdrop-filter: blur(14px) saturate(120%);
-            text-align: center;
-            transform-style: preserve-3d;
-            transform: rotateX(0) rotateY(0);
-            transition: transform .2s ease;
-        }
+        /* Spinner Animation */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
 
-        h1 {
-            margin: 0 0 10px 0;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-            background: linear-gradient(90deg, var(--orange), var(--green), var(--blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: clamp(28px, 4vw, 44px);
-        }
-
-        h2 {
-            background: linear-gradient(90deg, var(--orange) 25%, var(--green) 50%, var(--blue) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            text-align: center;
-            margin-top: 26px;
-        }
-
-        .subtitle {
-            opacity: .85;
-            margin-bottom: 18px;
-        }
-
-        /* Feature section for SEO content */
-        .features {
-            margin-top: 18px;
-            text-align: left;
-            font-size: 14px;
-            line-height: 1.5;
-            opacity: 0.95;
-        }
-        .features h3 {
-            font-size: 15px;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-        .features ul {
-            padding-left: 18px;
-            margin: 0;
-        }
-        .features li {
-            margin-bottom: 4px;
-        }
-
-        form { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
-
-        .input {
-            width: 100%;
-            padding: 14px 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.06);
-            color: #fff;
-            outline: none;
-            transition: border .2s, box-shadow .2s, transform .15s ease;
-            box-sizing: border-box;
-            min-width: 0;
-            display: block;
-        }
-        .input:focus {
-            border-color: rgba(64,188,244,0.7);
-            box-shadow: 0 0 0 6px rgba(64,188,244,0.12);
-            transform: translateY(-1px);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px 16px;
-            margin-top: 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: linear-gradient(135deg, rgba(0,183,164,0.85), rgba(0,224,84,0.85));
-            color: #fff;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(0,183,164,0.35);
-            transition: transform .15s ease, box-shadow .2s, filter .2s;
-        }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
-        .btn:active { transform: translateY(0); }
-
-        /* Action grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
-        .ghost {
-            background: linear-gradient(135deg, rgba(64,188,244,0.18), rgba(255,128,0,0.18));
-            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
-        }
-
-        .link {
-            display: inline-block;
-            margin-top: 10px;
-            text-decoration: none;
-            color: var(--teal);
-            font-weight: bold;
-        }
-        .link:hover { text-decoration: underline; }
-
-        .loading {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.75);
-            padding: 24px 26px;
-            border-radius: 14px;
-            color: #fff;
-            text-align: center;
-            z-index: 20;
-            border: 1px solid rgba(255,255,255,0.12);
-            backdrop-filter: blur(8px);
-        }
-        .loading .spinner { margin-bottom: 10px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Support Box */
-        .support-box {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 12px 16px;
-            max-width: 280px;
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .support-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .support-box h6 {
-            margin: 0 0 8px 0;
-            color: #00b7a4;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .support-box p {
-            margin: 0 0 10px 0;
-            color: #fff;
-            font-size: 12px;
-            line-height: 1.4;
-            opacity: 0.9;
-        }
-
-        .support-box a {
-            display: inline-block;
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            color: white;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-        }
-
-        .support-box a:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-        }
-
-        .support-box .close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: none;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 16px;
-            opacity: 0.6;
-            transition: opacity 0.2s ease;
-        }
-
-        .support-box .close-btn:hover {
-            opacity: 1;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .container { width: 92%; padding: 28px 22px; }
-            .support-box {
-                bottom: 10px;
-                right: 10px;
-                max-width: 250px;
-                padding: 10px 12px;
-            }
-        }
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 {% endblock %}
 
 {% block content %}
-    <div class="nav" aria-label="Main navigation">
-        <div class="dot" aria-hidden="true"></div>
-        <div class="brand">{{ translations.app_name }}</div>
-        <button class="pill" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
-        <button class="pill" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
-        <button class="pill" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
-    </div>
+<div class="text-neutral-400 min-h-screen flex flex-col relative antialiased selection:bg-teal-500/30 selection:text-teal-200">
 
-    <div class="gradient-overlay" aria-hidden="true"></div>
-    <div class="orb o1" aria-hidden="true"></div>
-    <div class="orb o2" aria-hidden="true"></div>
+    <!-- Background Mesh -->
+    <div class="mesh-gradient" aria-hidden="true"></div>
 
-    <div class="stage">
-        <div class="card3d">
-            <div class="container" id="card">
-                <h1>{{ translations.main_title }}</h1>
-                <div class="subtitle" id="description">{{ translations.description }}</div>
+    <!-- Top Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 flex justify-center py-6 px-6">
+        <div class="flex items-center gap-1 bg-neutral-900/80 backdrop-blur-md border border-white/5 rounded-full p-1.5 pl-5 pr-1.5 shadow-2xl ring-1 ring-black/20">
+            <div class="flex items-center gap-2 mr-4">
+                <!-- Logo Icon (Abstract geometry) -->
+                <div class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                </div>
+                <span class="text-sm font-bold text-neutral-100 tracking-tight uppercase">
+                    {{ translations.app_name }}
+                </span>
+            </div>
 
-                <!-- SEO-friendly feature explanation -->
-                <section class="features" aria-label="Blendboxd features">
-                    <h3>{{ translations.features_title|default('What you can do with Blendboxd') }}</h3>
-                    <ul>
-                        <li><strong>Letterboxd Blend:</strong> İki Letterboxd hesabınızı Spotify Blend mantığıyla birleştirerek ortak film zevkinizi ortaya çıkarın.</li>
-                        <li><strong>Non-followers listesi:</strong> Sizi takip etmeyen Letterboxd kullanıcılarını tek tuşla listeleyin.</li>
-                        <li><strong>Random watchlist picker:</strong> Kendi watchlist’inizden rastgele film seçerek “ne izlesem?” derdinden kurtulun.</li>
-                        <li><strong>Ortak watchlist seçimi:</strong> Arkadaşınızla ortak watchlist’lerinizden rastgele film seçin ve birlikte izleyin.</li>
-                    </ul>
-                </section>
+            <div class="hidden sm:flex items-center">
+                <a href="/follow" class="text-xs font-medium text-neutral-400 hover:text-white px-4 py-2 rounded-full transition-colors duration-200">
+                    {{ translations.followboxd }}
+                </a>
+                <a href="/picker" class="text-xs font-medium text-neutral-400 hover:text-white px-4 py-2 rounded-full transition-colors duration-200">
+                    {{ translations.randomboxd }}
+                </a>
+                <a href="/duo_picker" class="text-xs font-medium text-neutral-400 hover:text-white px-4 py-2 rounded-full transition-colors duration-200">
+                    {{ translations.squadboxd }}
+                </a>
+            </div>
 
-                <form id="userForm" method="POST">
-                    <input class="input" type="text" name="username1" id="username1" placeholder="{{ translations.username1_placeholder }}" required>
-                    <input class="input" type="text" name="username2" id="username2" placeholder="{{ translations.username2_placeholder }}" required>
-                    <button class="btn" type="submit" style="grid-column: 1 / -1">{{ translations.blend_button }}</button>
-                </form>
+            <!-- Mobile Menu Button -->
+            <button class="sm:hidden p-2 text-neutral-400 hover:text-white" aria-label="Menu">
+                <i data-lucide="menu" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </nav>
 
-                <h2>{{ translations.extra_title }}</h2>
-                <div class="grid" aria-label="Extra tools">
-                    <button class="btn ghost" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
-                    <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
-                    <button class="btn ghost" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
+    <!-- Main Content Stage -->
+    <main class="flex-grow flex items-center justify-center p-6 relative z-10 pt-28 pb-20">
+        <div class="w-full max-w-2xl perspective-1000">
+
+            <!-- 3D Tilt Card Container -->
+            <div id="tiltCard" class="glass-card rounded-3xl p-8 md:p-12 transition-transform duration-100 ease-out transform-style-3d">
+
+                <!-- Hero Header -->
+                <div class="text-center mb-10 space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-medium uppercase tracking-wider text-teal-400 mb-2">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                        <span>Blendboxd - Letterboxd Tools</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-semibold text-white tracking-tight leading-[1.1]">
+                        {{ translations.main_title }}
+                    </h1>
+                    <p class="text-sm md:text-base text-neutral-400 max-w-lg mx-auto leading-relaxed">
+                        {{ translations.description }}
+                    </p>
                 </div>
 
-                <h6 id="copyright">{{ translations.copyright }}</h6>
+                <!-- Main Form -->
+                <form id="userForm" method="POST" class="space-y-6 mb-12">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                        <!-- Visual connector for 'Blend' concept -->
+                        <div class="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-neutral-900 border border-white/10 rounded-full p-1.5 text-neutral-500 shadow-lg">
+                            <i data-lucide="plus" class="w-3 h-3"></i>
+                        </div>
 
-                <p class="sponsor-wrapper">
-                    <a href="mailto:mert@codedbylumi.com"
-                       id="sponsorButton"
-                       style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;"
-                       onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';"
-                       onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';"
-                       onmousedown="this.style.transform='translateY(0)';"
-                       onmouseup="this.style.transform='translateY(-2px)';">
-                        {{ translations.sponsor_button }}
+                        <div class="group">
+                            <label for="username1" class="sr-only">{{ translations.username1_placeholder }}</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="user" class="w-4 h-4 text-neutral-500 group-focus-within:text-teal-500 transition-colors"></i>
+                                </div>
+                                <input
+                                    type="text"
+                                    name="username1"
+                                    id="username1"
+                                    required
+                                    class="block w-full pl-10 pr-4 py-3.5 bg-[#0F0F0F] border border-white/10 rounded-xl text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all duration-200"
+                                    placeholder="{{ translations.username1_placeholder }}"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="group">
+                            <label for="username2" class="sr-only">{{ translations.username2_placeholder }}</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="users" class="w-4 h-4 text-neutral-500 group-focus-within:text-teal-500 transition-colors"></i>
+                                </div>
+                                <input
+                                    type="text"
+                                    name="username2"
+                                    id="username2"
+                                    required
+                                    class="block w-full pl-10 pr-4 py-3.5 bg-[#0F0F0F] border border-white/10 rounded-xl text-sm text-white placeholder-neutral-600 focus:outline-none focus:ring-1 focus:ring-teal-500/50 focus:border-teal-500/50 transition-all duration-200"
+                                    placeholder="{{ translations.username2_placeholder }}"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-medium rounded-xl text-neutral-950 bg-white hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-neutral-900 focus:ring-white transition-all duration-200 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] overflow-hidden"
+                    >
+                        <span class="relative z-10 flex items-center gap-2">
+                            {{ translations.blend_button }}
+                            <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                        </span>
+                        <div class="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 ease-in-out skew-x-12"></div>
+                    </button>
+                </form>
+
+                <!-- Features Grid -->
+                <div class="border-t border-white/5 pt-8 mb-8">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-6">
+                        {{ translations.features_title|default('Features') }}
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Feature 1 -->
+                        <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 rounded-lg bg-teal-500/10 text-teal-400">
+                                    <i data-lucide="shuffle" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-neutral-200">Letterboxd Blend</h4>
+                                    <p class="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                        Compare film taste and generate a Spotify-style blend card.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Feature 2 -->
+                        <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 rounded-lg bg-orange-500/10 text-orange-400">
+                                    <i data-lucide="user-x" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-neutral-200">Non-Followers</h4>
+                                    <p class="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                        Instantly see who isn't following you back.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Feature 3 -->
+                        <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                                    <i data-lucide="film" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-neutral-200">Watchlist Picker</h4>
+                                    <p class="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                        Random selections from your personal watchlist.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Feature 4 -->
+                        <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                                    <i data-lucide="users-2" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-neutral-200">Common Watchlist</h4>
+                                    <p class="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                        Pick a movie available on both friends' lists.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Tools Links -->
+                <div class="grid grid-cols-3 gap-3">
+                    <a href="/picker" class="group flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all">
+                        <i data-lucide="dices" class="w-5 h-5 mb-2 text-neutral-500 group-hover:text-teal-400 transition-colors"></i>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-neutral-400 group-hover:text-white">Random</span>
                     </a>
-                </p>
+                    <a href="/duo_picker" class="group flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all">
+                        <i data-lucide="swords" class="w-5 h-5 mb-2 text-neutral-500 group-hover:text-teal-400 transition-colors"></i>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-neutral-400 group-hover:text-white">Squad</span>
+                    </a>
+                    <a href="/follow" class="group flex flex-col items-center justify-center py-3 px-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all">
+                        <i data-lucide="eye-off" class="w-5 h-5 mb-2 text-neutral-500 group-hover:text-teal-400 transition-colors"></i>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-neutral-400 group-hover:text-white">Followers</span>
+                    </a>
+                </div>
 
-                <br><br>
+                <!-- Footer info inside card -->
+                <div class="mt-10 flex flex-col items-center gap-4 border-t border-white/5 pt-6">
+                    <a href="mailto:mert@codedbylumi.com" class="text-xs text-neutral-500 hover:text-teal-400 transition-colors flex items-center gap-1.5">
+                        <span>{{ translations.sponsor_button }}</span>
+                        <i data-lucide="heart" class="w-3 h-3"></i>
+                    </a>
 
-                <a href="https://letterboxd.com/lumiboi/"
-                   class="link"
-                   id="letterboxdLink"
-                   target="_blank"
-                   rel="noopener noreferrer">
-                    {{ translations.letterboxd_link }}
+                    <p class="text-[10px] text-neutral-600 uppercase tracking-widest">
+                        {{ translations.copyright }}
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Minimal Fixed Footer Links -->
+    <footer class="fixed bottom-6 left-0 right-0 flex justify-center pointer-events-none z-20">
+        <a
+            href="https://letterboxd.com/lumiboi/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="pointer-events-auto px-4 py-2 rounded-full bg-black/50 backdrop-blur-md border border-white/5 text-xs text-neutral-500 hover:text-white transition-colors flex items-center gap-2"
+        >
+            <i data-lucide="external-link" class="w-3 h-3"></i>
+            {{ translations.letterboxd_link }}
+        </a>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex-col items-center justify-center text-white">
+        <div class="w-12 h-12 border-2 border-teal-500/30 border-t-teal-500 rounded-full spinner mb-4"></div>
+        <p class="text-sm font-medium tracking-wide animate-pulse">{{ translations.loading_text }}</p>
+        <p class="text-xs text-neutral-500 mt-2">{{ translations.loading_sounds }}</p>
+    </div>
+
+    <!-- Support Toast -->
+    <div
+        id="supportBox"
+        class="fixed bottom-6 right-6 z-50 w-72 glass-card rounded-xl p-4 transform transition-all duration-300 translate-y-0 opacity-100 shadow-2xl border-l-4 border-l-teal-500"
+    >
+        <button onclick="closeSupportBox()" class="absolute top-2 right-2 text-neutral-500 hover:text-white transition-colors" type="button">
+            <i data-lucide="x" class="w-3 h-3"></i>
+        </button>
+        <div class="flex gap-3">
+            <div class="mt-1">
+                <div class="p-1.5 bg-teal-500/10 rounded-md text-teal-400">
+                    <i data-lucide="coffee" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div>
+                <h6 class="text-sm font-semibold text-white mb-1">{{ translations.support_title }}</h6>
+                <p class="text-xs text-neutral-400 leading-relaxed mb-3">{{ translations.support_text }}</p>
+                <a
+                    href="https://www.patreon.com/c/Lumiboi"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 text-xs font-medium text-teal-400 hover:text-teal-300 transition-colors"
+                >
+                    {{ translations.support_button }}
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
                 </a>
             </div>
         </div>
     </div>
-
-    <div class="loading" id="loading" role="status" aria-live="polite">
-        <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x" aria-hidden="true"></i></div>
-        <p id="loadingText">{{ translations.loading_text }}</p>
-        <p id="loadingSounds">{{ translations.loading_sounds }}</p>
-    </div>
-
-    <!-- Support Box -->
-    <div class="support-box" id="supportBox">
-        <button class="close-btn" type="button" onclick="closeSupportBox()" aria-label="Close support box">&times;</button>
-        <h6 id="supportTitle">{{ translations.support_title }}</h6>
-        <p id="supportText">{{ translations.support_text }}</p>
-        <a href="https://www.patreon.com/c/Lumiboi"
-           target="_blank"
-           rel="noopener noreferrer">
-            <i class="fab fa-patreon" aria-hidden="true"></i> {{ translations.support_button }}
-        </a>
-    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
+    {{ super() }}
     <script>
+        // Initialize Lucide Icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Form Loading State
         const form = document.getElementById('userForm');
         const loading = document.getElementById('loading');
 
         if (form) {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function () {
                 if (loading) {
-                    loading.style.display = 'block'; // Show loading screen
+                    loading.style.display = 'flex';
                 }
             });
         }
 
-        // Support box functionality
+        // Support Box Logic
         function closeSupportBox() {
             const supportBox = document.getElementById('supportBox');
             if (supportBox) {
-                supportBox.style.display = 'none';
+                supportBox.style.transform = 'translateY(20px)';
+                supportBox.style.opacity = '0';
+                setTimeout(() => {
+                    supportBox.style.display = 'none';
+                }, 300);
                 localStorage.setItem('supportBoxClosed', 'true');
             }
         }
 
-        // Check if support box was previously closed
         if (localStorage.getItem('supportBoxClosed') === 'true') {
             const sb = document.getElementById('supportBox');
             if (sb) sb.style.display = 'none';
         }
 
-        // 3D tilt card + parallax for orbs
-        const orbs = document.querySelectorAll('.orb');
-        let mouseX = 0, mouseY = 0;
-        window.addEventListener('mousemove', (e) => {
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            mouseX = (e.clientX - cx) / cx;
-            mouseY = (e.clientY - cy) / cy;
-            orbs.forEach((o, i) => {
-                const depth = (i + 1) * 10;
-                o.style.transform = `translate3d(${mouseX * depth}px, ${mouseY * depth}px, 0)`;
+        // 3D Tilt Effect
+        const card = document.getElementById('tiltCard');
+        const container = document.querySelector('main');
+
+        if (card && container) {
+            container.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = ((y - centerY) / centerY) * -2;
+                const rotateY = ((x - centerX) / centerX) * 2;
+
+                card.style.transform =
+                    `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
             });
-            const card = document.getElementById('card');
-            if (card) {
-                const rotateY = mouseX * 6; // -6 to 6
-                const rotateX = -mouseY * 6; // -6 to 6
-                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            }
-        });
+
+            container.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+            });
+        }
     </script>
 {% endblock %}
