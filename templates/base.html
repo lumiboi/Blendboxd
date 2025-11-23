@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- not: sayfa başlığı blok üzerinden her sayfada override ediliyor -->
     <title>{% block title %}{{ translations.app_name }}{% endblock %}</title>
+
+    <!-- not: fontawesome ikonlar için -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680"
-     crossorigin="anonymous"></script>
+    <!-- not: adsense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8271785283476680" crossorigin="anonymous"></script>
     
-    <!-- Google tag (gtag.js) -->
+    <!-- not: google analytics kodu (değişmeyecek) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Q77KLT449"></script>
     <script>
+        // not: analytics için standart config
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
@@ -19,60 +24,56 @@
     </script>
     
     <style>
-        /* ==== Language Badges - Bottom Left Flags ==== */
+        /* ========== NOT: DİL SEÇİCİ – sol altta iki yuvarlak buton ========== */
         .language-badges {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
+            position: fixed; /* not: her sayfada sabit */
+            bottom: 20px;    /* not: ekran altından uzaklık */
+            left: 20px;      /* not: ekran solundan uzaklık */
+            z-index: 1000;   /* not: her şeyin üstünde olsun */
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 8px;        /* not: bayraklar arası boşluk */
         }
 
         .language-badge {
             width: 34px;
             height: 34px;
-            border-radius: 999px;
+            border-radius: 999px;           /* not: tam yuvarlak */
             padding: 3px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.75);   /* not: dark blur arkaplan */
             backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            outline: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
         }
 
+        /* not: hover’da hafif büyüme ve parıltı */
         .language-badge:hover {
             transform: translateY(-1px) scale(1.05);
             border-color: rgba(0, 255, 200, 0.6);
         }
 
+        /* not: aktif dil glow efekti */
         .language-badge.active {
             border-color: rgba(0, 255, 200, 0.9);
-            box-shadow: 0 0 0 1px rgba(0, 255, 200, 0.3), 0 6px 18px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 0 1px rgba(0,255,200,0.3),
+                        0 6px 18px rgba(0,0,0,0.7);
         }
 
-        .language-badge .flag {
+        /* not: bayrak görseli */
+        .language-badge img {
             width: 24px;
             height: 18px;
             border-radius: 3px;
-            background-size: cover;
-            background-position: center;
+            object-fit: cover;
+            display: block;
         }
 
-        .language-badge .flag.tr {
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjRTEwRTEwIi8+CjxjaXJjbGUgY3g9IjEwIiBjeT0iNy41IiByPSIzLjUiIGZpbGw9IiNGRkZGRkYiLz4KPHN0YXIgY3g9IjEwIiBjeT0iNy41IiByPSIyLjUiIGZpbGw9IiNEMDAwMDAiLz4KPC9zdmc+');
-        }
-
-        .language-badge .flag.en {
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAyMCAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjE1IiBmaWxsPSIjMDEyMTY5Ii8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSIxLjE1IiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI2LjkyNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iMTMuODUiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3Qgd2lkdGg9IjIuMzA3NyIgaGVpZ2h0PSIxNSIgeT0iMCIgeD0iOC44NDYyIiBmaWxsPSIjRkZGRkZGIi8+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIxLjE1IiB5PSI0LjYxNSIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMS4xNSIgeT0iOS4yMzA4IiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPg==');
-        }
-
+        /* not: mobil optimize boyutlar */
         @media (max-width: 768px) {
             .language-badges {
                 bottom: 14px;
@@ -84,41 +85,56 @@
                 height: 30px;
                 padding: 2px;
             }
-            .language-badge .flag {
+            .language-badge img {
                 width: 20px;
                 height: 15px;
             }
         }
     </style>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <!-- Bottom-left Language Flags -->
+
+    <!-- ======================================
+         NOT: DİL BAYRAKLARI (sol alt)
+         TR üstte — EN altta
+         aktif dil glow göstergesi ile belli oluyor
+    ======================================= -->
     <div class="language-badges">
+
+        <!-- not: Türkçe -->
         <button
             type="button"
             class="language-badge {% if current_lang == 'tr' %}active{% endif %}"
             onclick="setLanguage('tr')"
             aria-label="Türkçe"
         >
-            <span class="flag tr"></span>
+            <!-- not: bayrak görseli (istersen static içine alırsın) -->
+            <img src="https://flagcdn.com/w40/tr.png" alt="Türkçe">
         </button>
 
+        <!-- not: İngilizce -->
         <button
             type="button"
             class="language-badge {% if current_lang == 'en' %}active{% endif %}"
             onclick="setLanguage('en')"
             aria-label="English"
         >
-            <span class="flag en"></span>
+            <img src="https://flagcdn.com/w40/gb.png" alt="English">
         </button>
+
     </div>
     
+    <!-- not: tüm sayfaların gerçek içeriği buraya inject ediliyor -->
     {% block content %}{% endblock %}
     
     <script>
-        // Language switching functionality (explicit lang)
+        /* ======================================
+           NOT: Dil değiştirme fonksiyonu
+           Flask backend’de set_language/<lang> endpoint’i çağrılıyor.
+           Başarılı ise sayfa yenileniyor.
+        ======================================= */
         function setLanguage(lang) {
             fetch(`/set_language/${lang}`)
                 .then(response => response.json())
@@ -132,9 +148,8 @@
                 });
         }
         
-        // Initialize language-specific content
+        /* not: sayfa yüklenince isteğe bağlı dil-specific init fonksiyonu */
         document.addEventListener('DOMContentLoaded', function() {
-            // This will be overridden by individual page scripts
             if (typeof initializeLanguage === 'function') {
                 initializeLanguage();
             }
