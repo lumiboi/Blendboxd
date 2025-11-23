@@ -1,8 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}{{ translations.app_name }}{% endblock %}
+{% block title %}{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools{% endblock %}
 
 {% block extra_head %}
+    {{ super() }}
+    <!-- Core SEO -->
+    <meta name="description" content="{{ translations.seo_description|default('Blendboxd lets you create Spotify Blend–style mixes from Letterboxd accounts. Compare film taste, find users who do not follow you back, pick random movies from your watchlist and discover films from shared watchlists.') }}">
+    <meta name="robots" content="index,follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools">
+    <meta property="og:description" content="{{ translations.seo_description|default('Create a film taste blend from two Letterboxd profiles, list non-followers and get random picks from (shared) watchlists with Blendboxd.') }}">
+    <meta property="og:site_name" content="{{ translations.app_name }}">
+    <meta property="og:url" content="https://blendboxd.xyz/">
+    <meta property="og:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ translations.app_name }} – Letterboxd Blend, Non-Followers & Watchlist Tools">
+    <meta name="twitter:description" content="{{ translations.seo_description|default('Blend your Letterboxd film taste like Spotify Blend, see who doesn’t follow you back and explore movies from your watchlists.') }}">
+    <meta name="twitter:image" content="https://blendboxd.xyz/static/img/blendboxd-og.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "{{ translations.app_name }}",
+      "url": "https://blendboxd.xyz/",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Web",
+      "description": "{{ translations.seo_description|default('Blendboxd is a web app that lets you create Spotify Blend–style mixes from Letterboxd accounts, list non-followers and pick random films from (shared) watchlists.') }}",
+      "featureList": [
+        "Create a Spotify Blend–style film taste blend from two Letterboxd accounts",
+        "List Letterboxd users who don’t follow you back",
+        "Pick a random film from your own watchlist",
+        "Pick a random film from shared / common watchlists"
+      ],
+      "sameAs": [
+        "https://letterboxd.com/lumiboi/",
+        "https://www.patreon.com/c/Lumiboi"
+      ]
+    }
+    </script>
+
     <style>
         /* Modern Parallax + Glass UI */
         :root {
@@ -142,6 +184,27 @@
             margin-bottom: 18px;
         }
 
+        /* Feature section for SEO content */
+        .features {
+            margin-top: 18px;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+        .features h3 {
+            font-size: 15px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .features ul {
+            padding-left: 18px;
+            margin: 0;
+        }
+        .features li {
+            margin-bottom: 4px;
+        }
+
         form { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 640px) { form { grid-template-columns: 1fr; } }
 
@@ -154,8 +217,8 @@
             color: #fff;
             outline: none;
             transition: border .2s, box-shadow .2s, transform .15s ease;
-            box-sizing: border-box; /* prevent overflow */
-            min-width: 0; /* allow grid shrink, avoids overlap */
+            box-sizing: border-box;
+            min-width: 0;
             display: block;
         }
         .input:focus {
@@ -193,7 +256,7 @@
         }
 
         .link {
-            display: block;
+            display: inline-block;
             margin-top: 10px;
             text-decoration: none;
             color: var(--teal);
@@ -234,19 +297,19 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .support-box:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
-        
+
         .support-box h6 {
             margin: 0 0 8px 0;
             color: #00b7a4;
             font-size: 14px;
             font-weight: 600;
         }
-        
+
         .support-box p {
             margin: 0 0 10px 0;
             color: #fff;
@@ -254,7 +317,7 @@
             line-height: 1.4;
             opacity: 0.9;
         }
-        
+
         .support-box a {
             display: inline-block;
             background: linear-gradient(135deg, #ff6b6b, #ff8e53);
@@ -267,12 +330,12 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
         }
-        
+
         .support-box a:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
         }
-        
+
         .support-box .close-btn {
             position: absolute;
             top: 8px;
@@ -285,7 +348,7 @@
             opacity: 0.6;
             transition: opacity 0.2s ease;
         }
-        
+
         .support-box .close-btn:hover {
             opacity: 1;
         }
@@ -304,58 +367,90 @@
 {% endblock %}
 
 {% block content %}
-    <div class="nav">
-        <div class="dot"></div>
+    <div class="nav" aria-label="Main navigation">
+        <div class="dot" aria-hidden="true"></div>
         <div class="brand">{{ translations.app_name }}</div>
-        <div class="pill" onclick="location.href='/follow'">{{ translations.followboxd }}</div>
-        <div class="pill" onclick="location.href='/picker'">{{ translations.randomboxd }}</div>
-        <div class="pill" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</div>
+        <button class="pill" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
+        <button class="pill" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
+        <button class="pill" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
     </div>
 
-    <div class="gradient-overlay"></div>
-    <div class="orb o1"></div>
-    <div class="orb o2"></div>
+    <div class="gradient-overlay" aria-hidden="true"></div>
+    <div class="orb o1" aria-hidden="true"></div>
+    <div class="orb o2" aria-hidden="true"></div>
 
     <div class="stage">
-    <div class="card3d">
-    <div class="container" id="card">
-        <h1>{{ translations.main_title }}</h1>
-        <div class="subtitle" id="description">{{ translations.description }}</div>
-        <form id="userForm" method="POST">
-            <input class="input" type="text" name="username1" id="username1" placeholder="{{ translations.username1_placeholder }}" required>
-            <input class="input" type="text" name="username2" id="username2" placeholder="{{ translations.username2_placeholder }}" required>
-            <button class="btn" type="submit" style="grid-column: 1 / -1">{{ translations.blend_button }}</button>
-        </form>
-        <h2>{{ translations.extra_title }}</h2>
-        <div class="grid">
-            <button class="btn ghost" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
-            <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
-            <button class="btn ghost" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
+        <div class="card3d">
+            <div class="container" id="card">
+                <h1>{{ translations.main_title }}</h1>
+                <div class="subtitle" id="description">{{ translations.description }}</div>
+
+                <!-- SEO-friendly feature explanation -->
+                <section class="features" aria-label="Blendboxd features">
+                    <h3>{{ translations.features_title|default('What you can do with Blendboxd') }}</h3>
+                    <ul>
+                        <li><strong>Letterboxd Blend:</strong> İki Letterboxd hesabınızı Spotify Blend mantığıyla birleştirerek ortak film zevkinizi ortaya çıkarın.</li>
+                        <li><strong>Non-followers listesi:</strong> Sizi takip etmeyen Letterboxd kullanıcılarını tek tuşla listeleyin.</li>
+                        <li><strong>Random watchlist picker:</strong> Kendi watchlist’inizden rastgele film seçerek “ne izlesem?” derdinden kurtulun.</li>
+                        <li><strong>Ortak watchlist seçimi:</strong> Arkadaşınızla ortak watchlist’lerinizden rastgele film seçin ve birlikte izleyin.</li>
+                    </ul>
+                </section>
+
+                <form id="userForm" method="POST">
+                    <input class="input" type="text" name="username1" id="username1" placeholder="{{ translations.username1_placeholder }}" required>
+                    <input class="input" type="text" name="username2" id="username2" placeholder="{{ translations.username2_placeholder }}" required>
+                    <button class="btn" type="submit" style="grid-column: 1 / -1">{{ translations.blend_button }}</button>
+                </form>
+
+                <h2>{{ translations.extra_title }}</h2>
+                <div class="grid" aria-label="Extra tools">
+                    <button class="btn ghost" type="button" onclick="location.href='/picker'">{{ translations.randomboxd }}</button>
+                    <button class="btn ghost" type="button" onclick="location.href='/duo_picker'">{{ translations.squadboxd }}</button>
+                    <button class="btn ghost" type="button" onclick="location.href='/follow'">{{ translations.followboxd }}</button>
+                </div>
+
+                <h6 id="copyright">{{ translations.copyright }}</h6>
+
+                <p class="sponsor-wrapper">
+                    <a href="mailto:mert@codedbylumi.com"
+                       id="sponsorButton"
+                       style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;"
+                       onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';"
+                       onmousedown="this.style.transform='translateY(0)';"
+                       onmouseup="this.style.transform='translateY(-2px)';">
+                        {{ translations.sponsor_button }}
+                    </a>
+                </p>
+
+                <br><br>
+
+                <a href="https://letterboxd.com/lumiboi/"
+                   class="link"
+                   id="letterboxdLink"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    {{ translations.letterboxd_link }}
+                </a>
+            </div>
         </div>
-            
-            <h6 id="copyright">{{ translations.copyright }}</h6> 
-            <p5><a href="mailto:mert@codedbylumi.com" id="sponsorButton" style="display: inline-block; background-color: #00b7a4; color: white; font-size: 16px; padding: 15px 30px; text-decoration: none; border-radius: 50px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s, transform 0.2s;" onmouseover="this.style.backgroundColor='#009e8e'; this.style.transform='translateY(-2px)';" onmouseout="this.style.backgroundColor='#00b7a4'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(0)';" onmouseup="this.style.transform='translateY(-2px)';">{{ translations.sponsor_button }}</a></p5> 
-            <br>
-            <br> 
-            <a href="https://letterboxd.com/lumiboi/" class="link" id="letterboxdLink">{{ translations.letterboxd_link }}</a>
-        </form>
-    </div>
-    </div>
     </div>
 
-    <div class="loading" id="loading">
-        <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+    <div class="loading" id="loading" role="status" aria-live="polite">
+        <div class="spinner"><i class="fas fa-circle-notch fa-spin fa-2x" aria-hidden="true"></i></div>
         <p id="loadingText">{{ translations.loading_text }}</p>
         <p id="loadingSounds">{{ translations.loading_sounds }}</p>
     </div>
 
     <!-- Support Box -->
     <div class="support-box" id="supportBox">
-        <button class="close-btn" onclick="closeSupportBox()">&times;</button>
+        <button class="close-btn" type="button" onclick="closeSupportBox()" aria-label="Close support box">&times;</button>
         <h6 id="supportTitle">{{ translations.support_title }}</h6>
         <p id="supportText">{{ translations.support_text }}</p>
-        <a href="https://www.patreon.com/c/Lumiboi" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-patreon"></i> {{ translations.support_button }}
+        <a href="https://www.patreon.com/c/Lumiboi"
+           target="_blank"
+           rel="noopener noreferrer">
+            <i class="fab fa-patreon" aria-hidden="true"></i> {{ translations.support_button }}
         </a>
     </div>
 {% endblock %}
@@ -364,21 +459,28 @@
     <script>
         const form = document.getElementById('userForm');
         const loading = document.getElementById('loading');
-        
-        form.addEventListener('submit', function() {
-            loading.style.display = 'block'; // Show loading screen
-        });
+
+        if (form) {
+            form.addEventListener('submit', function() {
+                if (loading) {
+                    loading.style.display = 'block'; // Show loading screen
+                }
+            });
+        }
 
         // Support box functionality
         function closeSupportBox() {
             const supportBox = document.getElementById('supportBox');
-            supportBox.style.display = 'none';
-            localStorage.setItem('supportBoxClosed', 'true');
+            if (supportBox) {
+                supportBox.style.display = 'none';
+                localStorage.setItem('supportBoxClosed', 'true');
+            }
         }
 
         // Check if support box was previously closed
         if (localStorage.getItem('supportBoxClosed') === 'true') {
-            document.getElementById('supportBox').style.display = 'none';
+            const sb = document.getElementById('supportBox');
+            if (sb) sb.style.display = 'none';
         }
 
         // 3D tilt card + parallax for orbs
@@ -394,9 +496,11 @@
                 o.style.transform = `translate3d(${mouseX * depth}px, ${mouseY * depth}px, 0)`;
             });
             const card = document.getElementById('card');
-            const rotateY = mouseX * 6; // -6 to 6
-            const rotateX = -mouseY * 6; // -6 to 6
-            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            if (card) {
+                const rotateY = mouseX * 6; // -6 to 6
+                const rotateX = -mouseY * 6; // -6 to 6
+                card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            }
         });
     </script>
 {% endblock %}
